@@ -1,0 +1,41 @@
+<!-- index.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="//unpkg.com/docsify/themes/vue.css">
+  <style>
+  	section.cover.show {
+  		background: #f5f5f5 !important
+  	}
+  	.cover-main img {
+  		width: 100px !important
+  	}
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+</body>
+
+<script>
+  window.$docsify = {
+   loadSidebar: true,
+    subMaxLevel: 2,
+    search: 'auto', // default
+    coverpage: true,
+    auto2top: true
+ 
+  }
+</script>
+
+
+
+<script src="//unpkg.com/docsify/lib/docsify.min.js"></script>
+<script src="//unpkg.com/docsify/lib/plugins/search.min.js"></script>
+<script src="//unpkg.com/prismjs/components/prism-bash.min.js"></script>
+<script src="//unpkg.com/prismjs/components/prism-php.min.js"></script>
+<script src="//unpkg.com/prismjs/components/prism-go.min.js"></script>
+<script src="//unpkg.com/prismjs/components/prism-java.min.js"></script>
+<script src="//unpkg.com/prismjs/components/prism-groovy.min.js"></script>
+</html>

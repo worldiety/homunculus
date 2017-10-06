@@ -1,0 +1,21 @@
+configure(allprojects) { project ->
+	group = "org.homunculusframework"
+
+	apply plugin: "java"
+	
+	compileJava {
+		sourceCompatibility = 1.8
+		targetCompatibility = 1.8
+		options.encoding = 'UTF-8'
+
+
+	}
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies{
+        compile 'com.google.code.findbugs:jsr305:2.0.1'
+        compile 'org.slf4j:slf4j-api:1.7.25'
+    }
+}
