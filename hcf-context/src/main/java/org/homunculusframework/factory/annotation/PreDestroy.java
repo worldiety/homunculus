@@ -24,7 +24,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotated methods are called after before the component is teared down.
+ * Annotated methods are called after before the component is teared down. See also {@link org.homunculusframework.factory.component.AMPPreDestroy}
  *
  * @author Torben Schinke
  * @since 1.0

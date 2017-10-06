@@ -1,3 +1,8 @@
 .gradle
 .idea
 build
+hcf-context.iml
+homunculus.iml
+local.properties
+hcf-core.iml
+hcf-example-android.iml

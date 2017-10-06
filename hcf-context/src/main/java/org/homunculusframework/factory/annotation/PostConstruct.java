@@ -24,7 +24,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotated methods are called after all injection has been performed.
+ * Annotated methods are called after all injection has been performed. See also {@link org.homunculusframework.factory.component.AMPPostConstruct}
  * <p>
  *
  * @author Torben Schinke
