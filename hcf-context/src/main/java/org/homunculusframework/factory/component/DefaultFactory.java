@@ -48,8 +48,16 @@ public class DefaultFactory implements ObjectFactory, ObjectInjector {
         this.onTearDownProcessors = new ArrayList<>();
     }
 
-    public void add(AnnotatedFieldProcessor proc) {
+    public void addFieldProcessor(AnnotatedFieldProcessor proc) {
         annotatedFieldProcessors.add(proc);
+    }
+
+    public void addMethodSetupProcessors(AnnotatedMethodsProcessor proc) {
+        onInjectMethodProcessors.add(proc);
+    }
+
+    public void addMethodTearDownProcessors(AnnotatedMethodsProcessor proc) {
+        onTearDownProcessors.add(proc);
     }
 
     @Override
@@ -96,15 +104,19 @@ public class DefaultFactory implements ObjectFactory, ObjectInjector {
         final int s = processors.size();
         AtomicInteger completeCounter = new AtomicInteger();
         List<Throwable> exceptions = new ArrayList<>();
-        for (int i = 0; i < s; i++) {
-            processors.get(i).process(scope, instance, methods, (scope1, instance1, failures) -> {
-                synchronized (exceptions) {
-                    exceptions.addAll(failures);
-                }
-                if (completeCounter.incrementAndGet() == s) {
-                    callback.onComplete(scope1, instance1, exceptions);
-                }
-            });
+        if (s == 0) {
+            callback.onComplete(scope, instance, exceptions);
+        } else {
+            for (int i = 0; i < s; i++) {
+                processors.get(i).process(scope, instance, methods, (scope1, instance1, failures) -> {
+                    synchronized (exceptions) {
+                        exceptions.addAll(failures);
+                    }
+                    if (completeCounter.incrementAndGet() == s) {
+                        callback.onComplete(scope1, instance1, exceptions);
+                    }
+                });
+            }
         }
     }
 

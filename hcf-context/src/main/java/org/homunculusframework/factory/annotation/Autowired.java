@@ -22,12 +22,22 @@ import java.lang.annotation.*;
  * dependency injection infrastructure. The concrete capabilities depends on the
  * configured {@link org.homunculusframework.factory.ObjectFactory}.
  * See also {@link org.homunculusframework.factory.component.AFPAutowired}.
+ * <p>
+ * By default the injection or wiring process will try to match combination of name and type, using the field name.
+ * The field name can be overwritten by another value, e.g. to match a value
+ * from {@link org.homunculusframework.navigation.ModelAndView}. If no such combination exists, any other matching
+ * type is resolved. If that does not succeed the value will be the java default value for that type (e.g. 0 for
+ * numbers or null for reference types)
  *
  * @author Torben Schinke
  * @since 1.0
  */
-@Target({ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.TYPE})
+@Target({ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface Autowired {
+    /**
+     * See {@link Autowired}
+     */
+    String value() default "";
 }

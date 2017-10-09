@@ -64,12 +64,12 @@ public class AMPPostConstruct implements AnnotatedMethodsProcessor {
 
     private void execNextMethod(Scope scope, Object instance, List<MyMethod> methods, ProcessingCompleteCallback callback, List<Throwable> failures) {
         if (methods.isEmpty()) {
-            LoggerFactory.getLogger(instance.getClass()).debug("{}.@PostConstruct complete", instance.getClass().getSimpleName());
+            LoggerFactory.getLogger(instance.getClass()).info("{}.@PostConstruct complete", instance.getClass().getSimpleName());
             callback.onComplete(scope, instance, failures);
         } else {
             MyMethod method = methods.remove(0);
             method.handler.post(() -> {
-                LoggerFactory.getLogger(instance.getClass()).debug("{}.{}()", instance.getClass().getSimpleName(), method.method.getName());
+                LoggerFactory.getLogger(instance.getClass()).info("{}.{}()", instance.getClass().getSimpleName(), method.method.getName());
                 try {
                     method.method.invoke(instance);
                 } catch (Throwable t) {

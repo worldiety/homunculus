@@ -27,6 +27,8 @@ import java.util.*;
  * does not mean it is logically safe when used. By definition a scope has the ownership of {@link Destroyable} values.
  * If you don't want that for specific values, you have to remove such values manually before destroying. After destroyed,
  * most methods throw {@link IllegalStateException} to indicate a programming failure.
+ * <p>
+ * By convention, named framework specific members are prefixed with $.
  *
  * @author Torben Schinke
  * @since 1.0
@@ -81,6 +83,9 @@ public final class Scope implements Destroyable {
         this.anonymousValues = new IdentityHashMap<>();
         this.dcbAfter = new ArrayList<>(3);
         this.dcbBefore = new ArrayList<>(3);
+        if (parent != null) {
+            parent.subScopes.put(name, this);
+        }
     }
 
     /**
@@ -181,6 +186,28 @@ public final class Scope implements Destroyable {
                 }
             }
             return scope;
+        }
+    }
+
+    /**
+     * To differentiate between null values and absent values this method has been introduced.
+     */
+    public boolean hasNamedValue(String name) {
+        synchronized (lock) {
+            return namedValues.containsKey(name);
+        }
+    }
+
+    /**
+     * To differentiate between null values and absent values this method has been introduced.
+     */
+    public boolean hasNamedValue(String name, Class<?> type) {
+        synchronized (lock) {
+            Object obj = namedValues.get(name);
+            if (obj != null && type.isAssignableFrom(obj.getClass())) {
+                return true;
+            }
+            return false;
         }
     }
 
