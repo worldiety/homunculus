@@ -15,8 +15,8 @@
  */
 package org.homunculusframework.navigation;
 
-import org.homunculusframework.factory.configuration.Container;
-import org.homunculusframework.factory.executor.BackgroundThread;
+import org.homunculusframework.factory.container.Container;
+import org.homunculusframework.factory.container.Request;
 import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
 
@@ -42,27 +42,17 @@ public class DefaultNavigation implements Navigation {
     }
 
     private void execute(Request request) {
-        request.put(Container.NAME_CALLSTACK, getCallStack(4));
-        Container container = scope.resolve(Container.class);
-        if (container == null) {
-            LoggerFactory.getLogger(getClass()).error("navigation not possible: {} missing", Container.class);
-        } else {
-            BackgroundThread backgroundThread = scope.resolve(BackgroundThread.class);
-            Runnable job = () -> {
-                try {
-                    Object result = container.invoke(scope, request);
-                    LoggerFactory.getLogger(getClass()).info("invocation success {}", request.getRequestMapping());
-                } catch (Exception e) {
-                    LoggerFactory.getLogger(getClass()).error("failed to execute Request '{}':", request.getRequestMapping(), e);
-                }
-            };
-            if (backgroundThread == null) {
-                LoggerFactory.getLogger(getClass()).warn("no background thread defined, executing Request '{}' inline", request.getRequestMapping());
-                job.run();
+        request.put(Container.NAME_CALLSTACK, getCallStack(5));
+        request.execute(scope).whenDone(res -> {
+            Object obj = res.get();
+            if (obj instanceof ModelAndView) {
+                ModelAndView mav = (ModelAndView) obj;
+                String uis = mav.getView();
+
             } else {
-                backgroundThread.post(job);
+                LoggerFactory.getLogger(getClass()).error("invocation success, but result not useful to navigate (use ModelAndView): {} -> {}", request.getRequestMapping(), obj);
             }
-        }
+        });
     }
 
     private StackTraceElement[] getCallStack(int offset) {

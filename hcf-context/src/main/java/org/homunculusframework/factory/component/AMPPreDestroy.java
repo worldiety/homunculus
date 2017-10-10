@@ -16,7 +16,7 @@
 package org.homunculusframework.factory.component;
 
 import org.homunculusframework.factory.annotation.PreDestroy;
-import org.homunculusframework.factory.executor.Handler;
+import org.homunculusframework.factory.container.Handler;
 import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
 
@@ -40,12 +40,12 @@ public class AMPPreDestroy implements AnnotatedMethodsProcessor {
         for (Method method : methods) {
             PreDestroy preDestroy = method.getAnnotation(PreDestroy.class);
             if (preDestroy != null) {
-                Handler handler = scope.resolve(preDestroy.in());
+                Handler handler = scope.resolveNamedValue(preDestroy.in(), Handler.class);
                 if (handler == null) {
                     LoggerFactory.getLogger(instance.getClass()).error("{} is undefined, @PreDestroy {}() ignored", preDestroy.in(), method.getName());
                     continue;
                 }
-                if (method.getParameterCount() != 0) {
+                if (method.getGenericParameterTypes().length != 0) {
                     LoggerFactory.getLogger(instance.getClass()).error("invalid method, parameters must be empty, @PreDestroy {}() ignored", preDestroy.in(), method.getName());
                     continue;
                 }

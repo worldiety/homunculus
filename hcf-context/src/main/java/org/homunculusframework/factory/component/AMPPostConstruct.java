@@ -16,7 +16,7 @@
 package org.homunculusframework.factory.component;
 
 import org.homunculusframework.factory.annotation.PostConstruct;
-import org.homunculusframework.factory.executor.Handler;
+import org.homunculusframework.factory.container.Handler;
 import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
 
@@ -40,12 +40,12 @@ public class AMPPostConstruct implements AnnotatedMethodsProcessor {
         for (Method method : methods) {
             PostConstruct postConstruct = method.getAnnotation(PostConstruct.class);
             if (postConstruct != null) {
-                Handler handler = scope.resolve(postConstruct.in());
+                Handler handler = scope.resolveNamedValue(postConstruct.in(), Handler.class);
                 if (handler == null) {
                     LoggerFactory.getLogger(instance.getClass()).error("{} is undefined, @PostConstruct {}() ignored", postConstruct.in(), method.getName());
                     continue;
                 }
-                if (method.getParameterCount() != 0) {
+                if (method.getParameterTypes().length != 0) {
                     LoggerFactory.getLogger(instance.getClass()).error("invalid method, parameters must be empty, @PostConstruct {}() ignored", postConstruct.in(), method.getName());
                     continue;
                 }

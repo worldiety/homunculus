@@ -15,8 +15,8 @@
  */
 package org.homunculusframework.factory.annotation;
 
-import org.homunculusframework.factory.executor.Handler;
-import org.homunculusframework.factory.executor.MainThread;
+import org.homunculusframework.factory.container.Container;
+import org.homunculusframework.factory.container.Handler;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -34,9 +34,10 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface PostConstruct {
     /**
-     * Specifies the handler to use for execution. By default the {@link MainThread} is used.
+     * Specifies the {@link Handler} to use for execution. By default the {@link Container#NAME_MAIN_HANDLER} is used.
+     * If no such handler is found, the execution is ignored.
      */
-    Class<? extends Handler> in() default MainThread.class;
+    String in() default Container.NAME_MAIN_HANDLER;
 
     /**
      * You can specify multiple methods with an exact execution order. The lower the order value, the earlier it get's executed.

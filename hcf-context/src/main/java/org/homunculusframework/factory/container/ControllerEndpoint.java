@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.homunculusframework.factory.configuration;
+package org.homunculusframework.factory.container;
 
 import org.homunculusframework.factory.annotation.Parameter;
 import org.homunculusframework.factory.annotation.RequestMapping;
 import org.homunculusframework.lang.Classname;
-import org.homunculusframework.navigation.Request;
 import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
 
@@ -109,16 +108,16 @@ public final class ControllerEndpoint {
                     //no name available, try to resolve by type only
                     value = requestScope.resolve(type);
                 } else {
-                    if (!requestScope.hasNamedValue(name)) {
+                    if (!requestScope.hasResolvableNamedValue(name)) {
                         LoggerFactory.getLogger(instance.getClass()).error("{}.{}: required parameter '{}' is undefined in Request", instance.getClass().getSimpleName(), getDebugNameWithParamTypes(), name);
                     } else {
-                        if (!requestScope.hasNamedValue(name, type)) {
+                        if (!requestScope.hasResolvableNamedValue(name, type)) {
                             LoggerFactory.getLogger(instance.getClass()).error("{}.{}: required parameter '{}' is not assignable", instance.getClass().getSimpleName(), getDebugNameWithParamTypes(), name);
                         }
                     }
 
                     //this can be null, even if another value could resolve that, but those are intentionally ignored and treated explicitly as null by definition
-                    value = requestScope.getNamedValue(name, type);
+                    value = requestScope.resolveNamedValue(name, type);
                 }
                 callTmp[i] = value;
             }

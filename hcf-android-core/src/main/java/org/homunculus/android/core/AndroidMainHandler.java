@@ -15,26 +15,24 @@
  */
 package org.homunculus.android.core;
 
-import org.homunculusframework.factory.executor.BackgroundThread;
-
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import android.os.Handler;
+import android.os.Looper;
 
 /**
- * A simple one thread executor for the default background execution.
+ * The default typed Android main thread implementation.
  *
  * @author Torben Schinke
  * @since 1.0
  */
-public class AndroidBackgroundThread implements BackgroundThread {
-    private final ExecutorService mExecutor;
+public class AndroidMainHandler implements org.homunculusframework.factory.container.Handler {
+    private final Handler mHandler;
 
-    public AndroidBackgroundThread() {
-        mExecutor = Executors.newFixedThreadPool(1);
+    public AndroidMainHandler() {
+        mHandler = new Handler(Looper.getMainLooper());
     }
 
     @Override
     public void post(Runnable r) {
-        mExecutor.submit(r);
+        mHandler.post(r);
     }
 }

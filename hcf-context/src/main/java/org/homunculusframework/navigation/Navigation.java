@@ -15,6 +15,8 @@
  */
 package org.homunculusframework.navigation;
 
+import org.homunculusframework.factory.container.Request;
+
 /**
  * @author Torben Schinke
  * @since 1.0

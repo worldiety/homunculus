@@ -22,7 +22,8 @@ import android.arch.lifecycle.LifecycleOwner;
 import android.arch.lifecycle.OnLifecycleEvent;
 import android.content.Context;
 import org.homunculusframework.factory.component.*;
-import org.homunculusframework.factory.configuration.Configuration;
+import org.homunculusframework.factory.container.Configuration;
+import org.homunculusframework.factory.container.Container;
 import org.homunculusframework.scope.Scope;
 
 import javax.annotation.Nullable;
@@ -117,8 +118,10 @@ public class Android {
         synchronized (sAndroidScopes) {
             if (sAppContextScope == null) {
                 sAppContextScope = new Scope("/", null);
-                sAppContextScope.putNamedValue("$mainThread", new AndroidMainThread());
-                sAppContextScope.putNamedValue("$backgroundThread", new AndroidBackgroundThread());
+                sAppContextScope.putNamedValue(Container.NAME_MAIN_HANDLER, new AndroidMainHandler());
+                sAppContextScope.putNamedValue(Container.NAME_BACKGROUND_HANDLER, new AndroidBackgroundHandler(8, Container.NAME_BACKGROUND_HANDLER, Thread.MIN_PRIORITY));
+                sAppContextScope.putNamedValue(Container.NAME_REQUEST_HANDLER, new AndroidBackgroundHandler(8, Container.NAME_REQUEST_HANDLER, Thread.MIN_PRIORITY));
+                sAppContextScope.putNamedValue(Container.NAME_INFLATER_HANDLER, new AndroidInflaterHandler(8, Thread.MIN_PRIORITY));
             }
             return sAppContextScope;
         }

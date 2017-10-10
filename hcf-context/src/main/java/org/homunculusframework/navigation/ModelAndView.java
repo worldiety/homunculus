@@ -15,6 +15,8 @@
  */
 package org.homunculusframework.navigation;
 
+import org.homunculusframework.factory.annotation.Widget;
+
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -38,5 +40,10 @@ public final class ModelAndView {
         return this;
     }
 
-
+    /**
+     * Returns the {@link Widget#value()} to resolve.
+     */
+    public String getView() {
+        return view;
+    }
 }

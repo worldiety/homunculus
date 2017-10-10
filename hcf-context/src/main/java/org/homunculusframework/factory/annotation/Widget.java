@@ -15,11 +15,15 @@
  */
 package org.homunculusframework.factory.annotation;
 
+import org.homunculusframework.factory.container.Container;
+import org.homunculusframework.factory.container.Handler;
+import org.homunculusframework.factory.container.Request;
+
 import java.lang.annotation.*;
 
 /**
  * Denotes a view component to be displayed on screen. Annotate your view class with it and
- * refer to it using {@link org.homunculusframework.navigation.Request}. Use a request with
+ * refer to it using {@link Request}. Use a request with
  * {@link org.homunculusframework.navigation.Navigation} to automatically create a stack based user
  * flow.
  *
@@ -34,4 +38,11 @@ public @interface Widget {
      * The unique id to identify the view or component.
      */
     String value();
+
+    /**
+     * The name of the {@link Handler} used to create or inflate a {@link Widget}.
+     * By default this is {@link Container#NAME_MAIN_HANDLER} but when required and configured use
+     * {@link Container#NAME_INFLATER_HANDLER} (e.g. on Android)
+     */
+    String inflaterHandler() default Container.NAME_MAIN_HANDLER;
 }

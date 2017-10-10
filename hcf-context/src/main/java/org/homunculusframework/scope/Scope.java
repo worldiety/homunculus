@@ -17,6 +17,7 @@
 package org.homunculusframework.scope;
 
 import org.homunculusframework.lang.Destroyable;
+import org.homunculusframework.lang.Reflection;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -59,7 +60,10 @@ public final class Scope implements Destroyable {
      * Anonymous values are values without any name. Only a single value per class can be hold, multiple would not make sense
      * in the same scope, because when resolving and matching against a potential target we always would pick the first (or last).
      * Using this approach we always use the latest kind of value per type.
+     *
+     * @deprecated does not look like that we need that anymore
      */
+    @Deprecated
     private final Map<Class, Object> anonymousValues;
 
     //the hidden lock to make the scope operations thread safe
@@ -89,7 +93,7 @@ public final class Scope implements Destroyable {
     }
 
     /**
-     * Adds the callback
+     * Adds the callback. Note: You can also implement {@link Destroyable} instead of registering for the lifecycle event.
      */
     public void addOnBeforeDestroyCallback(OnBeforeDestroyCallback cb) {
         synchronized (lock) {
@@ -107,7 +111,7 @@ public final class Scope implements Destroyable {
     }
 
     /**
-     * Adds the callback
+     * Adds the callback. Note: You can also implement {@link Destroyable} instead of registering for the lifecycle event.
      */
     public void addOnAfterDestroyCallback(OnAfterDestroyCallback cb) {
         synchronized (lock) {
@@ -200,6 +204,19 @@ public final class Scope implements Destroyable {
 
     /**
      * To differentiate between null values and absent values this method has been introduced.
+     * Walks up the parents, if any of them defines something like that.
+     */
+    public boolean hasResolvableNamedValue(String name) {
+        synchronized (lock) {
+            if (!namedValues.containsKey(name) && parent != null) {
+                return parent.hasResolvableNamedValue(name);
+            }
+            return namedValues.containsKey(name);
+        }
+    }
+
+    /**
+     * To differentiate between null values and absent values this method has been introduced.
      */
     public boolean hasNamedValue(String name, Class<?> type) {
         synchronized (lock) {
@@ -212,19 +229,63 @@ public final class Scope implements Destroyable {
     }
 
     /**
+     * To differentiate between null values and absent values this method has been introduced.
+     * Walks up the parents, if any of them defines something like that and tries to duck type it.
+     */
+    public boolean hasResolvableNamedValue(String name, Class<?> type) {
+        synchronized (lock) {
+            if (!namedValues.containsKey(name) && parent != null) {
+                return parent.hasResolvableNamedValue(name, type);
+            }
+            Object obj = namedValues.get(name);
+            Object res = Reflection.castDuck(obj, type);
+            if (obj != null && res == null) {
+                return false;
+            }
+            if (obj == null && res != null) {
+                return false;
+            }
+            if (obj != null && res != null) {
+                //well we can't be sure (e.g. casting "abc" to int will return "0"?
+                return true;
+            }
+
+            return false;
+        }
+    }
+
+    /**
      * A convenience helper method. Returns the named value and tries to cast it.
      * If not possible, returns null, as it would have been never defined. See also {@link #getNamedValue(String)}.
+     * The logic performs a duck type and tries to make some reasonable casts or type conversions, e.g. between string and numbers.
      */
     @Nullable
     public <T> T getNamedValue(String name, Class<T> type) {
         synchronized (lock) {
             checkDestroyed();
+
             Object obj = namedValues.get(name);
-            if (obj != null && type.isAssignableFrom(obj.getClass())) {
-                return (T) obj;
-            }
-            return null;
+            return (T) Reflection.castDuck(obj, type);
         }
+    }
+
+    /**
+     * Similar to {@link #getNamedValue(String, Class)} but resolves the variable also by looking into the parents.
+     * Each child of a parent may shadow the parents variable with the same name.
+     * The logic performs a duck type and tries to make some reasonable casts or type conversions, e.g. between string and numbers.
+     */
+    public <T> T resolveNamedValue(String name, Class<T> type) {
+        synchronized (lock) {
+            checkDestroyed();
+
+            if (!namedValues.containsKey(name) && parent != null) {
+                return parent.getNamedValue(name, type);
+            }
+
+            Object obj = namedValues.get(name);
+            return (T) Reflection.castDuck(obj, type);
+        }
+
     }
 
     /**

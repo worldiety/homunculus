@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.homunculusframework.factory.configuration;
+package org.homunculusframework.factory.container;
 
 import org.homunculusframework.factory.ObjectFactory;
 import org.homunculusframework.factory.ObjectInjector;

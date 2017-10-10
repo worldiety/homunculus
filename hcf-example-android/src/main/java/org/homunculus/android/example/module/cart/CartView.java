@@ -17,15 +17,15 @@ public class CartView extends LinearLayout {
     @Autowired("cart")
     private CartModel mCart;
 
-    @Autowired
-    private Activity mActivity;
+
 
     public CartView(Context context) {
         super(context);
     }
 
+    //TODO this makes this view hard to reuse, because it destroys the context which it should not do??? or would we extend it as a "UIS"?
     @PostConstruct
-    private void setViewInActivity() {
+    private void init() {
         removeAllViews();
         if (mCart == null) {
             return;
@@ -41,7 +41,5 @@ public class CartView extends LinearLayout {
             eT.setText(entry.getName());
             addView(title, new LayoutParams(MATCH_PARENT, LayoutParams.WRAP_CONTENT));
         }
-
-        mActivity.setContentView(this);
     }
 }

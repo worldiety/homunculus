@@ -15,12 +15,14 @@
  */
 package org.homunculusframework.factory.annotation;
 
+import org.homunculusframework.factory.container.Request;
+
 import java.lang.annotation.*;
 
 /**
  * Declares a type or a method with a name space which must be unique all over the system.
  * It is used by the {@link org.homunculusframework.navigation.Navigation} and
- * {@link org.homunculusframework.navigation.Request} components.
+ * {@link Request} components.
  *
  * @author Torben Schinke
  * @since 1.0

@@ -13,13 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.homunculusframework.factory.executor;
+package org.homunculusframework.stereotype;
+
+import java.lang.annotation.*;
 
 /**
- * A convenience interface to address the main thread by using a specific contract.
+ * Indicates that an annotated class is a "UserInterfaceState" (UIS)
+ * <p>
+ * Definition of "user interface state": Describes a self contained part of the user interface which provides
+ * access to a specific functionality or use case. Usually a UIS describes an aggregation of view components within
+ * an entire window.
  *
+ * @deprecated unclear what the difference is with a widget?
  * @author Torben Schinke
  * @since 1.0
  */
-public interface MainThread extends Handler {
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Deprecated
+public @interface UserInterfaceState {
 }
