@@ -264,7 +264,7 @@ public final class Container {
      * </ul>
      */
     public <T> Task<Component<T>> destroyComponent(Scope scope, T instance, boolean destroyScope) {
-        SettableTask<Component<T>> task = SettableTask.create(scope, "destroyComponent#" + instance.getClass());
+        SettableTask<Component<T>> task = SettableTask.create(scope.getParent(), "destroyComponent#" + instance.getClass());
         configuration.getObjectDestroyer().destroy(scope, instance, (scope1, instance1, failures) -> {
             try {
                 if (destroyScope) {

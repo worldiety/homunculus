@@ -16,6 +16,7 @@
 package org.homunculus.android.core;
 
 
+import android.app.Activity;
 import android.arch.lifecycle.Lifecycle.Event;
 import android.arch.lifecycle.LifecycleObserver;
 import android.arch.lifecycle.LifecycleOwner;
@@ -24,6 +25,8 @@ import android.content.Context;
 import org.homunculusframework.factory.component.*;
 import org.homunculusframework.factory.container.Configuration;
 import org.homunculusframework.factory.container.Container;
+import org.homunculusframework.navigation.DefaultNavigation;
+import org.homunculusframework.navigation.Navigation;
 import org.homunculusframework.scope.Scope;
 
 import javax.annotation.Nullable;
@@ -39,6 +42,16 @@ import java.util.Map;
  * @since 1.0
  */
 public class Android {
+
+    /**
+     * The name for a {@link Navigation}
+     */
+    public final static String NAME_NAVIGATION = "$navigation";
+    /**
+     * The name for a {@link Context}
+     */
+    public final static String NAME_CONTEXT = "$context";
+
     /**
      * Holding our scope structures. It does not leak because the new {@link LifecycleOwner} of android will protect us.
      */
@@ -49,8 +62,9 @@ public class Android {
     }
 
     /**
-     * Returns the app wide configuration as a singelton. The configuration always uses {@link #getRootScope(Context)}.
-     * Also the returned configuration is app-wide and should not provide leaky things to an activity
+     * Returns the app wide configuration as a singelton. The configuration always uses {@link #getRootScope()}.
+     * Also the returned configuration is app-wide and should not provide leaky things to an activity.
+     * By default this provides a fully useable and reasonable out-of-the-box configuration for Android.
      */
     public static Configuration getConfiguration(Context context) {
         Configuration configuration = new Configuration(getRootScope());
@@ -103,8 +117,12 @@ public class Android {
                     }
                 });
                 if (lifecycleOwner instanceof Context) {
-                    scope.putNamedValue("$context", lifecycleOwner);
+                    scope.putNamedValue(NAME_CONTEXT, lifecycleOwner);
                 }
+                if (lifecycleOwner instanceof Activity) {
+                    scope.putNamedValue(NAME_NAVIGATION, new DefaultNavigation(scope));
+                }
+                sAndroidScopes.put(lifecycleOwner, scope);
             }
             return scope;
         }

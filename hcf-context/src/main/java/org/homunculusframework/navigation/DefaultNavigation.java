@@ -24,7 +24,10 @@ import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * This default navigation implements a simple stack based navigation approach and resolves
@@ -37,14 +40,38 @@ public class DefaultNavigation implements Navigation {
     private final Scope scope;
     @Nullable
     private UIS currentUIS;
+    private static final AtomicInteger requestNo = new AtomicInteger();
+
+    private final List<Request> stack;
 
     public DefaultNavigation(Scope scope) {
         this.scope = scope;
+        this.stack = new ArrayList<>();
     }
 
     @Override
     public void forward(Request request) {
+        synchronized (stack) {
+            stack.add(request);
+        }
         execute(request);
+    }
+
+    @Override
+    public boolean backward() {
+        synchronized (stack) {
+            if (stack.isEmpty()) {
+                return false;
+            }
+            //remove the current active entry
+            stack.remove(stack.size() - 1);
+            if (stack.isEmpty()) {
+                return false;
+            }
+            //just execute it once again, so that it get's applied
+            execute(stack.get(stack.size() - 1));
+            return true;
+        }
     }
 
     private void execute(Request request) {
@@ -110,7 +137,7 @@ public class DefaultNavigation implements Navigation {
 
 
     public static Scope createChild(Scope parent, ModelAndView modelAndView) {
-        Scope scope = new Scope(modelAndView.getView(), parent);
+        Scope scope = new Scope("inflate:" + modelAndView.getView() + "@" + requestNo.incrementAndGet(), parent);
         modelAndView.forEach(entry -> {
             scope.putNamedValue(entry.getKey(), entry.getValue());
             return true;
@@ -122,6 +149,7 @@ public class DefaultNavigation implements Navigation {
     private static class UIS {
         private final Scope scope;
         private final Object widget;
+
 
         UIS(Scope scope, Object widget) {
             this.scope = scope;

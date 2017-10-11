@@ -23,5 +23,13 @@ import org.homunculusframework.factory.container.Request;
  */
 public interface Navigation {
 
+    /**
+     * Goes forwards the navigation (whatever that means)
+     */
     void forward(Request request);
+
+    /**
+     * Goes backwards the navigation (whatever that means). Returns true, if that was possible
+     */
+    boolean backward();
 }

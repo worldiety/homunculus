@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import org.homunculus.android.annotation.Resource;
@@ -12,8 +13,11 @@ import org.homunculus.android.example.module.cart.CartModel.CartEntry;
 import org.homunculusframework.factory.annotation.Autowired;
 import org.homunculusframework.factory.annotation.PostConstruct;
 import org.homunculusframework.factory.annotation.Widget;
+import org.homunculusframework.factory.container.Request;
+import org.homunculusframework.navigation.Navigation;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
+import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 
 @Widget("/cart/view/list")
 public class CartView extends LinearLayout {
@@ -29,6 +33,10 @@ public class CartView extends LinearLayout {
 
     @Resource(R.drawable.icon)
     private Bitmap mIcon2;
+
+    @Autowired
+    private Navigation mNav;
+
 
     public CartView(Context context) {
         super(context);
@@ -52,5 +60,12 @@ public class CartView extends LinearLayout {
             eT.setText(entry.getName());
             addView(eT, new LayoutParams(MATCH_PARENT, LayoutParams.WRAP_CONTENT));
         }
+
+        Button button = new Button(getContext());
+        button.setText("next");
+        button.setOnClickListener(view -> {
+            mNav.forward(new Request("/cart/list").put("id", "77777"));
+        });
+        addView(button, new LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
     }
 }
