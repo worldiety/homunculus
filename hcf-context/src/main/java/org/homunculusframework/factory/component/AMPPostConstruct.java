@@ -15,6 +15,7 @@
  */
 package org.homunculusframework.factory.component;
 
+import org.homunculusframework.factory.ProcessingCompleteCallback;
 import org.homunculusframework.factory.annotation.PostConstruct;
 import org.homunculusframework.factory.container.Handler;
 import org.homunculusframework.scope.Scope;
@@ -27,7 +28,7 @@ import java.util.List;
 
 /**
  * Applies the {@link PostConstruct} methods in required order and in defined executors. Failed or invalid methods are silently ignored, to avoid
- * bubbling up exceptions at undefined places in the given {@link Handler}s. Occured exceptions are forwared to {@link org.homunculusframework.factory.component.AnnotatedMethodsProcessor.ProcessingCompleteCallback}
+ * bubbling up exceptions at undefined places in the given {@link Handler}s. Occured exceptions are forwared to {@link ProcessingCompleteCallback}
  *
  * @author Torben Schinke
  * @since 1.0

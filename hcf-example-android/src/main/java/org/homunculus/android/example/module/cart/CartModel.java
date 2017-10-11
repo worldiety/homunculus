@@ -26,6 +26,10 @@ public class CartModel {
     public static class CartEntry {
         private String name;
 
+        public CartEntry(String name) {
+            this.name = name;
+        }
+
         public String getName() {
             return name;
         }

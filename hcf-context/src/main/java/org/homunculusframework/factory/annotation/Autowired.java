@@ -15,12 +15,14 @@
  */
 package org.homunculusframework.factory.annotation;
 
+import org.homunculusframework.factory.ObjectCreator;
+
 import java.lang.annotation.*;
 
 /**
  * Marks a constructor, field, setter method or config method as to be automatically injected by HC's
  * dependency injection infrastructure. The concrete capabilities depends on the
- * configured {@link org.homunculusframework.factory.ObjectFactory}.
+ * configured {@link ObjectCreator}.
  * See also {@link org.homunculusframework.factory.component.AFPAutowired}.
  * <p>
  * By default the injection or wiring process will try to match combination of name and type, using the field name.

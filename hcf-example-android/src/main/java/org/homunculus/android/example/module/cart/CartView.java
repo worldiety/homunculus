@@ -2,8 +2,12 @@ package org.homunculus.android.example.module.cart;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import org.homunculus.android.annotation.Resource;
+import org.homunculus.android.example.R;
 import org.homunculus.android.example.module.cart.CartModel.CartEntry;
 import org.homunculusframework.factory.annotation.Autowired;
 import org.homunculusframework.factory.annotation.PostConstruct;
@@ -17,7 +21,14 @@ public class CartView extends LinearLayout {
     @Autowired("cart")
     private CartModel mCart;
 
+    @Resource(R.string.app_name)
+    private String mMsg;
 
+    @Resource(R.drawable.icon)
+    private Drawable mIcon1;
+
+    @Resource(R.drawable.icon)
+    private Bitmap mIcon2;
 
     public CartView(Context context) {
         super(context);
@@ -32,14 +43,14 @@ public class CartView extends LinearLayout {
         }
         setOrientation(VERTICAL);
         TextView title = new TextView(getContext());
-        title.setText("cart no " + mCart.getId());
+        title.setText("cart no " + mCart.getId() + " from " + mMsg);
         addView(title, new LayoutParams(MATCH_PARENT, LayoutParams.WRAP_CONTENT));
 
 
         for (CartEntry entry : mCart.getEntries()) {
             TextView eT = new TextView(getContext());
             eT.setText(entry.getName());
-            addView(title, new LayoutParams(MATCH_PARENT, LayoutParams.WRAP_CONTENT));
+            addView(eT, new LayoutParams(MATCH_PARENT, LayoutParams.WRAP_CONTENT));
         }
     }
 }

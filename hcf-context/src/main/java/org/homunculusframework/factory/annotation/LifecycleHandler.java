@@ -18,14 +18,13 @@ package org.homunculusframework.factory.annotation;
 import org.homunculusframework.factory.container.Container;
 import org.homunculusframework.factory.container.Handler;
 import org.homunculusframework.factory.container.Request;
+import org.homunculusframework.stereotype.Controller;
 
 import java.lang.annotation.*;
 
 /**
- * Denotes a view component to be displayed on screen. Annotate your view class with it and
- * refer to it using {@link Request}. Use a request with
- * {@link org.homunculusframework.navigation.Navigation} to automatically create a stack based user
- * flow.
+ * Denotes a handler name from a scope for execute a class' constructor and destructor and injections.
+ * This does not influence the execution of {@link PostConstruct} or {@link PreDestroy}.
  *
  * @author Torben Schinke
  * @since 1.0
@@ -33,10 +32,13 @@ import java.lang.annotation.*;
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface Widget {
+public @interface LifecycleHandler {
+
     /**
-     * The unique id to identify the view or component.
+     * The name of the {@link Handler} used to create or inflate a Component (e.g. a {@link Controller} or a
+     * {@link Widget}). The default for a Controller is inline (== the calling thread) and for a Widget
+     * the {@link Container#NAME_MAIN_HANDLER}. Here it may make sense
+     * to use the {@link Container#NAME_INFLATER_HANDLER}, e.g. on Android.
      */
     String value();
-
 }

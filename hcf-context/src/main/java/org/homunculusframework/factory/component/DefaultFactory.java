@@ -15,11 +15,9 @@
  */
 package org.homunculusframework.factory.component;
 
-import org.homunculusframework.factory.FactoryException;
-import org.homunculusframework.factory.ObjectFactory;
-import org.homunculusframework.factory.ObjectInjector;
-import org.homunculusframework.factory.component.AnnotatedMethodsProcessor.ProcessingCompleteCallback;
+import org.homunculusframework.factory.*;
 import org.homunculusframework.scope.Scope;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -35,7 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author Torben Schinke
  * @since 1.0
  */
-public class DefaultFactory implements ObjectFactory, ObjectInjector {
+public class DefaultFactory implements ObjectCreator, ObjectInjector, ObjectDestroyer {
 
     //intentionally an arraylist to lower GC looping performance for bad VMs like Android
     private final ArrayList<AnnotatedFieldProcessor> annotatedFieldProcessors;
@@ -92,12 +90,12 @@ public class DefaultFactory implements ObjectFactory, ObjectInjector {
 
     }
 
-    /**
-     * Executes all registered tear down operations on the given instance.
-     */
-    public void tearDown(Scope scope, Object instance, ProcessingCompleteCallback tearDownCompleteCallback) {
+
+    @Override
+    public void destroy(Scope scope, Object instance, ProcessingCompleteCallback tearDownCompleteCallback) throws FactoryException {
         invokeMethods(scope, instance, onTearDownProcessors, tearDownCompleteCallback);
     }
+
 
     private static void invokeMethods(Scope scope, Object instance, List<AnnotatedMethodsProcessor> processors, ProcessingCompleteCallback callback) {
         List<Method> methods = getMethods(instance.getClass());
@@ -154,8 +152,11 @@ public class DefaultFactory implements ObjectFactory, ObjectInjector {
             Class[] paramTypes = constructor.getParameterTypes();
             for (int i = 0; i < params.length; i++) {
                 params[i] = scope.resolve(paramTypes[i]);
+                if (params[i] == null) {
+                    LoggerFactory.getLogger(constructor.getDeclaringClass()).error("missing parameter in constructor: {}. parameter -> type {} (check your scope environment)", i, paramTypes[i]);
+                }
             }
-            return constructor.newInstance(paramTypes);
+            return constructor.newInstance(params);
         } catch (InstantiationException | InvocationTargetException | IllegalAccessException e) {
             throw new FactoryException(e);
         }

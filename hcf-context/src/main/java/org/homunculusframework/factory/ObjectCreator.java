@@ -13,29 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.homunculusframework.factory.component;
+package org.homunculusframework.factory;
 
-/**
- * Created by tschinke on 06.10.17.
- */
-
-import org.homunculusframework.factory.ProcessingCompleteCallback;
 import org.homunculusframework.scope.Scope;
 
-import java.lang.reflect.Method;
-import java.util.List;
-
 /**
- * A methods processor must be thread safe and should not hold a state. Applies to a bunch of methods.
- *
  * @author Torben Schinke
  * @since 1.0
  */
-public interface AnnotatedMethodsProcessor {
-
+public interface ObjectCreator {
     /**
-     * Processes a bunch of methods, when applicable
+     * Tries to create a new instance of the given type using the given scope to resolve
+     * all required dependencies. It is always a programming error when this call fails.
      */
-    void process(Scope scope, Object instance, List<Method> methods, ProcessingCompleteCallback callback);
-
+    <T> T create(Scope scope, Class<T> type) throws FactoryException;
 }

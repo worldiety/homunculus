@@ -15,7 +15,8 @@
  */
 package org.homunculusframework.factory.container;
 
-import org.homunculusframework.factory.ObjectFactory;
+import org.homunculusframework.factory.ObjectCreator;
+import org.homunculusframework.factory.ObjectDestroyer;
 import org.homunculusframework.factory.ObjectInjector;
 import org.homunculusframework.factory.annotation.RequestMapping;
 import org.homunculusframework.factory.annotation.Widget;
@@ -39,6 +40,7 @@ public class Configuration {
      * Widget id -> widget class
      */
     private final Map<String, Class<?>> widgets;
+    private final Map<String, Class<?>> immutableWidgets;
 
     /**
      * Just the collection of all controllers which will be instantiated
@@ -55,17 +57,23 @@ public class Configuration {
 
     private final Scope rootScope;
 
-    private ObjectFactory objectFactory;
+    private ObjectCreator objectCreator;
 
     private ObjectInjector objectInjector;
 
+    private ObjectDestroyer objectDestroyer;
+
+
     public Configuration(Scope scope) {
         this.widgets = new HashMap<>();
+        this.immutableWidgets = Collections.unmodifiableMap(widgets);
         this.controllers = new ArrayList<>();
         this.definedIds = new HashMap<>();
         this.rootScope = scope;
-        this.objectFactory = new DefaultFactory();
-        this.objectInjector = new DefaultFactory();
+        DefaultFactory factory = new DefaultFactory();
+        this.objectCreator = factory;
+        this.objectInjector = factory;
+        this.objectDestroyer = factory;
     }
 
     /**
@@ -75,17 +83,25 @@ public class Configuration {
         return rootScope;
     }
 
-    public void setObjectFactory(ObjectFactory objectFactory) {
-        this.objectFactory = objectFactory;
+    public void setObjectCreator(ObjectCreator objectCreator) {
+        this.objectCreator = objectCreator;
     }
 
 
-    public ObjectFactory getObjectFactory() {
-        return objectFactory;
+    public ObjectCreator getObjectCreator() {
+        return objectCreator;
     }
 
     public ObjectInjector getObjectInjector() {
         return objectInjector;
+    }
+
+    public ObjectDestroyer getObjectDestroyer() {
+        return objectDestroyer;
+    }
+
+    public void setObjectDestroyer(ObjectDestroyer objectDestroyer) {
+        this.objectDestroyer = objectDestroyer;
     }
 
     public void setObjectInjector(ObjectInjector objectInjector) {
@@ -120,14 +136,25 @@ public class Configuration {
 
         synchronized (lock) {
             if (widget != null) {
-                Class<?> other = definedIds.get(widget.value());
+                String normalized = widget.value().trim();
+                if (normalized.length() == 0) {
+                    LoggerFactory.getLogger(getClass()).error("widget id must not be empty: {}", clazz);
+                    return false;
+                }
+                if (normalized.charAt(0) != '/') {
+                    normalized = "/" + normalized;
+                }
+                if (normalized.charAt(normalized.length() - 1) != '/') {
+                    normalized = normalized + "/";
+                }
+                Class<?> other = definedIds.get(normalized);
                 if (other != clazz && other != null) {
                     LoggerFactory.getLogger(getClass()).error("{} must be unique: both {} and {} share the same id", widget.value(), clazz, other);
                     return false;
                 }
 
-                widgets.put(widget.value(), clazz);
-                definedIds.put(widget.value(), clazz);
+                widgets.put(normalized, clazz);
+                definedIds.put(normalized, clazz);
                 LoggerFactory.getLogger(getClass()).info("added @Widget {}", clazz);
                 return true;
             }
@@ -157,4 +184,10 @@ public class Configuration {
         return Collections.unmodifiableList(controllers);
     }
 
+    /**
+     * Returns the widget classes registered by {@link #add(Class)}
+     */
+    public Map<String, Class<?>> getWidgets() {
+        return immutableWidgets;
+    }
 }

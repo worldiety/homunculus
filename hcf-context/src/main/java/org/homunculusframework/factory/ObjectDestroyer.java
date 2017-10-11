@@ -21,10 +21,9 @@ import org.homunculusframework.scope.Scope;
  * @author Torben Schinke
  * @since 1.0
  */
-public interface ObjectFactory {
+public interface ObjectDestroyer {
     /**
-     * Tries to create a new instance of the given type using the given scope to resolve
-     * all required dependencies. It is always a programming error when this call fails.
+     * Tries to destroy the given instance. Executes all registered tear down operations on the given instance.
      */
-    <T> T create(Scope scope, Class<T> type) throws FactoryException;
+    void destroy(Scope scope, Object instance, ProcessingCompleteCallback tearDownCompleteCallback) throws FactoryException;
 }

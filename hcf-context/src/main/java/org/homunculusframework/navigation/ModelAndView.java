@@ -16,8 +16,10 @@
 package org.homunculusframework.navigation;
 
 import org.homunculusframework.factory.annotation.Widget;
+import org.homunculusframework.lang.Function;
 
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 
 /**
@@ -38,6 +40,17 @@ public final class ModelAndView {
     public ModelAndView put(String key, Object value) {
         model.put(key, value);
         return this;
+    }
+
+    /**
+     * Walks over the contained parameters until the closure returns false.
+     */
+    public void forEach(Function<Entry<String, Object>, Boolean> closure) {
+        for (Entry<String, Object> entry : model.entrySet()) {
+            if (!closure.apply(entry)) {
+                return;
+            }
+        }
     }
 
     /**

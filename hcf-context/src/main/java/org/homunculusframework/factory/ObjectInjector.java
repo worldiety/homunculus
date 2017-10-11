@@ -15,7 +15,6 @@
  */
 package org.homunculusframework.factory;
 
-import org.homunculusframework.factory.component.AnnotatedMethodsProcessor.ProcessingCompleteCallback;
 import org.homunculusframework.scope.Scope;
 
 /**

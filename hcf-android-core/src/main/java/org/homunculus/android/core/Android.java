@@ -57,11 +57,13 @@ public class Android {
         DefaultFactory defaultFactory = new DefaultFactory();
         defaultFactory.addFieldProcessor(new AFPAutowired());
         defaultFactory.addFieldProcessor(new AFPPersistent(new File(context.getFilesDir(), "persistent")));
+        defaultFactory.addFieldProcessor(new ResourceAnnotationLoader());
         defaultFactory.addMethodSetupProcessors(new AMPPostConstruct());
         defaultFactory.addMethodTearDownProcessors(new AMPPreDestroy());
 
-        configuration.setObjectFactory(defaultFactory);
+        configuration.setObjectCreator(defaultFactory);
         configuration.setObjectInjector(defaultFactory);
+        configuration.setObjectDestroyer(defaultFactory);
 
         return configuration;
     }
@@ -100,6 +102,9 @@ public class Android {
                         }
                     }
                 });
+                if (lifecycleOwner instanceof Context) {
+                    scope.putNamedValue("$context", lifecycleOwner);
+                }
             }
             return scope;
         }

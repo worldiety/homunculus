@@ -15,15 +15,17 @@
  */
 package org.homunculusframework.factory.container;
 
-import org.homunculusframework.factory.ObjectFactory;
+import org.homunculusframework.concurrent.Task;
+import org.homunculusframework.factory.ObjectCreator;
 import org.homunculusframework.factory.ObjectInjector;
+import org.homunculusframework.factory.annotation.LifecycleHandler;
 import org.homunculusframework.factory.annotation.PostConstruct;
 import org.homunculusframework.factory.annotation.RequestMapping;
 import org.homunculusframework.factory.annotation.Widget;
 import org.homunculusframework.lang.Classname;
 import org.homunculusframework.lang.Panic;
-import org.homunculusframework.navigation.ModelAndView;
 import org.homunculusframework.scope.Scope;
+import org.homunculusframework.scope.SettableTask;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
@@ -127,7 +129,7 @@ public final class Container {
             long start = System.currentTimeMillis();
             LoggerFactory.getLogger(getClass()).info("HCF container starting...");
             //create controllers first
-            ObjectFactory factory = configuration.getObjectFactory();
+            ObjectCreator factory = configuration.getObjectCreator();
             Scope containerScope = configuration.getRootScope();
             for (Class<?> clazz : configuration.getControllers()) {
                 Object instance = factory.create(containerScope, clazz);
@@ -186,18 +188,108 @@ public final class Container {
     }
 
     /**
-     * Creates a widget, which is either
+     * Creates a widget entirely , which is either
      * <ul>
      * <li>Something registered with {@link Widget}</li>
      * <li>An Android view, like: @layout/activity_main (if the platform is android and correctly configured)</li>
      * </ul>
      */
-    public Object createWidget(Scope scope, ModelAndView modelAndView) {
-        return null;
+    public Task<Component<?>> createWidget(Scope scope, String widgetId) {
+        widgetId = normalize(widgetId);
+        Class widget = configuration.getWidgets().get(widgetId);
+        if (widget == null) {
+            List<Throwable> throwables = new ArrayList<>();
+            throwables.add(new RuntimeException("@Widget not defined: '" + widgetId + "'. You need to add it to the configuration first."));
+            SettableTask<Component<?>> task = SettableTask.create(scope, "createWidget#" + widgetId);
+            task.set(new Component<>(null, throwables));
+            return task;
+        }
+        return createComponent(scope, widget);
     }
+
+    private static String normalize(String text) {
+        if (text == null) {
+            return "";
+        }
+        if (text.length() == 0) {
+            return "";
+        }
+        if (text.charAt(0) != '/') {
+            text = "/" + text;
+        }
+        if (text.charAt(text.length() - 1) != '/') {
+            text = text + "/";
+        }
+        return text;
+    }
+
+    /**
+     * Creates a component asynchronously, which means
+     * <ul>
+     * <li>Create a new instance, choosing the shortest constructor</li>
+     * <li>Tries to fulfill the constructor requirements from the scope</li>
+     * <li>Tries to apply all field and method annotations, which are defined by the configuration</li>
+     * <li>Tries to ignore errors, as much as possible</li>
+     * <li>Respects {@link LifecycleHandler} to execute creation and injection population (and depending on the configuration additional injectional loading operations)</li>
+     * </ul>
+     */
+    public <T> Task<Component<T>> createComponent(Scope scope, Class<T> clazz) {
+        SettableTask<Component<T>> task = SettableTask.create(scope, "createComponent#" + clazz.getSimpleName());
+        Runnable create = () -> {
+            try {
+                T instance = configuration.getObjectCreator().create(scope, clazz);
+                if (instance == null) {
+                    throw new Panic("contract violation while creating " + clazz);
+                } else {
+                    configuration.getObjectInjector().inject(scope, instance, (scope1, instance1, failures) -> task.set(new Component<>((T) instance1, failures)));
+                }
+            } catch (Exception e) {
+                task.set(new Component<>(null, e));
+            }
+        };
+        Handler handler = getHandler(scope, clazz);
+        if (handler == null) {
+            create.run();
+        } else {
+            handler.post(create);
+        }
+
+        return task;
+    }
+
+    /**
+     * Destroys the component.
+     * <ul>
+     * <li>Respects {@link LifecycleHandler} to find and call {@link org.homunculusframework.factory.annotation.PreDestroy} and more important also the scope destruction</li>
+     * </ul>
+     */
+    public <T> Task<Component<T>> destroyComponent(Scope scope, T instance, boolean destroyScope) {
+        SettableTask<Component<T>> task = SettableTask.create(scope, "destroyComponent#" + instance.getClass());
+        configuration.getObjectDestroyer().destroy(scope, instance, (scope1, instance1, failures) -> {
+            try {
+                if (destroyScope) {
+                    scope.destroy();
+                }
+            } finally {
+                task.set(new Component<T>(instance, failures));
+            }
+        });
+        return task;
+    }
+
+    @Nullable
+    private Handler getHandler(Scope scope, Class<?> clazz) {
+        LifecycleHandler lifecycleHandler = clazz.getAnnotation(LifecycleHandler.class);
+        if (lifecycleHandler == null) {
+            return null;
+        }
+        return scope.resolveNamedValue(lifecycleHandler.value(), Handler.class);
+    }
+
 
     public interface OnStartCompleteCallback {
         void onComplete(Container container, List<Throwable> failures);
     }
+
 
 }

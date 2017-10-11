@@ -25,8 +25,9 @@ public class CartController {
 
         CartModel cart = new CartModel();
         cart.setId(cartId);
-        cart.getEntries().add(new CartEntry());
+        cart.getEntries().add(new CartEntry("The wiz in action"));
+        cart.getEntries().add(new CartEntry("Jim, he is dead"));
 
-        return new ModelAndView("/cart/view/").put("cart", cart);
+        return new ModelAndView("/cart/uis/list").put("cart", cart);
     }
 }

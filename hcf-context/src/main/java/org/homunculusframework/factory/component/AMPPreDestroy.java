@@ -15,6 +15,7 @@
  */
 package org.homunculusframework.factory.component;
 
+import org.homunculusframework.factory.ProcessingCompleteCallback;
 import org.homunculusframework.factory.annotation.PreDestroy;
 import org.homunculusframework.factory.container.Handler;
 import org.homunculusframework.scope.Scope;

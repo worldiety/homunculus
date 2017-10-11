@@ -26,6 +26,7 @@ public class CartActivity extends AppCompatActivity {
         Configuration cfg = Android.getConfiguration(this);
         cfg.add(CartController.class);
         cfg.add(CartView.class);
+        cfg.add(CartUIS.class);
 
         //setup HCF container
         Container container = new Container(cfg);

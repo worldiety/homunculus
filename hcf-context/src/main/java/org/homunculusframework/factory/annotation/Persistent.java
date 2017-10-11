@@ -15,6 +15,7 @@
  */
 package org.homunculusframework.factory.annotation;
 
+import org.homunculusframework.factory.ObjectCreator;
 import org.homunculusframework.factory.serializer.Serializer;
 import org.homunculusframework.factory.serializer.Xml;
 
@@ -23,7 +24,7 @@ import java.lang.annotation.*;
 /**
  * Marks a field or getter method to save the declared model "before" exiting
  * the scope which was used to create the instance. The concrete capabilities depends on the
- * configured {@link org.homunculusframework.factory.ObjectFactory}.
+ * configured {@link ObjectCreator}.
  * See also {@link org.homunculusframework.factory.component.AFPPersistent}.
  *
  * @author Torben Schinke

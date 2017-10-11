@@ -279,7 +279,7 @@ public final class Scope implements Destroyable {
             checkDestroyed();
 
             if (!namedValues.containsKey(name) && parent != null) {
-                return parent.getNamedValue(name, type);
+                return parent.resolveNamedValue(name, type);
             }
 
             Object obj = namedValues.get(name);
