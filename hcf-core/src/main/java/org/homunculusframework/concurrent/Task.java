@@ -15,6 +15,7 @@
  */
 package org.homunculusframework.concurrent;
 
+import org.homunculusframework.lang.Function;
 import org.homunculusframework.lang.Procedure;
 
 /**
@@ -26,7 +27,14 @@ import org.homunculusframework.lang.Procedure;
 public interface Task<R> {
     /**
      * Registers a callback which gets always invoked when the task completed (by error, by ignoring execution or by success).
-     * Execution always happens from the applications main thread, whatever that is.
+     * The callback thread is undefined and determined by the task environment.
      */
     void whenDone(Procedure<R> res);
+
+    /**
+     * Executes in the current main thread but creates a chain with another callable.
+     * The callback thread is undefined and determined by the task environment. Probably
+     * this is the same as for {@link #whenDone(Procedure)}
+     */
+    <X> Task<X> continueWith(Function<R, X> callback);
 }

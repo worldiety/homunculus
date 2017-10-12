@@ -1,5 +1,6 @@
 package org.homunculus.android.example.module.cart;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import org.homunculus.android.core.Android;
@@ -25,6 +26,11 @@ public class CartActivity extends AppCompatActivity {
         //do some navigation, which replaces the content view itself. Note: what the target (behind the request mapping) does is undefined by intention
         Navigation nav = Android.getScope(this).resolve(Navigation.class);
         nav.forward(new Request("/cart/list").put("id", 1234));
+    }
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(newBase);
     }
 
     @Override

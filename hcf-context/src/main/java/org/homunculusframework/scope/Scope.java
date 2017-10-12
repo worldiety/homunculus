@@ -385,6 +385,15 @@ public final class Scope implements Destroyable {
     }
 
     /**
+     * Checks if the scope is destroyed. Checkout for logical races, in concurrent use cases.
+     */
+    public boolean isDestroyed() {
+        synchronized (lock) {
+            return destroyed;
+        }
+    }
+
+    /**
      * Destroys and invokes all registered life cycle methods. This also removes this scope from it's parent.
      * The life cycle is defined as follows:
      * <ol>
