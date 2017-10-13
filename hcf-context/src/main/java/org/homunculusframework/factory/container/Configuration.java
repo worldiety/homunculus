@@ -18,14 +18,14 @@ package org.homunculusframework.factory.container;
 import org.homunculusframework.factory.ObjectCreator;
 import org.homunculusframework.factory.ObjectDestroyer;
 import org.homunculusframework.factory.ObjectInjector;
-import org.homunculusframework.factory.annotation.RequestMapping;
 import org.homunculusframework.factory.annotation.Widget;
 import org.homunculusframework.factory.component.DefaultFactory;
 import org.homunculusframework.scope.Scope;
-import org.homunculusframework.stereotype.Controller;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import javax.inject.Named;
+import javax.inject.Singleton;
 import java.util.*;
 
 /**
@@ -117,8 +117,8 @@ public class Configuration {
             return false;
         }
         Widget widget = clazz.getAnnotation(Widget.class);
-        Controller controller = clazz.getAnnotation(Controller.class);
-        RequestMapping requestMapping = clazz.getAnnotation(RequestMapping.class);
+        Singleton controller = clazz.getAnnotation(Singleton.class);
+        Named requestMapping = clazz.getAnnotation(Named.class);
 
         if (widget == null && controller == null && requestMapping == null) {
             return false;

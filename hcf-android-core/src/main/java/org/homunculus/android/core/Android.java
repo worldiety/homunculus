@@ -69,7 +69,7 @@ public class Android {
     public static Configuration getConfiguration(Context context) {
         Configuration configuration = new Configuration(getRootScope());
         DefaultFactory defaultFactory = new DefaultFactory();
-        defaultFactory.addFieldProcessor(new AFPAutowired());
+        defaultFactory.addFieldProcessor(new AFPInject());
         defaultFactory.addFieldProcessor(new AFPPersistent(new File(context.getFilesDir(), "persistent")));
         defaultFactory.addFieldProcessor(new ResourceAnnotationLoader());
         defaultFactory.addMethodSetupProcessors(new AMPPostConstruct());

@@ -2,14 +2,16 @@ package org.homunculus.android.example.module.cart;
 
 import android.app.Activity;
 import android.content.Context;
-import org.homunculusframework.factory.annotation.Autowired;
-import org.homunculusframework.factory.annotation.PostConstruct;
+import org.homunculusframework.factory.annotation.Priority;
 import org.homunculusframework.factory.annotation.Widget;
+
+import javax.annotation.PostConstruct;
+import javax.inject.Inject;
 
 @Widget("/cart/uis/list")
 public class CartUIS extends CartView {
 
-    @Autowired
+    @Inject
     private Activity mActivity;
 
     public CartUIS(Context context) {
@@ -17,7 +19,8 @@ public class CartUIS extends CartView {
     }
 
 
-    @PostConstruct(order = 1) //TODO this looks weired -> super methods with the same order should have higher priority
+    @PostConstruct()
+    @Priority(10)//TODO this looks weired -> super methods with the same order should have higher priority
     private void setViewInActivity() {
         mActivity.setContentView(this);
     }

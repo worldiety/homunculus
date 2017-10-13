@@ -139,7 +139,7 @@ public final class Request {
             LoggerFactory.getLogger(getClass()).error("execution not possible: {} missing ({})", Container.class, requestMapping);
             SettableTask<Result<Object>> task = SettableTask.create(scope, requestMapping);
             Result<Object> res = Result.create();
-            res.put("error", "missing container");
+            res.putTag("error", "missing container");
             task.set(res);
             return task;
         } else {

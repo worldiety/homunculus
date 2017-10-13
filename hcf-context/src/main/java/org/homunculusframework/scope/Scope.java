@@ -17,6 +17,7 @@
 package org.homunculusframework.scope;
 
 import org.homunculusframework.lang.Destroyable;
+import org.homunculusframework.lang.Function;
 import org.homunculusframework.lang.Reflection;
 
 import javax.annotation.Nullable;
@@ -169,9 +170,17 @@ public final class Scope implements Destroyable {
      * Puts the given scope, returning any prior scope with the same name. The prior scope is not destroyed.
      */
     @Nullable
-    public Scope putScope(Scope scope) {
+    public Scope attach(Scope scope) {
         synchronized (lock) {
-            return subScopes.put(scope.getName(), scope);
+            checkDestroyed();
+            Scope other = subScopes.put(scope.getName(), scope);
+            if (other != null) {
+                synchronized (other.lock) {
+                    other.parent = null;
+                }
+            }
+            scope.parent = this;
+            return other;
         }
     }
 
@@ -179,7 +188,7 @@ public final class Scope implements Destroyable {
      * Removes the denoted scope without destroying it.
      */
     @Nullable
-    public Scope removeScope(String name) {
+    public Scope detach(String name) {
         synchronized (lock) {
             checkDestroyed();
             Scope scope = subScopes.remove(name);
@@ -443,7 +452,7 @@ public final class Scope implements Destroyable {
 
             //4.
             if (parent != null) {
-                parent.removeScope(getName());
+                parent.detach(getName());
             }
 
             //5.
@@ -452,6 +461,18 @@ public final class Scope implements Destroyable {
                 dcbAfter.get(i).onAfterDestroy(this);
             }
             dcbAfter.clear();
+        }
+    }
+
+
+    /**
+     * Loops over all child scopes, as long as the closure returns true
+     */
+    public void forEachScope(Function<Scope, Boolean> closure) {
+        for (Scope scope : subScopes.values()) {
+            if (!closure.apply(scope)) {
+                return;
+            }
         }
     }
 

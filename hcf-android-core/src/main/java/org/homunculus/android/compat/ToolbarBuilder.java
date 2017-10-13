@@ -242,7 +242,7 @@ public class ToolbarBuilder {
 
         ab.setDisplayHomeAsUpEnabled(mShowNavigationIcons);
 
-        int barSize = (int)contentLayout.getContext().getResources().getDimension(R.dimen.toolbarbuilder_barheight);
+        int barSize = (int) contentLayout.getContext().getResources().getDimension(R.dimen.toolbarbuilder_barheight);
         RelativeLayout.LayoutParams toolbarLayoutParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, barSize);
         toolbar.setMinimumHeight(barSize);
         toolbar.setId(Widget.generateViewId());
@@ -294,9 +294,6 @@ public class ToolbarBuilder {
                     return false;
                 });
                 mDrawerLayout.addView(mRightDrawer, params);
-                if (mRightDrawer instanceof EventsDrawerView) {
-                    ((EventsDrawerView) mRightDrawer).setParentDrawerLayout(mDrawerLayout);
-                }
 
                 // Add the drawer handle
                 FrameLayout frameLayout = new ContentDrawerFrameLayout(activity);
@@ -515,6 +512,8 @@ public class ToolbarBuilder {
         }
     }
 
+    //TODO generic design is bad
+    @Deprecated
     private class ContentDrawerFrameLayout extends FrameLayout implements ToolbarControl {
 
         public ContentDrawerFrameLayout(@NonNull Context context) {
@@ -527,7 +526,8 @@ public class ToolbarBuilder {
                         ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                 flParams.gravity = Gravity.END | Gravity.CENTER_VERTICAL;
                 drawerHandle.setLayoutParams(flParams);
-                drawerHandle.setImageResource(R.drawable.drawer_handle);
+                //TODO remove this entire thing, it is not generic
+//                drawerHandle.setImageResource(R.drawable.drawer_handle);
 
                 // Add drawer layout with slide listener
                 this.addView(mDrawerLayout);

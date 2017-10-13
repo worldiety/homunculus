@@ -37,9 +37,6 @@ import android.view.View;
 
 import org.homunculusframework.scope.Scope;
 import org.homunculusframework.scope.ScopeList;
-import org.homunculusframework.uis.Callbacks;
-import org.homunculusframework.uis.ScopeStack;
-import org.homunculusframework.uis.ScopeStack.Scope;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,28 +45,28 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 
 /**
- * Used together with {@link EventAppCompatActivity} to provide life cycle callbacks to any one
+ * Used together with {@link EventAppCompatActivity} to provide life cycle callbacks to any one who needs it.
+ * Internally the base scope (given by constructor) and all it's children scopes are searched and notified (if they
+ * had ever a registration). Scopes are optional at all.
  *
  * @author Torben Schinke
  * @since 1.0
  */
 public class ActivityEventDispatcher<T extends Activity> {
-
+    private final static String NAME_CALLBACKS = "$activityCallbacks";
     private final static AtomicInteger mRequestCode = new AtomicInteger();
     private final InternalEventDispatcher mDispatcher;
     private final T mActivity;
     private ActivityStatus mStatus;
     private Bundle mSavedInstanceStateAtOnCreate;
-    private final Scope mScope;
-    private final ScopeList<ActivityEventCallback<T>> mCallbacks;
+    private final Scope mBaseScope;
 
-    public ActivityEventDispatcher(Scope scope, T activity) {
+    public ActivityEventDispatcher(Scope baseScope, T activity) {
         mStatus = ActivityStatus.Launching;
         mActivity = activity;
         mDispatcher = new InternalEventDispatcher();
 
-        mScope = scope;
-        mCallbacks = new ScopeList<>("AEDCallbacks", scope);
+        mBaseScope = baseScope;
     }
 
 
@@ -120,11 +117,19 @@ public class ActivityEventDispatcher<T extends Activity> {
 
     /**
      * Registers a new callback with all activity events within the given scope. See also {@link #register(ActivityEventCallback)}
-     *
-     * @param callback
      */
     public void register(@Nullable Context context, ActivityEventCallback<T> callback) {
         Scope scope = ContextScope.getScope(context);
+        register(scope, callback);
+    }
+
+    /**
+     * Registers a new callback with all activity events within the given scope. See also {@link #register(Context, ActivityEventCallback)}
+     */
+    public void register(@Nullable Scope scope, ActivityEventCallback<T> callback) {
+        if (scope == null) {
+            scope = mBaseScope;
+        }
         switch (mStatus) {
             case Running:
                 callback.onBufferedCreate(mActivity, mSavedInstanceStateAtOnCreate);
@@ -147,11 +152,36 @@ public class ActivityEventDispatcher<T extends Activity> {
                 break;
 
         }
-        mCallbacks.register(scope, callback);
+        ensure(scope).add(callback);
+    }
+
+    /**
+     * We only have a callback list once per scope
+     *
+     * @param scope
+     * @return
+     */
+    private List<ActivityEventCallback<T>> ensure(Scope scope) {
+        synchronized (scope) {
+            List<ActivityEventCallback<T>> callbacks = scope.getNamedValue(NAME_CALLBACKS, List.class);
+            if (callbacks == null) {
+                callbacks = new CopyOnWriteArrayList<>();
+                scope.putNamedValue(NAME_CALLBACKS, callbacks);
+            }
+            return callbacks;
+        }
     }
 
     public boolean unregister(ActivityEventCallback<T> callback) {
-        return mCallbacks.unregister(callback);
+        return unregister(null, callback);
+    }
+
+    public boolean unregister(@Nullable Scope scope, ActivityEventCallback<T> callback) {
+        if (scope == null) {
+            scope = mBaseScope;
+        }
+        List<ActivityEventCallback<T>> callbacks = ensure(scope);
+        return callbacks.remove(callback);
     }
 
 
@@ -168,12 +198,38 @@ public class ActivityEventDispatcher<T extends Activity> {
         getEventDispatcher().onActivityDestroy(mActivity);
     }
 
+    /**
+     * The heart of the scope logic here: collect all callbacks from the base scope and of all contained children.
+     * Listeners are automatically removed from subtrees as they are destroyed or detached.
+     */
+    private List<ActivityEventCallback<T>> getCallbacks() {
+        List<ActivityEventCallback<T>> tmp = new ArrayList<>();
+        List<ActivityEventCallback<T>> listInScope = mBaseScope.getNamedValue(NAME_CALLBACKS, List.class);
+        if (listInScope != null) {
+            tmp.addAll(listInScope);
+        }
+        collectCallbacks(mBaseScope, tmp);
+        return tmp;
+    }
+
+    private void collectCallbacks(Scope root, List<ActivityEventCallback<T>> dst) {
+        root.forEachScope(scope -> {
+            List<ActivityEventCallback<T>> listInScope = scope.getNamedValue(NAME_CALLBACKS, List.class);
+            if (listInScope != null) {
+                dst.addAll(listInScope);
+            }
+            //recursive
+            collectCallbacks(scope, dst);
+            return true;
+        });
+    }
+
     //TODO complete implementation
     private class InternalEventDispatcher extends AbsActivityEventCallback<T> {
 
         @Override
         public void onActionModeStarted(ActionMode mode) {
-            for (ActivityEventCallback<T> cb : mCallbacks.copy()) {
+            for (ActivityEventCallback<T> cb : getCallbacks()) {
                 cb.onActionModeStarted(mode);
             }
             super.onActionModeStarted(mode);
@@ -181,7 +237,7 @@ public class ActivityEventDispatcher<T extends Activity> {
 
         @Override
         public void onActionModeFinished(ActionMode mode) {
-            for (ActivityEventCallback<T> cb : mCallbacks.copy()) {
+            for (ActivityEventCallback<T> cb : getCallbacks()) {
                 cb.onActionModeFinished(mode);
             }
             super.onActionModeFinished(mode);
@@ -189,35 +245,35 @@ public class ActivityEventDispatcher<T extends Activity> {
 
         @Override
         public void onActivityNewIntent(T activity, Intent intent) {
-            for (ActivityEventCallback<T> cb : mCallbacks.copy()) {
+            for (ActivityEventCallback<T> cb : getCallbacks()) {
                 cb.onActivityNewIntent(activity, intent);
             }
         }
 
         @Override
         public void onBufferedPause(T activity) {
-            for (ActivityEventCallback<T> cb : mCallbacks.copy()) {
+            for (ActivityEventCallback<T> cb : getCallbacks()) {
                 cb.onBufferedPause(activity);
             }
         }
 
         @Override
         public void onBufferedResume(T activity) {
-            for (ActivityEventCallback<T> cb : mCallbacks.copy()) {
+            for (ActivityEventCallback<T> cb : getCallbacks()) {
                 cb.onBufferedResume(activity);
             }
         }
 
         @Override
         public void onBufferedCreate(T activity, Bundle savedInstanceState) {
-            for (ActivityEventCallback<T> cb : mCallbacks.copy()) {
+            for (ActivityEventCallback<T> cb : getCallbacks()) {
                 cb.onBufferedCreate(activity, savedInstanceState);
             }
         }
 
         @Override
         public void onBufferedDestroy(T activity) {
-            for (ActivityEventCallback<T> cb : mCallbacks.copy()) {
+            for (ActivityEventCallback<T> cb : getCallbacks()) {
                 cb.onBufferedDestroy(activity);
             }
         }
@@ -225,7 +281,7 @@ public class ActivityEventDispatcher<T extends Activity> {
         @Override
         public void onActivityResume(T activity) {
             mStatus = ActivityStatus.Running;
-            for (ActivityEventCallback<T> cb : mCallbacks.copy()) {
+            for (ActivityEventCallback<T> cb : getCallbacks()) {
                 cb.onActivityResume(activity);
             }
             onBufferedResume(activity);
@@ -234,7 +290,7 @@ public class ActivityEventDispatcher<T extends Activity> {
         @Override
         public void onActivityPause(T activity) {
             mStatus = ActivityStatus.Pausing;
-            for (ActivityEventCallback<T> cb : mCallbacks.copy()) {
+            for (ActivityEventCallback<T> cb : getCallbacks()) {
                 cb.onActivityPause(activity);
             }
             onBufferedPause(activity);
@@ -244,7 +300,7 @@ public class ActivityEventDispatcher<T extends Activity> {
         @Override
         public void onActivityStop(T activity) {
             mStatus = ActivityStatus.Stopping;
-            for (ActivityEventCallback<T> cb : mCallbacks.copy()) {
+            for (ActivityEventCallback<T> cb : getCallbacks()) {
                 cb.onActivityStop(activity);
             }
         }
@@ -252,7 +308,7 @@ public class ActivityEventDispatcher<T extends Activity> {
         @Override
         public void onActivityStart(T activity) {
             mStatus = ActivityStatus.Starting;
-            for (ActivityEventCallback<T> cb : mCallbacks.copy()) {
+            for (ActivityEventCallback<T> cb : getCallbacks()) {
                 cb.onActivityStart(activity);
             }
         }
@@ -260,7 +316,7 @@ public class ActivityEventDispatcher<T extends Activity> {
         @Override
         public void onActivityDestroy(T activity) {
             mStatus = ActivityStatus.Destroying;
-            for (ActivityEventCallback<T> cb : mCallbacks.copy()) {
+            for (ActivityEventCallback<T> cb : getCallbacks()) {
                 cb.onActivityDestroy(activity);
             }
             mStatus = ActivityStatus.Dead;
@@ -268,21 +324,21 @@ public class ActivityEventDispatcher<T extends Activity> {
 
         @Override
         public void onActivityCrash(T activity, Thread thread, Throwable throwable) {
-            for (ActivityEventCallback<T> cb : mCallbacks.copy()) {
+            for (ActivityEventCallback<T> cb : getCallbacks()) {
                 cb.onActivityCrash(activity, thread, throwable);
             }
         }
 
         @Override
         public void onLowMemory(T activity) {
-            for (ActivityEventCallback<T> cb : mCallbacks.copy()) {
+            for (ActivityEventCallback<T> cb : getCallbacks()) {
                 cb.onLowMemory(activity);
             }
         }
 
         @Override
         public boolean onActivityBackPressed(T activity) {
-            for (ActivityEventCallback<T> cb : mCallbacks.copy()) {
+            for (ActivityEventCallback<T> cb : getCallbacks()) {
                 if (cb.onActivityBackPressed(activity)) {
                     return true;
                 }
@@ -292,7 +348,7 @@ public class ActivityEventDispatcher<T extends Activity> {
 
         @Override
         public boolean onActivityKeyDown(T activity, int keyCode, KeyEvent event) {
-            for (ActivityEventCallback<T> cb : mCallbacks.copy()) {
+            for (ActivityEventCallback<T> cb : getCallbacks()) {
                 if (cb.onActivityKeyDown(activity, keyCode, event)) {
                     return true;
                 }
@@ -302,7 +358,7 @@ public class ActivityEventDispatcher<T extends Activity> {
 
         @Override
         public boolean onActivityKeyUp(T activity, int keyCode, KeyEvent event) {
-            for (ActivityEventCallback<T> cb : mCallbacks.copy()) {
+            for (ActivityEventCallback<T> cb : getCallbacks()) {
                 if (cb.onActivityKeyUp(activity, keyCode, event)) {
                     return true;
                 }
@@ -313,7 +369,7 @@ public class ActivityEventDispatcher<T extends Activity> {
         @Override
         public void onActivityCreate(T activity, Bundle savedInstanceState) {
             mSavedInstanceStateAtOnCreate = savedInstanceState;
-            for (ActivityEventCallback<T> cb : mCallbacks.copy()) {
+            for (ActivityEventCallback<T> cb : getCallbacks()) {
                 cb.onActivityCreate(activity, savedInstanceState);
             }
         }
@@ -321,14 +377,14 @@ public class ActivityEventDispatcher<T extends Activity> {
         @Override
         public void onActivityCreate(T activity, Bundle savedInstanceState, PersistableBundle persistentState) {
             mSavedInstanceStateAtOnCreate = savedInstanceState;
-            for (ActivityEventCallback<T> cb : mCallbacks.copy()) {
+            for (ActivityEventCallback<T> cb : getCallbacks()) {
                 cb.onActivityCreate(activity, savedInstanceState, persistentState);
             }
         }
 
         @Override
         public boolean onActivityKeyLongPress(T activity, int keyCode, KeyEvent event) {
-            for (ActivityEventCallback<T> cb : mCallbacks.copy()) {
+            for (ActivityEventCallback<T> cb : getCallbacks()) {
                 if (cb.onActivityKeyLongPress(activity, keyCode, event)) {
                     return true;
                 }
@@ -338,7 +394,7 @@ public class ActivityEventDispatcher<T extends Activity> {
 
         @Override
         public boolean onActivityKeyMultiple(T activity, int keyCode, int repeatCount, KeyEvent event) {
-            for (ActivityEventCallback<T> cb : mCallbacks.copy()) {
+            for (ActivityEventCallback<T> cb : getCallbacks()) {
                 if (cb.onActivityKeyMultiple(activity, keyCode, repeatCount, event)) {
                     return true;
                 }
@@ -348,7 +404,7 @@ public class ActivityEventDispatcher<T extends Activity> {
 
         @Override
         public boolean onActivityDispatchKeyEvent(T activity, KeyEvent event) {
-            for (ActivityEventCallback<T> cb : mCallbacks.copy()) {
+            for (ActivityEventCallback<T> cb : getCallbacks()) {
                 if (cb.onActivityDispatchKeyEvent(activity, event)) {
                     return true;
                 }
@@ -358,7 +414,7 @@ public class ActivityEventDispatcher<T extends Activity> {
 
         @Override
         public boolean onActivityResult(T activity, int requestCode, int resultCode, Intent data) {
-            for (ActivityEventCallback<T> cb : mCallbacks.copy()) {
+            for (ActivityEventCallback<T> cb : getCallbacks()) {
                 if (cb.onActivityResult(activity, requestCode, resultCode, data)) {
                     return true;
                 }
@@ -368,7 +424,7 @@ public class ActivityEventDispatcher<T extends Activity> {
 
         @Override
         public boolean onActivityCreateOptionsMenu(T activity, Menu menu) {
-            for (ActivityEventCallback<T> cb : mCallbacks.copy()) {
+            for (ActivityEventCallback<T> cb : getCallbacks()) {
                 if (cb.onActivityCreateOptionsMenu(activity, menu)) {
                     return true;
                 }
@@ -378,7 +434,7 @@ public class ActivityEventDispatcher<T extends Activity> {
 
         @Override
         public boolean onActivityMenuOpened(T activity, int featureId, Menu menu) {
-            for (ActivityEventCallback<T> cb : mCallbacks.copy()) {
+            for (ActivityEventCallback<T> cb : getCallbacks()) {
                 if (cb.onActivityMenuOpened(activity, featureId, menu)) {
                     return true;
                 }
@@ -388,7 +444,7 @@ public class ActivityEventDispatcher<T extends Activity> {
 
         @Override
         public boolean onActivityOptionsItemSelected(T activity, MenuItem item) {
-            for (ActivityEventCallback<T> cb : mCallbacks.copy()) {
+            for (ActivityEventCallback<T> cb : getCallbacks()) {
                 if (cb.onActivityOptionsItemSelected(activity, item)) {
                     return true;
                 }
@@ -398,14 +454,14 @@ public class ActivityEventDispatcher<T extends Activity> {
 
         @Override
         public void onActivityRequestPermissionsResult(T activity, int requestCode, String[] permissions, int[] grantResults) {
-            for (ActivityEventCallback<T> cb : mCallbacks.copy()) {
+            for (ActivityEventCallback<T> cb : getCallbacks()) {
                 cb.onActivityRequestPermissionsResult(activity, requestCode, permissions, grantResults);
             }
         }
 
         @Override
         public boolean onActivityPrepareOptionsMenu(T activity, Menu menu) {
-            for (ActivityEventCallback<T> cb : mCallbacks.copy()) {
+            for (ActivityEventCallback<T> cb : getCallbacks()) {
                 if (cb.onActivityPrepareOptionsMenu(activity, menu)) {
                     return true;
                 }
@@ -415,7 +471,7 @@ public class ActivityEventDispatcher<T extends Activity> {
 
         @Override
         public boolean onActivityMenuItemSelected(T activity, int featureId, MenuItem item) {
-            for (ActivityEventCallback<T> cb : mCallbacks.copy()) {
+            for (ActivityEventCallback<T> cb : getCallbacks()) {
                 if (cb.onActivityMenuItemSelected(activity, featureId, item)) {
                     return true;
                 }

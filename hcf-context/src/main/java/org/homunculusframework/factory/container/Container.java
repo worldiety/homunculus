@@ -18,9 +18,7 @@ package org.homunculusframework.factory.container;
 import org.homunculusframework.concurrent.Task;
 import org.homunculusframework.factory.ObjectCreator;
 import org.homunculusframework.factory.ObjectInjector;
-import org.homunculusframework.factory.annotation.LifecycleHandler;
-import org.homunculusframework.factory.annotation.PostConstruct;
-import org.homunculusframework.factory.annotation.RequestMapping;
+import org.homunculusframework.factory.annotation.Execute;
 import org.homunculusframework.factory.annotation.Widget;
 import org.homunculusframework.lang.Classname;
 import org.homunculusframework.lang.Panic;
@@ -29,6 +27,8 @@ import org.homunculusframework.scope.SettableTask;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import javax.annotation.PostConstruct;
+import javax.inject.Named;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -78,7 +78,7 @@ public final class Container {
     private final Configuration configuration;
 
     /**
-     * Controllers export methods using {@link RequestMapping} and are directly linked here
+     * Controllers export methods using {@link Named} and are directly linked here
      */
     private final Map<String, ControllerEndpoint> controllerEndpoints;
     private final List<Object> controllers;
@@ -230,7 +230,7 @@ public final class Container {
      * <li>Tries to fulfill the constructor requirements from the scope</li>
      * <li>Tries to apply all field and method annotations, which are defined by the configuration</li>
      * <li>Tries to ignore errors, as much as possible</li>
-     * <li>Respects {@link LifecycleHandler} to execute creation and injection population (and depending on the configuration additional injectional loading operations)</li>
+     * <li>Respects {@link Execute} to execute creation and injection population (and depending on the configuration additional injectional loading operations)</li>
      * </ul>
      */
     public <T> Task<Component<T>> createComponent(Scope scope, Class<T> clazz) {
@@ -260,7 +260,7 @@ public final class Container {
     /**
      * Destroys the component.
      * <ul>
-     * <li>Respects {@link LifecycleHandler} to find and call {@link org.homunculusframework.factory.annotation.PreDestroy} and more important also the scope destruction</li>
+     * <li>Respects {@link Execute} to find and call {@link javax.annotation.PreDestroy} and more important also the scope destruction</li>
      * </ul>
      */
     public <T> Task<Component<T>> destroyComponent(Scope scope, T instance, boolean destroyScope) {
@@ -279,7 +279,7 @@ public final class Container {
 
     @Nullable
     private Handler getHandler(Scope scope, Class<?> clazz) {
-        LifecycleHandler lifecycleHandler = clazz.getAnnotation(LifecycleHandler.class);
+        Execute lifecycleHandler = clazz.getAnnotation(Execute.class);
         if (lifecycleHandler == null) {
             return null;
         }

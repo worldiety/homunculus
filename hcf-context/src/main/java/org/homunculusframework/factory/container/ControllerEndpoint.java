@@ -15,12 +15,11 @@
  */
 package org.homunculusframework.factory.container;
 
-import org.homunculusframework.factory.annotation.Parameter;
-import org.homunculusframework.factory.annotation.RequestMapping;
 import org.homunculusframework.lang.Classname;
 import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Named;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -29,8 +28,8 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 /**
- * A configured endpoint, used to get invoked by reflection. Uses {@link org.homunculusframework.stereotype.Controller}
- * and {@link RequestMapping}.
+ * A configured endpoint, used to get invoked by reflection. Uses {@link javax.inject.Singleton}
+ * and {@link Named}.
  *
  * @author Torben Schinke
  * @since 1.0
@@ -57,8 +56,8 @@ public final class ControllerEndpoint {
         for (int i = 0; i < declaredParameterAnnotations.length; i++) {
             Annotation[] annotations = declaredParameterAnnotations[i];
             for (Annotation annotation : annotations) {
-                if (annotation instanceof Parameter) {
-                    String name = ((Parameter) annotation).value();
+                if (annotation instanceof Named) {
+                    String name = ((Named) annotation).value();
                     parameterNames[i] = name;
                     continue NEXT_PARAM;
                 }
@@ -162,12 +161,12 @@ public final class ControllerEndpoint {
     }
 
     /**
-     * Grabs all available methods annotated with {@link RequestMapping} from the given class and normalizes the
+     * Grabs all available methods annotated with {@link Named} from the given class and normalizes the
      * mapping path by guaranteeing a slash at the start and and the end.
      */
     public static List<ControllerEndpoint> list(Object instance) {
         Class<?> clazz = instance.getClass();
-        RequestMapping mapping = clazz.getAnnotation(RequestMapping.class);
+        Named mapping = clazz.getAnnotation(Named.class);
         StringBuilder path = new StringBuilder();
         if (mapping != null) {
             String tmp = mapping.value().trim();
@@ -187,7 +186,7 @@ public final class ControllerEndpoint {
         //find methods, up the class hierarchy
         List<ControllerEndpoint> res = new ArrayList<>();
         for (Method method : clazz.getMethods()) {
-            RequestMapping methodMap = method.getAnnotation(RequestMapping.class);
+            Named methodMap = method.getAnnotation(Named.class);
             if (methodMap != null) {
                 String tmp = methodMap.value().trim();
                 if (tmp.length() > 0) {

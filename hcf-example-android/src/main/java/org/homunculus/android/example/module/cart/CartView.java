@@ -1,6 +1,5 @@
 package org.homunculus.android.example.module.cart;
 
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
@@ -10,11 +9,13 @@ import android.widget.TextView;
 import org.homunculus.android.annotation.Resource;
 import org.homunculus.android.example.R;
 import org.homunculus.android.example.module.cart.CartModel.CartEntry;
-import org.homunculusframework.factory.annotation.Autowired;
-import org.homunculusframework.factory.annotation.PostConstruct;
 import org.homunculusframework.factory.annotation.Widget;
 import org.homunculusframework.factory.container.Request;
 import org.homunculusframework.navigation.Navigation;
+
+import javax.annotation.PostConstruct;
+import javax.inject.Inject;
+import javax.inject.Named;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
@@ -22,7 +23,8 @@ import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 @Widget("/cart/view/list")
 public class CartView extends LinearLayout {
 
-    @Autowired("cart")
+    @Inject
+    @Named("cart")
     private CartModel mCart;
 
     @Resource(R.string.app_name)
@@ -34,7 +36,7 @@ public class CartView extends LinearLayout {
     @Resource(R.drawable.icon)
     private Bitmap mIcon2;
 
-    @Autowired
+    @Inject
     private Navigation mNav;
 
 
@@ -42,7 +44,6 @@ public class CartView extends LinearLayout {
         super(context);
     }
 
-    //TODO this makes this view hard to reuse, because it destroys the context which it should not do??? or would we extend it as a "UIS"?
     @PostConstruct
     private void init() {
         removeAllViews();

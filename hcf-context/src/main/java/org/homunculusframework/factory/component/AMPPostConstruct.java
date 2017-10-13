@@ -16,11 +16,14 @@
 package org.homunculusframework.factory.component;
 
 import org.homunculusframework.factory.ProcessingCompleteCallback;
-import org.homunculusframework.factory.annotation.PostConstruct;
+import org.homunculusframework.factory.annotation.Execute;
+import org.homunculusframework.factory.annotation.Priority;
+import org.homunculusframework.factory.container.Container;
 import org.homunculusframework.factory.container.Handler;
 import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.PostConstruct;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,18 +43,22 @@ public class AMPPostConstruct implements AnnotatedMethodsProcessor {
         List<MyMethod> myMethods = new ArrayList<>();
         for (Method method : methods) {
             PostConstruct postConstruct = method.getAnnotation(PostConstruct.class);
+            Execute executor = method.getAnnotation(Execute.class);
+            Priority priority = method.getAnnotation(Priority.class);
+            String handlerName = executor == null ? Container.NAME_MAIN_HANDLER : executor.value();
+            int order = priority == null ? 0 : priority.value();
             if (postConstruct != null) {
-                Handler handler = scope.resolveNamedValue(postConstruct.in(), Handler.class);
+                Handler handler = scope.resolveNamedValue(handlerName, Handler.class);
                 if (handler == null) {
-                    LoggerFactory.getLogger(instance.getClass()).error("{} is undefined, @PostConstruct {}() ignored", postConstruct.in(), method.getName());
+                    LoggerFactory.getLogger(instance.getClass()).error("{} is undefined, @PostConstruct {}() ignored", handlerName, method.getName());
                     continue;
                 }
                 if (method.getParameterTypes().length != 0) {
-                    LoggerFactory.getLogger(instance.getClass()).error("invalid method, parameters must be empty, @PostConstruct {}() ignored", postConstruct.in(), method.getName());
+                    LoggerFactory.getLogger(instance.getClass()).error("invalid method, parameters must be empty, @PostConstruct {}() ignored", handlerName, method.getName());
                     continue;
                 }
                 method.setAccessible(true);
-                myMethods.add(new MyMethod(method, handler, postConstruct.order()));
+                myMethods.add(new MyMethod(method, handler, order));
             }
         }
         Collections.sort(myMethods, (a, b) -> {

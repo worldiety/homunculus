@@ -15,25 +15,34 @@
  */
 package org.homunculusframework.factory.component;
 
-import org.homunculusframework.factory.annotation.Autowired;
 import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
+import javax.inject.Named;
 import java.lang.reflect.Field;
 
 /**
- * Just autowires all applicable types from the scope.
+ * Uses {@link Inject} and optionally {@link Named}. If no {@link Named} is annotated, any type of any scope (or it's parents)
+ * is matched, otherwise only those with the same name.
  *
  * @author Torben Schinke
  * @since 1.0
  */
-public class AFPAutowired implements AnnotatedFieldProcessor {
+public class AFPInject implements AnnotatedFieldProcessor {
 
     @Override
     public void process(Scope scope, Object instance, Field field) {
-        Autowired autowired = field.getAnnotation(Autowired.class);
+        Inject autowired = field.getAnnotation(Inject.class);
+        Named named = field.getAnnotation(Named.class);
         if (autowired != null) {
-            Object resolvedValue = scope.resolve(field.getType());
+            Object resolvedValue;
+            if (named != null) {
+                resolvedValue = scope.hasResolvableNamedValue(named.value(), field.getType());
+            } else {
+                resolvedValue = scope.resolve(field.getType());
+            }
+
             field.setAccessible(true);
             try {
                 field.set(instance, resolvedValue);

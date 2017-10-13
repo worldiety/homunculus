@@ -16,7 +16,7 @@
 package org.homunculus.android.annotation;
 
 import org.homunculus.android.core.ResourceAnnotationLoader;
-import org.homunculusframework.factory.annotation.LifecycleHandler;
+import org.homunculusframework.factory.annotation.Execute;
 
 import java.lang.annotation.*;
 
@@ -29,7 +29,7 @@ import java.lang.annotation.*;
  * <li>R.drawable for drawable fields</li>
  * <li>R.drawable for bitmap fields</li>
  * <li>R.string for Strings</li>
- * <li>R.layout for Views (see also {@link LifecycleHandler} to influence the inflation thread)</li>
+ * <li>R.layout for Views (see also {@link Execute} to influence the inflation thread)</li>
  * </ul>
  *
  * @author Torben Schinke
