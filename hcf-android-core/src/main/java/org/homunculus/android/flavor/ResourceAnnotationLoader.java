@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.homunculus.android.core;
+package org.homunculus.android.flavor;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -22,8 +22,7 @@ import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import org.homunculus.android.annotation.Resource;
-import org.homunculusframework.factory.component.AnnotatedFieldProcessor;
+import org.homunculusframework.factory.container.AnnotatedFieldProcessor;
 import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +30,7 @@ import java.lang.reflect.Field;
 
 
 /**
- * The processor to support the {@link org.homunculus.android.annotation.Resource} annotation.
+ * The processor to support the {@link Resource} annotation.
  * Actually does some weired things and picks the last unique child and resolves the context from there.
  * By doing this we can ensure that we grab the correct context (e.g. correctly themed) so that inflated
  * layouts and views also have the correct theme applied.

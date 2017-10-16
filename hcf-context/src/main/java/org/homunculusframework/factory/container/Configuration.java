@@ -18,7 +18,8 @@ package org.homunculusframework.factory.container;
 import org.homunculusframework.factory.ObjectCreator;
 import org.homunculusframework.factory.ObjectDestroyer;
 import org.homunculusframework.factory.ObjectInjector;
-import org.homunculusframework.factory.annotation.Widget;
+import org.homunculusframework.factory.connection.Connection;
+import org.homunculusframework.factory.flavor.hcf.Widget;
 import org.homunculusframework.factory.component.DefaultFactory;
 import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
@@ -42,10 +43,16 @@ public class Configuration {
     private final Map<String, Class<?>> widgets;
     private final Map<String, Class<?>> immutableWidgets;
 
+
     /**
      * Just the collection of all controllers which will be instantiated
      */
     private final List<Class<?>> controllers;
+
+    /**
+     * Controllers may have proxied connections to them to automatically implement various comfort functions
+     */
+    private final List<Class<Connection>> controllerConnections;
 
     /**
      * Only used for error tracking, in a configuration all id's should be unique, even they don't share a common mindset (e.g. widgets and controllers)
@@ -63,6 +70,10 @@ public class Configuration {
 
     private ObjectDestroyer objectDestroyer;
 
+    private final ArrayList<AnnotatedFieldProcessor> annotatedFieldProcessors;
+    private final ArrayList<AnnotatedMethodsProcessor> onInjectMethodProcessors;
+    private final ArrayList<AnnotatedMethodsProcessor> onTearDownProcessors;
+
 
     public Configuration(Scope scope) {
         this.widgets = new HashMap<>();
@@ -70,10 +81,44 @@ public class Configuration {
         this.controllers = new ArrayList<>();
         this.definedIds = new HashMap<>();
         this.rootScope = scope;
-        DefaultFactory factory = new DefaultFactory();
+        DefaultFactory factory = new DefaultFactory(this);
         this.objectCreator = factory;
         this.objectInjector = factory;
         this.objectDestroyer = factory;
+        this.annotatedFieldProcessors = new ArrayList<>();
+        this.onInjectMethodProcessors = new ArrayList<>();
+        this.onTearDownProcessors = new ArrayList<>();
+        this.controllerConnections = new ArrayList<>();
+    }
+
+
+    public void addFieldProcessor(AnnotatedFieldProcessor proc) {
+        annotatedFieldProcessors.add(proc);
+    }
+
+    public void addMethodSetupProcessors(AnnotatedMethodsProcessor proc) {
+        onInjectMethodProcessors.add(proc);
+    }
+
+    public void addMethodTearDownProcessors(AnnotatedMethodsProcessor proc) {
+        onTearDownProcessors.add(proc);
+    }
+
+    public ArrayList<AnnotatedFieldProcessor> getFieldProcessors() {
+        return annotatedFieldProcessors;
+    }
+
+    public ArrayList<AnnotatedMethodsProcessor> getMethodSetupProcessors() {
+        return onInjectMethodProcessors;
+    }
+
+    public ArrayList<AnnotatedMethodsProcessor> getMethodTearDownProcessors() {
+        return onTearDownProcessors;
+    }
+
+
+    public List<Class<Connection>> getControllerConnections() {
+        return controllerConnections;
     }
 
     /**
@@ -116,6 +161,12 @@ public class Configuration {
         if (clazz == null) {
             return false;
         }
+        if (Connection.class.isAssignableFrom(clazz)) {
+            controllerConnections.add((Class<Connection>) clazz);
+            LoggerFactory.getLogger(getClass()).info("added @Connection {}", clazz);
+            return true;
+        }
+
         Widget widget = clazz.getAnnotation(Widget.class);
         Singleton controller = clazz.getAnnotation(Singleton.class);
         Named requestMapping = clazz.getAnnotation(Named.class);

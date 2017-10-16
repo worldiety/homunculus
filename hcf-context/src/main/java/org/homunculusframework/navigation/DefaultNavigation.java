@@ -16,6 +16,7 @@
 package org.homunculusframework.navigation;
 
 import org.homunculusframework.concurrent.Task;
+import org.homunculusframework.factory.component.DefaultFactory;
 import org.homunculusframework.factory.container.Component;
 import org.homunculusframework.factory.container.Container;
 import org.homunculusframework.factory.container.Request;
@@ -75,7 +76,7 @@ public class DefaultNavigation implements Navigation {
     }
 
     private void execute(Request request) {
-        request.put(Container.NAME_CALLSTACK, getCallStack(5));
+        request.put(Container.NAME_CALLSTACK, DefaultFactory.getCallStack(5));
         request.execute(scope).whenDone(res -> {
             Object obj = res.get();
             if (obj instanceof ModelAndView) {
@@ -85,6 +86,7 @@ public class DefaultNavigation implements Navigation {
                     LoggerFactory.getLogger(getClass()).error("no container found in scope, request discarded");
                 } else {
                     Scope uisScope = createChild(scope, mav);
+                    container.createProxies(uisScope);
                     Task<Component<?>> task = container.createWidget(uisScope, mav.getView());
                     task.whenDone(component -> {
                         Object newUIS = component.get();
@@ -101,7 +103,7 @@ public class DefaultNavigation implements Navigation {
                     });
                 }
             } else {
-                LoggerFactory.getLogger(getClass()).error("invocation success, but result not useful to navigate (use ModelAndView): {} -> {}", request.getRequestMapping(), obj);
+                LoggerFactory.getLogger(getClass()).error("invocation success, but result not useful to navigate (use ModelAndView): {} -> {}", request.getMapping(), obj);
             }
         });
     }
@@ -128,11 +130,6 @@ public class DefaultNavigation implements Navigation {
                 });
             }
         }
-    }
-
-    private StackTraceElement[] getCallStack(int offset) {
-        StackTraceElement[] trace = Thread.currentThread().getStackTrace();
-        return Arrays.copyOfRange(trace, offset, trace.length);
     }
 
 

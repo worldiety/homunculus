@@ -22,15 +22,14 @@ import android.arch.lifecycle.LifecycleObserver;
 import android.arch.lifecycle.LifecycleOwner;
 import android.arch.lifecycle.OnLifecycleEvent;
 import android.content.Context;
+import org.homunculus.android.flavor.*;
 import org.homunculusframework.factory.component.*;
 import org.homunculusframework.factory.container.Configuration;
-import org.homunculusframework.factory.container.Container;
 import org.homunculusframework.navigation.DefaultNavigation;
 import org.homunculusframework.navigation.Navigation;
 import org.homunculusframework.scope.Scope;
 
 import javax.annotation.Nullable;
-import java.io.File;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
@@ -68,13 +67,13 @@ public class Android {
      */
     public static Configuration getConfiguration(Context context) {
         Configuration configuration = new Configuration(getRootScope());
-        DefaultFactory defaultFactory = new DefaultFactory();
-        defaultFactory.addFieldProcessor(new AFPInject());
-        defaultFactory.addFieldProcessor(new AFPPersistent(new File(context.getFilesDir(), "persistent")));
-        defaultFactory.addFieldProcessor(new ResourceAnnotationLoader());
-        defaultFactory.addMethodSetupProcessors(new AMPPostConstruct());
-        defaultFactory.addMethodTearDownProcessors(new AMPPreDestroy());
 
+
+        //apply android specifics
+        new AndroidFlavor(context).apply(configuration);
+
+        //configure the factories
+        DefaultFactory defaultFactory = new DefaultFactory(configuration);
         configuration.setObjectCreator(defaultFactory);
         configuration.setObjectInjector(defaultFactory);
         configuration.setObjectDestroyer(defaultFactory);
@@ -141,10 +140,6 @@ public class Android {
         synchronized (sAndroidScopes) {
             if (sAppContextScope == null) {
                 sAppContextScope = new Scope("/", null);
-                sAppContextScope.putNamedValue(Container.NAME_MAIN_HANDLER, new AndroidMainHandler());
-                sAppContextScope.putNamedValue(Container.NAME_BACKGROUND_HANDLER, new AndroidBackgroundHandler(8, Container.NAME_BACKGROUND_HANDLER, Thread.MIN_PRIORITY));
-                sAppContextScope.putNamedValue(Container.NAME_REQUEST_HANDLER, new AndroidBackgroundHandler(8, Container.NAME_REQUEST_HANDLER, Thread.MIN_PRIORITY));
-                sAppContextScope.putNamedValue(Container.NAME_INFLATER_HANDLER, new AndroidInflaterHandler(8, Thread.MIN_PRIORITY));
             }
             return sAppContextScope;
         }

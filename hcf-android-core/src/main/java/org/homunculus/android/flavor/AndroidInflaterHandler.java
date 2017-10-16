@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.homunculus.android.core;
+package org.homunculus.android.flavor;
 
 import android.os.HandlerThread;
 import android.os.Looper;

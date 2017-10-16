@@ -13,30 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.homunculusframework.factory.annotation;
+package org.homunculus.android.flavor;
 
-import org.homunculusframework.factory.container.Container;
 import org.homunculusframework.factory.container.Handler;
-import org.homunculusframework.factory.container.Request;
 
-import java.lang.annotation.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
- * Denotes a view component to be displayed on screen. Annotate your view class with it and
- * refer to it using {@link Request}. Use a request with
- * {@link org.homunculusframework.navigation.Navigation} to automatically create a stack based user
- * flow.
+ * A simple one thread executor for the default background execution.
  *
  * @author Torben Schinke
  * @since 1.0
  */
-@Target({ElementType.TYPE})
-@Retention(RetentionPolicy.RUNTIME)
-@Documented
-public @interface Widget {
-    /**
-     * The unique id to identify the view or component.
-     */
-    String value();
+public class AndroidBackgroundHandler implements Handler {
+    private final ExecutorService mExecutor;
 
+    public AndroidBackgroundHandler(int threads, String name, int priority) {
+        mExecutor = Executors.newFixedThreadPool(threads, runnable -> {
+            Thread thread = new Thread(runnable);
+            thread.setName(name);
+            thread.setPriority(priority);
+            return thread;
+        });
+    }
+
+    @Override
+    public void post(Runnable r) {
+        mExecutor.submit(r);
+    }
 }

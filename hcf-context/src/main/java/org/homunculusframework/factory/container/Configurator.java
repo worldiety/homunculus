@@ -13,26 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.homunculus.android.core;
-
-import android.os.Handler;
-import android.os.Looper;
+package org.homunculusframework.factory.container;
 
 /**
- * The default typed Android main thread implementation.
+ * A convenience contract to guide implementors for different configurations or presets or flavors.
  *
  * @author Torben Schinke
  * @since 1.0
  */
-public class AndroidMainHandler implements org.homunculusframework.factory.container.Handler {
-    private final Handler mHandler;
-
-    public AndroidMainHandler() {
-        mHandler = new Handler(Looper.getMainLooper());
-    }
-
-    @Override
-    public void post(Runnable r) {
-        mHandler.post(r);
-    }
+public interface Configurator {
+    void apply(Configuration configuration);
 }

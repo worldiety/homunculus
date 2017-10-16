@@ -1,4 +1,4 @@
-package org.homunculusframework.factory.annotation;
+package org.homunculusframework.factory.flavor.hcf;
 
 import org.homunculusframework.factory.container.Container;
 

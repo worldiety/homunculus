@@ -13,21 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.homunculusframework.factory.component;
+package org.homunculusframework.factory.flavor.spring;
 
-import org.homunculusframework.scope.Scope;
-
-import java.lang.reflect.Field;
+import org.homunculusframework.factory.container.Configuration;
+import org.homunculusframework.factory.container.Configurator;
 
 /**
- * A field processor must be thread safe and should not hold a state.
- *
- * @author Torben Schinke
- * @since 1.0
+ * Provides support for a subset of spring annotations and behaviors to the {@link Configuration}
  */
-public interface AnnotatedFieldProcessor {
-    /**
-     * Processes the given field on the given type with the given scope.
-     */
-    void process(Scope scope, Object instance, Field field);
+public class SpringFlavor implements Configurator {
+    @Override
+    public void apply(Configuration configuration) {
+
+    }
 }

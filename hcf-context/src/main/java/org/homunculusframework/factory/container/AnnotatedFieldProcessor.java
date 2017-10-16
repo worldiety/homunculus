@@ -13,29 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.homunculusframework.factory.component;
+package org.homunculusframework.factory.container;
 
-/**
- * Created by tschinke on 06.10.17.
- */
-
-import org.homunculusframework.factory.ProcessingCompleteCallback;
 import org.homunculusframework.scope.Scope;
 
-import java.lang.reflect.Method;
-import java.util.List;
+import java.lang.reflect.Field;
 
 /**
- * A methods processor must be thread safe and should not hold a state. Applies to a bunch of methods.
+ * A field processor must be thread safe and should not hold a state.
  *
  * @author Torben Schinke
  * @since 1.0
  */
-public interface AnnotatedMethodsProcessor {
-
+public interface AnnotatedFieldProcessor {
     /**
-     * Processes a bunch of methods, when applicable
+     * Processes the given field on the given type with the given scope.
      */
-    void process(Scope scope, Object instance, List<Method> methods, ProcessingCompleteCallback callback);
-
+    void process(Scope scope, Object instance, Field field);
 }

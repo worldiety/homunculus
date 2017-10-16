@@ -16,6 +16,9 @@
 package org.homunculusframework.factory.component;
 
 import org.homunculusframework.factory.*;
+import org.homunculusframework.factory.container.AnnotatedFieldProcessor;
+import org.homunculusframework.factory.container.AnnotatedMethodsProcessor;
+import org.homunculusframework.factory.container.Configuration;
 import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
 
@@ -24,6 +27,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -40,10 +44,10 @@ public class DefaultFactory implements ObjectCreator, ObjectInjector, ObjectDest
     private final ArrayList<AnnotatedMethodsProcessor> onInjectMethodProcessors;
     private final ArrayList<AnnotatedMethodsProcessor> onTearDownProcessors;
 
-    public DefaultFactory() {
-        this.annotatedFieldProcessors = new ArrayList<>();
-        this.onInjectMethodProcessors = new ArrayList<>();
-        this.onTearDownProcessors = new ArrayList<>();
+    public DefaultFactory(Configuration configuration) {
+        this.annotatedFieldProcessors = configuration.getFieldProcessors();
+        this.onInjectMethodProcessors = configuration.getMethodSetupProcessors();
+        this.onTearDownProcessors = configuration.getMethodTearDownProcessors();
     }
 
     public void addFieldProcessor(AnnotatedFieldProcessor proc) {
@@ -124,7 +128,7 @@ public class DefaultFactory implements ObjectCreator, ObjectInjector, ObjectDest
             c.setAccessible(true);
             T res = c.newInstance();
             return res;
-        } catch (NoSuchMethodException | InstantiationException | InvocationTargetException | IllegalAccessException e) {
+        } catch (Exception e) {
             throw new FactoryException("unable to create instance of " + scope, e);
         }
     }
@@ -132,10 +136,11 @@ public class DefaultFactory implements ObjectCreator, ObjectInjector, ObjectDest
     private <T> T createShortestConstructor(Scope scope, Class<T> type) throws FactoryException {
         Constructor<T> shortestNotEmpty = null;
         for (Constructor c : type.getConstructors()) {
-            if (c.getParameterCount() == 0) {
+            int parameterCount = c.getParameterTypes().length;
+            if (parameterCount == 0) {
                 continue;
             }
-            if (shortestNotEmpty == null || c.getParameterCount() > shortestNotEmpty.getParameterCount()) {
+            if (shortestNotEmpty == null || parameterCount > shortestNotEmpty.getParameterCount()) {
                 shortestNotEmpty = c;
             }
         }
@@ -148,8 +153,8 @@ public class DefaultFactory implements ObjectCreator, ObjectInjector, ObjectDest
     private <T> T create(Scope scope, Constructor<T> constructor) throws FactoryException {
         try {
             constructor.setAccessible(true);
-            Object[] params = new Object[constructor.getParameterCount()];
             Class[] paramTypes = constructor.getParameterTypes();
+            Object[] params = new Object[paramTypes.length];
             for (int i = 0; i < params.length; i++) {
                 params[i] = scope.resolve(paramTypes[i]);
                 if (params[i] == null) {
@@ -157,12 +162,17 @@ public class DefaultFactory implements ObjectCreator, ObjectInjector, ObjectDest
                 }
             }
             return constructor.newInstance(params);
-        } catch (InstantiationException | InvocationTargetException | IllegalAccessException e) {
+        } catch (Exception e) {
             throw new FactoryException(e);
         }
     }
 
-    private static List<Field> getFields(Class clazz) {
+    public static StackTraceElement[] getCallStack(int offset) {
+        StackTraceElement[] trace = Thread.currentThread().getStackTrace();
+        return Arrays.copyOfRange(trace, offset, trace.length);
+    }
+
+    public static List<Field> getFields(Class clazz) {
         List<Field> res = new ArrayList<>();
         Class root = clazz;
         while (root != null) {
@@ -174,7 +184,7 @@ public class DefaultFactory implements ObjectCreator, ObjectInjector, ObjectDest
         return res;
     }
 
-    private static List<Method> getMethods(Class clazz) {
+    public static List<Method> getMethods(Class clazz) {
         List<Method> res = new ArrayList<>();
         Class root = clazz;
         while (root != null) {
@@ -186,7 +196,7 @@ public class DefaultFactory implements ObjectCreator, ObjectInjector, ObjectDest
         return res;
     }
 
-    static String stripToString(Object value) {
+    public static String stripToString(Object value) {
         if (value == null) {
             return "null";
         } else {

@@ -15,9 +15,14 @@
  */
 package org.homunculusframework.lang;
 
+import org.slf4j.LoggerFactory;
+
 import javax.annotation.Nullable;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 
 /**
@@ -64,8 +69,9 @@ public final class Result<T> {
         this.value = value;
     }
 
-    public void setThrowable(@Nullable Throwable throwable) {
+    public Result<T> setThrowable(@Nullable Throwable throwable) {
         this.throwable = throwable;
+        return this;
     }
 
     @Nullable
@@ -87,4 +93,31 @@ public final class Result<T> {
         return this;
     }
 
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("value").append("=").append(value).append("\n");
+        for (Entry<String, Object> entry : tags.entrySet()) {
+            sb.append(entry.getKey()).append("=").append(entry.getValue()).append("\n");
+        }
+        if (throwable != null) {
+            StringWriter writer = new StringWriter();
+            PrintWriter pwriter = new PrintWriter(writer);
+            throwable.printStackTrace(pwriter);
+            pwriter.flush();
+            sb.append(writer.toString());
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Prints into the log, if the value is null or a throwable is set
+     */
+    public Result<T> log() {
+        if (value == null || throwable != null) {
+            LoggerFactory.getLogger(getClass()).error(toString());
+        }
+        return this;
+    }
 }

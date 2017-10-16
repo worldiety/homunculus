@@ -1,15 +1,17 @@
 package org.homunculus.android.example.module.cart;
 
+import android.app.AlertDialog;
+import android.app.AlertDialog.Builder;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import org.homunculus.android.annotation.Resource;
+import org.homunculus.android.flavor.Resource;
 import org.homunculus.android.example.R;
 import org.homunculus.android.example.module.cart.CartModel.CartEntry;
-import org.homunculusframework.factory.annotation.Widget;
+import org.homunculusframework.factory.flavor.hcf.Widget;
 import org.homunculusframework.factory.container.Request;
 import org.homunculusframework.navigation.Navigation;
 
@@ -39,6 +41,8 @@ public class CartView extends LinearLayout {
     @Inject
     private Navigation mNav;
 
+    @Inject
+    private CartControllerConnection mCartController;
 
     public CartView(Context context) {
         super(context);
@@ -68,5 +72,18 @@ public class CartView extends LinearLayout {
             mNav.forward(new Request("/cart/list").put("id", "77777"));
         });
         addView(button, new LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
+
+
+        Button button2 = new Button(getContext());
+        button2.setText("direct invocation");
+        button2.setOnClickListener(view -> {
+            mCartController.getPoJoCart(4566).whenDone(res -> {
+                res.log();
+                Builder dlg = new Builder(getContext());
+                dlg.setMessage("the result is: " + res);
+                dlg.create().show();
+            });
+        });
+        addView(button2, new LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
     }
 }

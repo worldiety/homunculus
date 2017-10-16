@@ -15,7 +15,7 @@
  */
 package org.homunculusframework.navigation;
 
-import org.homunculusframework.factory.annotation.Widget;
+import org.homunculusframework.factory.flavor.hcf.Widget;
 import org.homunculusframework.lang.Function;
 
 import java.util.Map;

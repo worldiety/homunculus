@@ -16,6 +16,8 @@
 package org.homunculusframework.factory.container;
 
 import org.homunculusframework.concurrent.Task;
+import org.homunculusframework.factory.flavor.hcf.Persistent;
+import org.homunculusframework.factory.flavor.hcf.Widget;
 import org.homunculusframework.lang.Function;
 import org.homunculusframework.lang.Panic;
 import org.homunculusframework.lang.Result;
@@ -29,9 +31,9 @@ import java.util.Map.Entry;
 import java.util.TreeMap;
 
 /**
- * Represents the request to a resource. Usually this should refer to a {@link org.homunculusframework.stereotype.Controller}
- * annotated backend controller containing a method annotated with {@link org.homunculusframework.factory.annotation.RequestMapping}
- * but it may also refer to another {@link org.homunculusframework.factory.annotation.Widget} (or UIS) directly.
+ * Represents the request to a resource. Usually this should refer to an
+ * annotated backend controller containing a method annotated with a request mapping
+ * but it may also refer to another {@link Widget} (or UIS) directly.
  * Even platform specific resource may be possible and depends on the actual configuration. At the end
  * this mechanism should provide as much freedom as possible.
  * <p>
@@ -49,41 +51,40 @@ import java.util.TreeMap;
  * @since 1.0
  */
 public final class Request {
-    private final String requestMapping;
+    private final String mapping;
     private final Map<String, Object> requestParams;
 
-    public Request(String requestMapping) {
-        if (requestMapping.length() == 0) {
+    public Request(String mapping) {
+        if (mapping.length() == 0) {
             throw new Panic("empty request is not defined");
         }
-        if (requestMapping.charAt(0) != '/' || requestMapping.charAt(requestMapping.length() - 1) != '/') {
+        if (mapping.charAt(0) != '/' || mapping.charAt(mapping.length() - 1) != '/') {
             StringBuilder normalized = new StringBuilder();
-            if (requestMapping.charAt(0) != '/') {
+            if (mapping.charAt(0) != '/') {
                 normalized.append('/');
             }
-            normalized.append(requestMapping);
-            if (requestMapping.charAt(requestMapping.length() - 1) != '/') {
+            normalized.append(mapping);
+            if (mapping.charAt(mapping.length() - 1) != '/') {
                 normalized.append('/');
             }
-            this.requestMapping = normalized.toString();
+            this.mapping = normalized.toString();
         } else {
-            this.requestMapping = requestMapping;
+            this.mapping = mapping;
         }
         this.requestParams = new TreeMap<>();
     }
 
 
     /**
-     * Returns the requested id, identified by {@link org.homunculusframework.factory.annotation.RequestMapping}
-     * in various stereotypes.
+     * Returns the requested controller mapping in various stereotypes.
      */
-    public String getRequestMapping() {
-        return requestMapping;
+    public String getMapping() {
+        return mapping;
     }
 
     /**
      * Adds a key and a value. The inserted object MUST be always a defensive copy (or immutable) and SHOULD be
-     * serializable (see also {@link org.homunculusframework.factory.annotation.Persistent}). Also the amount
+     * serializable (see also {@link Persistent}). Also the amount
      * of occupied memory should be as small as possible, because depending on the {@link Navigation} this
      * can cause a permanent memory leak.
      * <p>
@@ -136,14 +137,14 @@ public final class Request {
     public Task<Result<Object>> execute(Scope scope) {
         Container container = scope.resolveNamedValue(Container.NAME_CONTAINER, Container.class);
         if (container == null) {
-            LoggerFactory.getLogger(getClass()).error("execution not possible: {} missing ({})", Container.class, requestMapping);
-            SettableTask<Result<Object>> task = SettableTask.create(scope, requestMapping);
+            LoggerFactory.getLogger(getClass()).error("execution not possible: {} missing ({})", Container.class, mapping);
+            SettableTask<Result<Object>> task = SettableTask.create(scope, mapping);
             Result<Object> res = Result.create();
             res.putTag("error", "missing container");
             task.set(res);
             return task;
         } else {
-            SettableTask<Result<Object>> task = SettableTask.create(scope, requestMapping);
+            SettableTask<Result<Object>> task = SettableTask.create(scope, mapping);
             Result<Object> res = Result.create();
             Handler backgroundThread = scope.resolveNamedValue(Container.NAME_REQUEST_HANDLER, Handler.class);
             Runnable job = () -> {
@@ -151,14 +152,14 @@ public final class Request {
                     Object result = container.invoke(scope, this);
                     res.set(result);
                 } catch (Exception e) {
-                    LoggerFactory.getLogger(getClass()).error("failed to execute Request '{}':", this.getRequestMapping(), e);
+                    LoggerFactory.getLogger(getClass()).error("failed to execute Request '{}':", this.getMapping(), e);
                     res.setThrowable(e);
                 } finally {
                     task.set(res);
                 }
             };
             if (backgroundThread == null) {
-                LoggerFactory.getLogger(getClass()).warn("no background thread defined, executing Request '{}' inline", this.getRequestMapping());
+                LoggerFactory.getLogger(getClass()).warn("no background thread defined, executing Request '{}' inline", this.getMapping());
                 job.run();
             } else {
                 backgroundThread.post(job);

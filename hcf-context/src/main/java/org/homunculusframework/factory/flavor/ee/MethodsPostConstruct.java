@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.homunculusframework.factory.component;
+package org.homunculusframework.factory.flavor.ee;
 
 import org.homunculusframework.factory.ProcessingCompleteCallback;
-import org.homunculusframework.factory.annotation.Execute;
-import org.homunculusframework.factory.annotation.Priority;
+import org.homunculusframework.factory.flavor.hcf.Execute;
+import org.homunculusframework.factory.flavor.hcf.Priority;
+import org.homunculusframework.factory.container.AnnotatedMethodsProcessor;
 import org.homunculusframework.factory.container.Container;
 import org.homunculusframework.factory.container.Handler;
 import org.homunculusframework.scope.Scope;
@@ -36,7 +37,7 @@ import java.util.List;
  * @author Torben Schinke
  * @since 1.0
  */
-public class AMPPostConstruct implements AnnotatedMethodsProcessor {
+public class MethodsPostConstruct implements AnnotatedMethodsProcessor {
 
     @Override
     public void process(Scope scope, Object instance, List<Method> methods, ProcessingCompleteCallback callback) {

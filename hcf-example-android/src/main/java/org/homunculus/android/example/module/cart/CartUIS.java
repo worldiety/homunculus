@@ -2,8 +2,8 @@ package org.homunculus.android.example.module.cart;
 
 import android.app.Activity;
 import android.content.Context;
-import org.homunculusframework.factory.annotation.Priority;
-import org.homunculusframework.factory.annotation.Widget;
+import org.homunculusframework.factory.flavor.hcf.Priority;
+import org.homunculusframework.factory.flavor.hcf.Widget;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;

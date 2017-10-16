@@ -152,7 +152,7 @@ public final class ControllerEndpoint {
 
 
     public static Scope createChild(Scope parent, Request request) {
-        Scope scope = new Scope("request:" + request.getRequestMapping(), parent);
+        Scope scope = new Scope("request:" + request.getMapping(), parent);
         request.forEach(entry -> {
             scope.putNamedValue(entry.getKey(), entry.getValue());
             return true;

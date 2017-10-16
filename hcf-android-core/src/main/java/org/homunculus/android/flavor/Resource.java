@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.homunculus.android.annotation;
+package org.homunculus.android.flavor;
 
-import org.homunculus.android.core.ResourceAnnotationLoader;
-import org.homunculusframework.factory.annotation.Execute;
+import org.homunculusframework.factory.flavor.hcf.Execute;
 
 import java.lang.annotation.*;
 

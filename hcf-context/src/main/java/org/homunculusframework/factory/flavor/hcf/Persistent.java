@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.homunculusframework.factory.annotation;
+package org.homunculusframework.factory.flavor.hcf;
 
 import org.homunculusframework.factory.ObjectCreator;
+import org.homunculusframework.factory.flavor.hcf.FieldPersistent;
 import org.homunculusframework.factory.serializer.Serializer;
 import org.homunculusframework.factory.serializer.Xml;
 
@@ -25,7 +26,7 @@ import java.lang.annotation.*;
  * Marks a field or getter method to save the declared model "before" exiting
  * the scope which was used to create the instance. The concrete capabilities depends on the
  * configured {@link ObjectCreator}.
- * See also {@link org.homunculusframework.factory.component.AFPPersistent}.
+ * See also {@link FieldPersistent}.
  *
  * @author Torben Schinke
  * @since 1.0

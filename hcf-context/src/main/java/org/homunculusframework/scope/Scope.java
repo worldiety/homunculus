@@ -22,6 +22,7 @@ import org.homunculusframework.lang.Reflection;
 
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * A scope provides the fundamental information about all existing instances in a context. A scope is always part
@@ -334,6 +335,7 @@ public final class Scope implements Destroyable {
      * Puts an anonymous value and returns any existing value which represents the same (exact) class.
      */
     @Nullable
+    @Deprecated
     public Object putAnonymousValue(@Nullable Object value) {
         if (value == null) {
             return null;
@@ -348,6 +350,7 @@ public final class Scope implements Destroyable {
      * Removes the connected anonymous value to the related class and returns it, if removed. It does not
      * respect the class hierarchy, instead a direct match is performed.
      */
+    @Deprecated
     public Object removeAnonymousValue(Class<?> value) {
         synchronized (lock) {
             checkDestroyed();
@@ -476,5 +479,14 @@ public final class Scope implements Destroyable {
         }
     }
 
-
+    /**
+     * Loops over all entries (non-recursive), as long as the closure returns true
+     */
+    public void forEachEntry(Function<Entry<String, Object>, Boolean> closure) {
+        for (Entry<String, Object> entry : namedValues.entrySet()) {
+            if (!closure.apply(entry)) {
+                return;
+            }
+        }
+    }
 }

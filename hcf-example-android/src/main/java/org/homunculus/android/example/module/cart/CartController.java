@@ -1,7 +1,8 @@
 package org.homunculus.android.example.module.cart;
 
 import org.homunculus.android.example.module.cart.CartModel.CartEntry;
-import org.homunculusframework.factory.annotation.Execute;
+import org.homunculusframework.factory.connection.Connection;
+import org.homunculusframework.factory.flavor.hcf.Execute;
 import org.homunculusframework.factory.container.Container;
 import org.homunculusframework.navigation.ModelAndView;
 import org.slf4j.LoggerFactory;
@@ -31,5 +32,23 @@ public class CartController {
         cart.getEntries().add(new CartEntry("Jim, he is dead"));
 
         return new ModelAndView("/cart/uis/list").put("cart", cart);
+    }
+
+    /**
+     * Requesting backend methods directly is possible as well, recommend is to use the {@link Connection} pattern
+     * as seen in {@link CartControllerConnection}
+     */
+    public CartModel getPoJoCart(int cartId) throws InterruptedException {
+        //do some expensive I/O work
+        Thread.sleep(2000);
+
+        CartModel cart = new CartModel();
+        cart.setId(cartId);
+        cart.getEntries().add(new CartEntry("The wiz in action"));
+        cart.getEntries().add(new CartEntry("Jim, he is dead"));
+        if (true) {
+            throw new IllegalArgumentException("yo man");
+        }
+        return cart;
     }
 }

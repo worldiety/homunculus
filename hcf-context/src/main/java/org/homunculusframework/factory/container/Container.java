@@ -18,8 +18,10 @@ package org.homunculusframework.factory.container;
 import org.homunculusframework.concurrent.Task;
 import org.homunculusframework.factory.ObjectCreator;
 import org.homunculusframework.factory.ObjectInjector;
-import org.homunculusframework.factory.annotation.Execute;
-import org.homunculusframework.factory.annotation.Widget;
+import org.homunculusframework.factory.connection.Connection;
+import org.homunculusframework.factory.connection.ConnectionProxyFactory;
+import org.homunculusframework.factory.flavor.hcf.Execute;
+import org.homunculusframework.factory.flavor.hcf.Widget;
 import org.homunculusframework.lang.Classname;
 import org.homunculusframework.lang.Panic;
 import org.homunculusframework.scope.Scope;
@@ -29,11 +31,13 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import javax.inject.Named;
+import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -102,19 +106,16 @@ public final class Container {
      * Here you can also inspect exceptions occured while creation.
      */
     public List<Throwable> start() {
+        Semaphore wait = new Semaphore(0);
         List<Throwable> throwables = new ArrayList<>();
         startInternal((container, failures) -> {
             throwables.addAll(failures);
-            synchronized (Container.this) {
-                Container.this.notify();
-            }
+            wait.release();
         });
-        synchronized (Container.this) {
-            try {
-                Container.this.wait();
-            } catch (InterruptedException e) {
-                throw new Panic(e);
-            }
+        try {
+            wait.acquire();
+        } catch (InterruptedException e) {
+            throw new Panic(e);
         }
         return throwables;
     }
@@ -138,6 +139,7 @@ public final class Container {
                 }
                 LoggerFactory.getLogger(getClass()).info("created {}", Classname.getName(clazz));
                 controllers.add(instance);
+                containerScope.putNamedValue("$" + Classname.getName(clazz), instance);
                 for (ControllerEndpoint endpoint : ControllerEndpoint.list(instance)) {
                     ControllerEndpoint existing = controllerEndpoints.get(endpoint.getRequestMapping());
                     if (existing != endpoint && existing != null) {
@@ -168,6 +170,22 @@ public final class Container {
                     }
                 });
             }
+
+            //automatically implement connection proxies
+            for (Class<Connection> clazz : configuration.getControllerConnections()) {
+                ParameterizedType type = (ParameterizedType) clazz.getGenericInterfaces()[0];
+                Class controllerType = (Class) type.getActualTypeArguments()[0];
+                Object controllerInstance = containerScope.resolve(controllerType);
+                if (controllerInstance == null) {
+                    LoggerFactory.getLogger(getClass()).error("connection '{}' refers to non-existing controller '{}'", clazz, controllerType);
+                    continue;
+                }
+
+                //create and insert the proxy factory
+                ConnectionProxyFactory proxy = new ConnectionProxyFactory(controllerInstance, clazz, 0);
+                containerScope.putNamedValue("$proxyfactory@" + Classname.getName(controllerInstance.getClass()), proxy);
+            }
+
             containerScope.putNamedValue(NAME_CONTAINER, this);
             running = true;
         }
@@ -179,9 +197,9 @@ public final class Container {
      * @throws ExecutionException
      */
     public Object invoke(Scope scope, Request request) throws ExecutionException {
-        ControllerEndpoint endpoint = controllerEndpoints.get(request.getRequestMapping());
+        ControllerEndpoint endpoint = controllerEndpoints.get(request.getMapping());
         if (endpoint == null) {
-            throw new ExecutionException("@RequestMapping '" + request.getRequestMapping() + "' is not defined in the current Configuration", null);
+            throw new ExecutionException("@RequestMapping '" + request.getMapping() + "' is not defined in the current Configuration", null);
         } else {
             return endpoint.invoke(scope, request);
         }
@@ -205,6 +223,23 @@ public final class Container {
             return task;
         }
         return createComponent(scope, widget);
+    }
+
+    /**
+     * Creates all supported proxies and inserts them into the given scope. The proxies are recycled when the scope
+     * dies (and not thrown away).
+     */
+    public void createProxies(Scope scope) {
+        getConfiguration().getRootScope().forEachEntry(entry -> {
+            if (entry.getValue() instanceof ConnectionProxyFactory) {
+                ConnectionProxyFactory factory = (ConnectionProxyFactory) entry.getValue();
+                Connection connection = factory.borrowConnection(scope);
+                scope.putNamedValue("$proxy@" + Classname.getName(factory.getControllerType()), connection);
+                scope.addOnBeforeDestroyCallback(s -> factory.returnConnection(connection));
+            }
+
+            return true;
+        });
     }
 
     private static String normalize(String text) {

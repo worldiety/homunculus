@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.homunculusframework.factory.component;
+package org.homunculusframework.factory.flavor.hcf;
 
-import org.homunculusframework.factory.annotation.Persistent;
+import org.homunculusframework.factory.container.AnnotatedFieldProcessor;
+import org.homunculusframework.factory.component.DefaultFactory;
 import org.homunculusframework.factory.serializer.Serializer;
 import org.homunculusframework.lang.Classname;
 import org.homunculusframework.lang.Panic;
@@ -36,12 +37,12 @@ import java.util.UUID;
  * @author Torben Schinke
  * @since 1.0
  */
-public class AFPPersistent implements AnnotatedFieldProcessor {
+public class FieldPersistent implements AnnotatedFieldProcessor {
     private final File folder;
     private final Map<Class<? extends Serializer>, Serializer> serializers;
 
 
-    public AFPPersistent(File folder) {
+    public FieldPersistent(File folder) {
         this.folder = folder;
         this.serializers = new IdentityHashMap<>();
     }
