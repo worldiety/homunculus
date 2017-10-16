@@ -1,6 +1,5 @@
 package org.homunculus.android.example.module.cart;
 
-import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -10,7 +9,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import org.homunculus.android.flavor.Resource;
 import org.homunculus.android.example.R;
-import org.homunculus.android.example.module.cart.CartModel.CartEntry;
 import org.homunculusframework.factory.flavor.hcf.Widget;
 import org.homunculusframework.factory.container.Request;
 import org.homunculusframework.navigation.Navigation;

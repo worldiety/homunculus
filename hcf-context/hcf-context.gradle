@@ -10,4 +10,11 @@ dependencies {
     //avoid direct dependency for various jsr' standards, which may be provided already by the runtime
     compileOnly 'javax.inject:javax.inject:1'
     compileOnly 'javax.annotation:jsr250-api:1.0'
+
+    //jpa support
+    compileOnly 'org.apache.geronimo.specs:geronimo-jpa_2.0_spec:1.1'
+
+    //orm support
+    compileOnly 'com.j256.ormlite:ormlite-android:5.0'
+    compileOnly 'com.j256.ormlite:ormlite-jdbc:5.0'
 }

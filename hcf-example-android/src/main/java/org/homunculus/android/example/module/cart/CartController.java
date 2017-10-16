@@ -1,6 +1,5 @@
 package org.homunculus.android.example.module.cart;
 
-import org.homunculus.android.example.module.cart.CartModel.CartEntry;
 import org.homunculusframework.factory.connection.Connection;
 import org.homunculusframework.factory.flavor.hcf.Execute;
 import org.homunculusframework.factory.container.Container;
