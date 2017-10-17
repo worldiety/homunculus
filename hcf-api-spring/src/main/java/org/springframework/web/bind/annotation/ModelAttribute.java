@@ -44,8 +44,8 @@ import java.lang.annotation.Target;
  * not available to web views when request processing results in an
  * {@code Exception} since the exception could be raised at any time
  * making the content of the model unreliable. For this reason
- * {@link ExceptionHandler @ExceptionHandler} methods do not provide
- * access to a {@link Model} argument.
+ * methods do not provide
+ * access to a {@link } argument.
  *
  * @author Juergen Hoeller
  * @author Rossen Stoyanchev

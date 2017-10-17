@@ -30,13 +30,11 @@ import java.lang.annotation.Target;
  * <p>Other class-level annotations may be considered as identifying
  * a component as well, typically a special kind of component:
  * e.g. the {@link Repository @Repository} annotation or AspectJ's
- * {@link org.aspectj.lang.annotation.Aspect @Aspect} annotation.
  *
  * @author Mark Fisher
  * @see Repository
  * @see Service
  * @see Controller
- * @see org.springframework.context.annotation.ClassPathBeanDefinitionScanner
  * @since 2.5
  */
 @Target(ElementType.TYPE)

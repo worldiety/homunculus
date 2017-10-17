@@ -33,7 +33,6 @@ import java.lang.annotation.*;
  * an appropriate {@code HandlerMapping}-{@code HandlerAdapter} pair
  * is configured. If you are defining custom {@code HandlerMappings} or
  * {@code HandlerAdapters}, then you need to add {@code RequestMappingHandlerMapping}
- * and {@code RequestMappingHandlerAdapter} to your configuration.</code>.
  *
  * <p><b>NOTE:</b> When using controller interfaces (e.g. for AOP proxying),
  * make sure to consistently put <i>all</i> your mapping annotations - such as
@@ -44,20 +43,6 @@ import java.lang.annotation.*;
  * @author Arjen Poutsma
  * @author Sam Brannen
  * @since 2.5
- * @see GetMapping
- * @see PostMapping
- * @see PutMapping
- * @see DeleteMapping
- * @see PatchMapping
- * @see RequestParam
- * @see RequestAttribute
- * @see PathVariable
- * @see ModelAttribute
- * @see SessionAttribute
- * @see SessionAttributes
- * @see InitBinder
- * @see org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter
- * @see org.springframework.web.reactive.result.method.annotation.RequestMappingHandlerAdapter
  */
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
@@ -69,8 +54,6 @@ public @interface RequestMapping {
 	 * <p><b>Supported at the type level as well as at the method level!</b>
 	 * When used on both levels, a combined name is derived by concatenation
 	 * with "#" as separator.
-	 * @see org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder
-	 * @see org.springframework.web.servlet.handler.HandlerMethodMappingNamingStrategy
 	 */
 	String name() default "";
 
@@ -148,7 +131,6 @@ public @interface RequestMapping {
 	 * When used at the type level, all method-level mappings inherit
 	 * this header restriction (i.e. the type-level restriction
 	 * gets checked before the handler method is even resolved).
-	 * @see org.springframework.http.MediaType
 	 */
 	String[] headers() default {};
 
@@ -166,8 +148,6 @@ public @interface RequestMapping {
 	 * <p><b>Supported at the type level as well as at the method level!</b>
 	 * When used at the type level, all method-level mappings override
 	 * this consumes restriction.
-	 * @see org.springframework.http.MediaType
-	 * @see javax.servlet.http.HttpServletRequest#getContentType()
 	 */
 	String[] consumes() default {};
 
@@ -188,7 +168,6 @@ public @interface RequestMapping {
 	 * <p><b>Supported at the type level as well as at the method level!</b>
 	 * When used at the type level, all method-level mappings override
 	 * this produces restriction.
-	 * @see org.springframework.http.MediaType
 	 */
 	String[] produces() default {};
 

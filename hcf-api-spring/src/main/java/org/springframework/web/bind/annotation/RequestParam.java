@@ -31,7 +31,6 @@ import java.util.Map;
  * assuming an appropriate conversion strategy is available.
  *
  * <p>If the method parameter is {@link java.util.Map Map&lt;String, String&gt;} or
- * {@link org.springframework.util.MultiValueMap MultiValueMap&lt;String, String&gt;}
  * and a parameter name is not specified, then the map parameter is populated
  * with all request parameter names and values.
  *
@@ -40,8 +39,6 @@ import java.util.Map;
  * @author Sam Brannen
  * @since 2.5
  * @see RequestMapping
- * @see RequestHeader
- * @see CookieValue
  */
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)

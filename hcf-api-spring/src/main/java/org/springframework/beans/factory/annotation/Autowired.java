@@ -48,19 +48,14 @@ import java.lang.annotation.Target;
  * type String and will be resolved to the corresponding bean names.
  *
  * <p>Note that actual injection is performed through a
- * {@link org.springframework.beans.factory.config.BeanPostProcessor
  * BeanPostProcessor} which in turn means that you <em>cannot</em>
  * use {@code @Autowired} to inject references into
- * {@link org.springframework.beans.factory.config.BeanPostProcessor
  * BeanPostProcessor} or
- * {@link org.springframework.beans.factory.config.BeanFactoryPostProcessor BeanFactoryPostProcessor}
- * types. Please consult the javadoc for the {@link AutowiredAnnotationBeanPostProcessor}
  * class (which, by default, checks for the presence of this annotation).
  *
  * @author Juergen Hoeller
  * @author Mark Fisher
  * @since 2.5
- * @see AutowiredAnnotationBeanPostProcessor
  * @see Qualifier
  * @see Value
  */

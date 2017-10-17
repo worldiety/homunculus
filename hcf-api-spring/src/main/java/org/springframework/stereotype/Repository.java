@@ -35,10 +35,6 @@ import java.lang.annotation.Target;
  * may narrow their semantics and use as appropriate.
  * <p>
  * <p>A class thus annotated is eligible for Spring
- * {@link org.springframework.dao.DataAccessException DataAccessException} translation
- * when used in conjunction with a {@link
- * org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor
- * PersistenceExceptionTranslationPostProcessor}. The annotated class is also clarified as
  * to its role in the overall application architecture for the purpose of tooling,
  * aspects, etc.
  * <p>
@@ -50,8 +46,6 @@ import java.lang.annotation.Target;
  * @author Juergen Hoeller
  * @see Component
  * @see Service
- * @see org.springframework.dao.DataAccessException
- * @see org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor
  * @since 2.0
  */
 @Target({ElementType.TYPE})

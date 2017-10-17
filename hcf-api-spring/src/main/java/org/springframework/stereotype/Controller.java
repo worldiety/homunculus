@@ -36,7 +36,6 @@ import java.lang.annotation.Target;
  * @since 2.5
  * @see Component
  * @see org.springframework.web.bind.annotation.RequestMapping
- * @see org.springframework.context.annotation.ClassPathBeanDefinitionScanner
  */
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
