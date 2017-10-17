@@ -58,15 +58,6 @@ public final class Scope implements Destroyable {
      */
     private final Map<String, Object> namedValues;
 
-    /**
-     * Anonymous values are values without any name. Only a single value per class can be hold, multiple would not make sense
-     * in the same scope, because when resolving and matching against a potential target we always would pick the first (or last).
-     * Using this approach we always use the latest kind of value per type.
-     *
-     * @deprecated does not look like that we need that anymore
-     */
-    @Deprecated
-    private final Map<Class, Object> anonymousValues;
 
     //the hidden lock to make the scope operations thread safe
     private final Object lock = new Object();
@@ -86,7 +77,6 @@ public final class Scope implements Destroyable {
         this.parent = parent;
         this.subScopes = new TreeMap<>();
         this.namedValues = new TreeMap<>();
-        this.anonymousValues = new IdentityHashMap<>();
         this.dcbAfter = new ArrayList<>(3);
         this.dcbBefore = new ArrayList<>(3);
         if (parent != null) {
@@ -331,38 +321,11 @@ public final class Scope implements Destroyable {
         }
     }
 
-    /**
-     * Puts an anonymous value and returns any existing value which represents the same (exact) class.
-     */
-    @Nullable
-    @Deprecated
-    public Object putAnonymousValue(@Nullable Object value) {
-        if (value == null) {
-            return null;
-        }
-        synchronized (lock) {
-            checkDestroyed();
-            return anonymousValues.put(value.getClass(), value);
-        }
-    }
-
-    /**
-     * Removes the connected anonymous value to the related class and returns it, if removed. It does not
-     * respect the class hierarchy, instead a direct match is performed.
-     */
-    @Deprecated
-    public Object removeAnonymousValue(Class<?> value) {
-        synchronized (lock) {
-            checkDestroyed();
-            return anonymousValues.remove(value, value);
-        }
-    }
 
     /**
      * Walks over the entire scope hierarchy to resolve the type. The resolution order is defined as following (bottom-up):
      * <ol>
      * <li>Scope.class is mapped to this instance</li>
-     * <li>Try to assign from anonymous declarations</li>
      * <li>Try to assign from named declarations</li>
      * <li>Ask the parent to resolve</li>
      * </ol>
@@ -374,26 +337,21 @@ public final class Scope implements Destroyable {
             if (type == Scope.class) {
                 return (T) this;
             }
-            //1.
-            for (Object value : anonymousValues.values()) {
-                if (type.isAssignableFrom(value.getClass())) {
-                    return (T) value;
-                }
-            }
-
-            //2.
-            for (Object value : namedValues.values()) {
-                if (type.isAssignableFrom(value.getClass())) {
-                    return (T) value;
-                }
-            }
-
-            //3.
-            if (parent != null) {
-                return parent.resolve(type);
-            }
-            return null;
         }
+
+        //2.
+        for (Object value : namedValues.values()) {
+            if (type.isAssignableFrom(value.getClass())) {
+                return (T) value;
+            }
+        }
+
+        //3.
+        if (parent != null) {
+            return parent.resolve(type);
+        }
+        return null;
+
     }
 
     /**
@@ -411,8 +369,6 @@ public final class Scope implements Destroyable {
      * <ol>
      * <li>Invoke all registered {@link OnBeforeDestroyCallback}s</li>
      * <li>Remove all before callbacks</li>
-     * <li>Try to destroy all anonymous values</li>
-     * <li>Remove all anonymous values</li>
      * <li>Try to destroy all named values</li>
      * <li>Remove all named values</li>
      * <li>Detach from parent</li>
@@ -437,13 +393,6 @@ public final class Scope implements Destroyable {
             }
             dcbBefore.clear();
 
-            //2.
-            for (Object value : anonymousValues.values()) {
-                if (value instanceof Destroyable) {
-                    ((Destroyable) value).destroy();
-                }
-            }
-            anonymousValues.clear();
 
             //3.
             for (Object value : namedValues.values()) {

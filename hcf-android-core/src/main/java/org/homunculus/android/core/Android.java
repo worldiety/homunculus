@@ -25,11 +25,15 @@ import android.content.Context;
 import org.homunculus.android.flavor.*;
 import org.homunculusframework.factory.component.*;
 import org.homunculusframework.factory.container.Configuration;
+import org.homunculusframework.factory.flavor.ee.EEFlavor;
+import org.homunculusframework.factory.flavor.hcf.HomunculusFlavor;
+import org.homunculusframework.factory.flavor.spring.SpringFlavor;
 import org.homunculusframework.navigation.DefaultNavigation;
 import org.homunculusframework.navigation.Navigation;
 import org.homunculusframework.scope.Scope;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
@@ -68,9 +72,13 @@ public class Android {
     public static Configuration getConfiguration(Context context) {
         Configuration configuration = new Configuration(getRootScope());
 
+        File dir = new File(context.getFilesDir(), "hcf");
 
         //apply android specifics
         new AndroidFlavor(context).apply(configuration);
+        new EEFlavor().apply(configuration);
+        new HomunculusFlavor(dir).apply(configuration);
+        new SpringFlavor().apply(configuration);
 
         //configure the factories
         DefaultFactory defaultFactory = new DefaultFactory(configuration);

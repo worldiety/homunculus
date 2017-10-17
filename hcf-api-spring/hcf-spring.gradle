@@ -1,0 +1,27 @@
+plugins {
+    id "me.tatarka.retrolambda" version "3.2.2"
+    id "com.jfrog.bintray" version "1.7.3"
+}
+
+
+description = "subset of the spring api"
+
+//gradle -Puser=someuser -Pkey=ASDFASDFASDF bintrayUpload
+//bintray {
+//    user = property('user')
+//    key = property('key')
+//    pkg {
+//        repo = 'homunculus'
+//        name = 'hcf-core'
+//        userOrg = 'worldiety'
+//        licenses = ['Apache-2.0']
+//        vcsUrl = 'https://github.com/worldiety/homunculus.git'
+//        released = new Date()
+//        vcsTag = '0.0.1-alpha'
+//    }
+//}
+
+
+dependencies {
+
+}

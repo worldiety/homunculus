@@ -22,15 +22,14 @@ import java.lang.annotation.*;
  * <p>
  * Definition of "user interface state": Describes a self contained part of the user interface which provides
  * access to a specific functionality or use case. Usually a UIS describes an aggregation of view components within
- * an entire window.
+ * an entire window and applies itself to the screen, e.g. by applying {@link javax.annotation.PostConstruct}.
  *
- * @deprecated unclear what the difference is with a widget?
  * @author Torben Schinke
  * @since 1.0
+ * @deprecated unclear what the difference is with a widget?
  */
 @Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
+@Retention(RetentionPolicy.SOURCE)
 @Documented
-@Deprecated
 public @interface UserInterfaceState {
 }

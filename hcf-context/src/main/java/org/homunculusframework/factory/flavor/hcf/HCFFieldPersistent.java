@@ -37,12 +37,12 @@ import java.util.UUID;
  * @author Torben Schinke
  * @since 1.0
  */
-public class FieldPersistent implements AnnotatedFieldProcessor {
+public class HCFFieldPersistent implements AnnotatedFieldProcessor {
     private final File folder;
     private final Map<Class<? extends Serializer>, Serializer> serializers;
 
 
-    public FieldPersistent(File folder) {
+    public HCFFieldPersistent(File folder) {
         this.folder = folder;
         this.serializers = new IdentityHashMap<>();
     }

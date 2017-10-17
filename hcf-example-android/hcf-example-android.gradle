@@ -40,10 +40,8 @@ dependencies {
     compile(project(":hcf-context"))
     compile(project(":hcf-android-core"))
 
-
     //this is for @inject or @named
     compile 'javax.inject:javax.inject:1'
-
 
     //this is for @PostConstruct or @PreDestroy
     compile 'javax.annotation:jsr250-api:1.0'
@@ -53,6 +51,9 @@ dependencies {
 
     //jpa annotations
     compile 'org.apache.geronimo.specs:geronimo-jpa_2.0_spec:1.1'
+
+    //spring annotations
+    compile(project(":hcf-api-spring"))
 
     //orm lite, supports jpa
     compile 'com.j256.ormlite:ormlite-android:5.0'

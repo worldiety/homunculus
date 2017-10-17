@@ -37,6 +37,8 @@ public class HomunculusFlavor implements Configurator {
 
     @Override
     public void apply(Configuration configuration) {
-        configuration.addFieldProcessor(new FieldPersistent(privateStorageDirectory));
+        configuration.addFieldProcessor(new HCFFieldPersistent(privateStorageDirectory));
+        configuration.addComponentProcessor(new HCFComponentCtrConnection());
+        configuration.addComponentProcessor(new HCFComponentWidget());
     }
 }

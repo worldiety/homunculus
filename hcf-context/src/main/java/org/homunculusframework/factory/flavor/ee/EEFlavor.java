@@ -36,12 +36,16 @@ import org.homunculusframework.factory.container.Configurator;
  * <ul>
  * <li>Annotate controller endpoints using the REST style and @Path and @FormParam annotations</li>
  * </ul>
+ *
+ * @author Torben Schinke
+ * @since 1.0
  */
 public class EEFlavor implements Configurator {
     @Override
     public void apply(Configuration configuration) {
-        configuration.addFieldProcessor(new FieldInject());
-        configuration.addMethodSetupProcessors(new MethodsPostConstruct());
-        configuration.addMethodSetupProcessors(new MethodsPreDestroy());
+        configuration.addFieldProcessor(new EEFieldInject());
+        configuration.addMethodSetupProcessors(new EEMethodsPostConstruct());
+        configuration.addMethodSetupProcessors(new EEMethodsPreDestroy());
+        configuration.addComponentProcessor(new EEComponentController());
     }
 }

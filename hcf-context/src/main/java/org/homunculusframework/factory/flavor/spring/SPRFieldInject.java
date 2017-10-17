@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.homunculusframework.factory.flavor.ee;
+package org.homunculusframework.factory.flavor.spring;
 
-import org.homunculusframework.factory.container.AnnotatedFieldProcessor;
 import org.homunculusframework.factory.component.DefaultFactory;
+import org.homunculusframework.factory.container.AnnotatedFieldProcessor;
 import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import javax.inject.Named;
 import java.lang.reflect.Field;
@@ -30,12 +32,12 @@ import java.lang.reflect.Field;
  * @author Torben Schinke
  * @since 1.0
  */
-public class FieldInject implements AnnotatedFieldProcessor {
+public class SPRFieldInject implements AnnotatedFieldProcessor {
 
     @Override
     public void process(Scope scope, Object instance, Field field) {
-        javax.inject.Inject autowired = field.getAnnotation(javax.inject.Inject.class);
-        Named named = field.getAnnotation(Named.class);
+        Autowired autowired = field.getAnnotation(Autowired.class);
+        Qualifier named = field.getAnnotation(Qualifier.class);
         if (autowired != null) {
             Object resolvedValue;
             if (named != null) {

@@ -28,7 +28,6 @@ public class MyApplication extends Application {
 
         //configure HCF for Android
         Configuration cfg = Android.getConfiguration(this);
-        new EEFlavor().apply(cfg);
 
         //add each module (== controllers + views), order is unimportant
         cfg.add(CartController.class);

@@ -2,6 +2,7 @@ include "hcf-core"
 include "hcf-context"
 include "hcf-example-android"
 include "hcf-android-core"
+include "hcf-api-spring"
 
 rootProject.name = 'homunculus'
 rootProject.children.each {project ->

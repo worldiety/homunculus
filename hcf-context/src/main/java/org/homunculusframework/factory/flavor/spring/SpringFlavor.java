@@ -24,6 +24,7 @@ import org.homunculusframework.factory.container.Configurator;
 public class SpringFlavor implements Configurator {
     @Override
     public void apply(Configuration configuration) {
-
+        configuration.addFieldProcessor(new SPRFieldInject());
+        configuration.addComponentProcessor(new SPRComponentController());
     }
 }

@@ -17,4 +17,7 @@ dependencies {
     //orm support
     compileOnly 'com.j256.ormlite:ormlite-android:5.0'
     compileOnly 'com.j256.ormlite:ormlite-jdbc:5.0'
+
+    //spring support
+    compileOnly(project(":hcf-api-spring"))
 }

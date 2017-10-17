@@ -24,38 +24,38 @@ import org.homunculusframework.factory.container.Handler;
 import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.PreDestroy;
+import javax.annotation.PostConstruct;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 /**
- * Applies the {@link PreDestroy} methods in required order and in defined executors. Failed or invalid methods are silently ignored, to avoid
+ * Applies the {@link PostConstruct} methods in required order and in defined executors. Failed or invalid methods are silently ignored, to avoid
  * bubbling up exceptions at undefined places in the given {@link Handler}s. Occured exceptions are forwared to {@link ProcessingCompleteCallback}
  *
  * @author Torben Schinke
  * @since 1.0
  */
-public class MethodsPreDestroy implements AnnotatedMethodsProcessor {
+public class EEMethodsPostConstruct implements AnnotatedMethodsProcessor {
 
     @Override
     public void process(Scope scope, Object instance, List<Method> methods, ProcessingCompleteCallback callback) {
         List<MyMethod> myMethods = new ArrayList<>();
         for (Method method : methods) {
-            PreDestroy preDestroy = method.getAnnotation(PreDestroy.class);
+            PostConstruct postConstruct = method.getAnnotation(PostConstruct.class);
             Execute executor = method.getAnnotation(Execute.class);
             Priority priority = method.getAnnotation(Priority.class);
             String handlerName = executor == null ? Container.NAME_MAIN_HANDLER : executor.value();
             int order = priority == null ? 0 : priority.value();
-            if (preDestroy != null) {
+            if (postConstruct != null) {
                 Handler handler = scope.resolveNamedValue(handlerName, Handler.class);
                 if (handler == null) {
-                    LoggerFactory.getLogger(instance.getClass()).error("{} is undefined, @PreDestroy {}() ignored", handlerName, method.getName());
+                    LoggerFactory.getLogger(instance.getClass()).error("{} is undefined, @PostConstruct {}() ignored", handlerName, method.getName());
                     continue;
                 }
-                if (method.getGenericParameterTypes().length != 0) {
-                    LoggerFactory.getLogger(instance.getClass()).error("invalid method, parameters must be empty, @PreDestroy {}() ignored", handlerName, method.getName());
+                if (method.getParameterTypes().length != 0) {
+                    LoggerFactory.getLogger(instance.getClass()).error("invalid method, parameters must be empty, @PostConstruct {}() ignored", handlerName, method.getName());
                     continue;
                 }
                 method.setAccessible(true);
@@ -73,12 +73,12 @@ public class MethodsPreDestroy implements AnnotatedMethodsProcessor {
 
     private void execNextMethod(Scope scope, Object instance, List<MyMethod> methods, ProcessingCompleteCallback callback, List<Throwable> failures) {
         if (methods.isEmpty()) {
-            LoggerFactory.getLogger(instance.getClass()).debug("{}.@PreDestroy complete", instance.getClass().getSimpleName());
+            LoggerFactory.getLogger(instance.getClass()).info("{}.@PostConstruct complete", instance.getClass().getSimpleName());
             callback.onComplete(scope, instance, failures);
         } else {
             MyMethod method = methods.remove(0);
             method.handler.post(() -> {
-                LoggerFactory.getLogger(instance.getClass()).debug("{}.{}()", instance.getClass().getSimpleName(), method.method.getName());
+                LoggerFactory.getLogger(instance.getClass()).info("{}.{}()", instance.getClass().getSimpleName(), method.method.getName());
                 try {
                     method.method.invoke(instance);
                 } catch (Throwable t) {

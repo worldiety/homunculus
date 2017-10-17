@@ -140,7 +140,7 @@ public class DefaultFactory implements ObjectCreator, ObjectInjector, ObjectDest
             if (parameterCount == 0) {
                 continue;
             }
-            if (shortestNotEmpty == null || parameterCount > shortestNotEmpty.getParameterCount()) {
+            if (shortestNotEmpty == null || parameterCount > shortestNotEmpty.getParameterTypes().length) {
                 shortestNotEmpty = c;
             }
         }

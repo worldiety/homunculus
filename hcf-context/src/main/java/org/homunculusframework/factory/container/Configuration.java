@@ -19,8 +19,10 @@ import org.homunculusframework.factory.ObjectCreator;
 import org.homunculusframework.factory.ObjectDestroyer;
 import org.homunculusframework.factory.ObjectInjector;
 import org.homunculusframework.factory.connection.Connection;
+import org.homunculusframework.factory.container.AnnotatedComponentProcessor.AnnotatedComponent;
 import org.homunculusframework.factory.flavor.hcf.Widget;
 import org.homunculusframework.factory.component.DefaultFactory;
+import org.homunculusframework.lang.Panic;
 import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
 
@@ -73,7 +75,7 @@ public class Configuration {
     private final ArrayList<AnnotatedFieldProcessor> annotatedFieldProcessors;
     private final ArrayList<AnnotatedMethodsProcessor> onInjectMethodProcessors;
     private final ArrayList<AnnotatedMethodsProcessor> onTearDownProcessors;
-
+    private final ArrayList<AnnotatedComponentProcessor> annotatedComponentProcessors;
 
     public Configuration(Scope scope) {
         this.widgets = new HashMap<>();
@@ -89,8 +91,12 @@ public class Configuration {
         this.onInjectMethodProcessors = new ArrayList<>();
         this.onTearDownProcessors = new ArrayList<>();
         this.controllerConnections = new ArrayList<>();
+        this.annotatedComponentProcessors = new ArrayList<>();
     }
 
+    public void addComponentProcessor(AnnotatedComponentProcessor annotatedComponentProcessor) {
+        annotatedComponentProcessors.add(annotatedComponentProcessor);
+    }
 
     public void addFieldProcessor(AnnotatedFieldProcessor proc) {
         annotatedFieldProcessors.add(proc);
@@ -161,69 +167,45 @@ public class Configuration {
         if (clazz == null) {
             return false;
         }
-        if (Connection.class.isAssignableFrom(clazz)) {
-            controllerConnections.add((Class<Connection>) clazz);
-            LoggerFactory.getLogger(getClass()).info("added @Connection {}", clazz);
-            return true;
-        }
-
-        Widget widget = clazz.getAnnotation(Widget.class);
-        Singleton controller = clazz.getAnnotation(Singleton.class);
-        Named requestMapping = clazz.getAnnotation(Named.class);
-
-        if (widget == null && controller == null && requestMapping == null) {
-            return false;
-        }
-
-        if (widget != null && controller != null) {
-            LoggerFactory.getLogger(getClass()).error("{} is not allowed to declare @Widget and @Controller at the same time", clazz);
-            return false;
-        }
-
-        if (widget != null && requestMapping != null) {
-            LoggerFactory.getLogger(getClass()).error("{} is not allowed to declare @Widget and @RequestMapping (for controllers only) at the same time", clazz);
-            return false;
-        }
 
         synchronized (lock) {
-            if (widget != null) {
-                String normalized = widget.value().trim();
-                if (normalized.length() == 0) {
-                    LoggerFactory.getLogger(getClass()).error("widget id must not be empty: {}", clazz);
-                    return false;
+            for (AnnotatedComponentProcessor componentProcessor : annotatedComponentProcessors) {
+                AnnotatedComponent component = componentProcessor.process(rootScope, clazz);
+                if (component == null) {
+                    continue;
                 }
-                if (normalized.charAt(0) != '/') {
-                    normalized = "/" + normalized;
-                }
-                if (normalized.charAt(normalized.length() - 1) != '/') {
-                    normalized = normalized + "/";
-                }
-                Class<?> other = definedIds.get(normalized);
-                if (other != clazz && other != null) {
-                    LoggerFactory.getLogger(getClass()).error("{} must be unique: both {} and {} share the same id", widget.value(), clazz, other);
-                    return false;
-                }
+                switch (component.getType()) {
+                    case WIDGET:
+                        Class<?> other = definedIds.get(component.getName());
+                        if (other != clazz && other != null) {
+                            LoggerFactory.getLogger(getClass()).error("{} must be unique: both {} and {} share the same id", component.getName(), clazz, other);
+                            return false;
+                        }
 
-                widgets.put(normalized, clazz);
-                definedIds.put(normalized, clazz);
-                LoggerFactory.getLogger(getClass()).info("added @Widget {}", clazz);
-                return true;
-            }
-
-            if (controller != null) {
-                if (requestMapping != null) {
-                    Class<?> other = definedIds.get(requestMapping.value());
-                    if (other != clazz && other != null) {
-                        LoggerFactory.getLogger(getClass()).error("{} must be unique: both {} and {} share the same id", requestMapping.value(), clazz, other);
-                        return false;
-                    }
-                    definedIds.put(requestMapping.value(), clazz);
+                        widgets.put(component.getName(), clazz);
+                        definedIds.put(component.getName(), clazz);
+                        LoggerFactory.getLogger(getClass()).info("added @Widget {}", clazz);
+                        return true;
+                    case CONTROLLER:
+                        other = definedIds.get(component.getName());
+                        if (other != clazz && other != null) {
+                            LoggerFactory.getLogger(getClass()).error("{} must be unique: both {} and {} share the same id", component.getName(), clazz, other);
+                            return false;
+                        }
+                        definedIds.put(component.getName(), clazz);
+                        controllers.add(clazz);
+                        LoggerFactory.getLogger(getClass()).info("added @Controller {}", clazz);
+                        return true;
+                    case CONTROLLER_CONNECTION:
+                        controllerConnections.add((Class<Connection>) clazz);
+                        LoggerFactory.getLogger(getClass()).info("added @Connection {}", clazz);
+                        return true;
+                    default:
+                        throw new Panic();
                 }
-                controllers.add(clazz);
-                LoggerFactory.getLogger(getClass()).info("added @Controller {}", clazz);
-                return true;
             }
         }
+
         return false;
     }
 
