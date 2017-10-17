@@ -1,0 +1,12 @@
+plugins {
+    id "me.tatarka.retrolambda" version "3.2.2"
+}
+
+
+description = "subset of the spring api"
+
+
+
+dependencies {
+
+}

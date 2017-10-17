@@ -1,0 +1,1 @@
+./gradlew clean build generatePomFileForMavenJavaPublication publishMavenJavaPublicationToMavenLocal bintrayUpload
