@@ -10,16 +10,18 @@ allprojects {
         options.addStringOption('Xdoclint:none', '-quiet')
     }
 
-    version = '0.0.9'
+    version = '0.0.12'
 }
 
 buildscript {
     repositories {
         jcenter()
+        mavenCentral()
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:2.3.3'
         classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3"
+        classpath "com.github.dcendents:android-maven-gradle-plugin:1.5"
     }
 }
 
@@ -79,36 +81,17 @@ configure(allprojects) { project ->
             archives sourcesJar, javadocJar
         }
 
-        if (project.name.contains("android")) {
-            publishing {
-                publications {
-                    MyPublication(MavenPublication) {
-
-                        pom.withXml {
-                            // Iterate over the compile dependencies (we don't want the test ones), adding a <dependency> node for each
-                            configurations.compile.allDependencies.each {
-                                def dependencyNode = dependenciesNode.appendNode('dependency')
-                                dependencyNode.appendNode('groupId', it.group)
-                                dependencyNode.appendNode('artifactId', it.name)
-                                dependencyNode.appendNode('version', it.version)
-                            }
-                        }
+        publishing {
+            publications {
+                mavenJava(MavenPublication) {
+                    if (plugins.hasPlugin('war')) {
+                        from components.web
+                    } else {
+                        from components.java
                     }
-                }
-            }
-        } else {
-            publishing {
-                publications {
-                    mavenJava(MavenPublication) {
-                        if (plugins.hasPlugin('war')) {
-                            from components.web
-                        } else {
-                            from components.java
-                        }
 
-                        artifact sourcesJar
-                        artifact javadocJar
-                    }
+                    artifact sourcesJar
+                    artifact javadocJar
                 }
             }
         }
