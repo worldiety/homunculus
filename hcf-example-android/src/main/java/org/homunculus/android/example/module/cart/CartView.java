@@ -7,6 +7,7 @@ import android.graphics.drawable.Drawable;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import org.homunculus.android.example.module.company.CompanyController;
 import org.homunculus.android.flavor.Resource;
 import org.homunculus.android.example.R;
 import org.homunculusframework.factory.flavor.hcf.Widget;
@@ -41,6 +42,9 @@ public class CartView extends LinearLayout {
 
     @Inject
     private CartControllerConnection mCartController;
+
+    @Inject
+    private CompanyController company;
 
     public CartView(Context context) {
         super(context);
@@ -83,5 +87,13 @@ public class CartView extends LinearLayout {
             });
         });
         addView(button2, new LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
+
+
+        Button button3 = new Button(getContext());
+        button3.setText("non-async (not recommended)");
+        button3.setOnClickListener(view -> {
+            company.testLoad();
+        });
+        addView(button3, new LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
     }
 }

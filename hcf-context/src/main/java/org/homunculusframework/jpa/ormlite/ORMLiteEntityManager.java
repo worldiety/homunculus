@@ -1,3 +1,18 @@
+/*
+ * Copyright 2017 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.homunculusframework.jpa.ormlite;
 
 import com.j256.ormlite.dao.Dao;
@@ -12,13 +27,30 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.metamodel.Metamodel;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
 /**
- * By definition an EntityManager needs not to be thread safe
+ * By definition an EntityManager needs not to be thread safe, however in a container it looks like that and
+ * to simplify things (and our container is simple), this one is thread safe.
+ * <p>
+ * Most stuff is not implemented. Implemented methods are:
+ * <ul>
+ * <li>{@link #getDao(Class)}</li>
+ * <li>{@link #persist(Object)}</li>
+ * <li>{@link #remove(Object)}</li>
+ * <li>{@link #find(Class, Object)}</li>
+ * <li>{@link #flush()}</li>
+ * <li>{@link #refresh(Object)}</li>
+ * <li>{@link #createNativeQuery(String, Class)}</li>
+ * <li>{@link ORMLiteQuery#setParameter(String, Object)} (probably only string support)</li>
+ * <li>{@link ORMLiteQuery#getMaxResults()} (slow)</li>
+ * <li>{@link ORMLiteQuery#getResultList()} (the projection has to be exact, no extra or missing columns)</li>
+ * </ul>
+ *
+ * @author Torben Schinke
+ * @since 1.0
  */
 public class ORMLiteEntityManager implements EntityManager {
 
@@ -29,11 +61,24 @@ public class ORMLiteEntityManager implements EntityManager {
     //h2 profits from keeping the connection always open -> we should use a simple pool
     private final Connection keepOpenConnection;
 
-    public ORMLiteEntityManager(String jdbcUrl) throws SQLException {
-        this.jdbcUrl = jdbcUrl;
-        connectionSource = new JdbcConnectionSource(jdbcUrl);
-        managers = new IdentityHashMap<>();
-        keepOpenConnection = DriverManager.getConnection(jdbcUrl);
+    public ORMLiteEntityManager(String jdbcUrl) {
+        if (jdbcUrl.startsWith("jdbc:h2:")) {
+            try {
+                Class.forName("org.h2.Driver");
+            } catch (ClassNotFoundException e) {
+                throw new Panic("h2 driver required but not in classpath", e);
+            }
+        }
+
+        try {
+            this.jdbcUrl = jdbcUrl;
+            connectionSource = new JdbcConnectionSource(jdbcUrl);
+            managers = new IdentityHashMap<>();
+            keepOpenConnection = DriverManager.getConnection(jdbcUrl);
+
+        } catch (SQLException e) {
+            throw new Panic(e);
+        }
     }
 
     public <D extends Dao<T, ?>, T> D getDao(Class<T> type) {

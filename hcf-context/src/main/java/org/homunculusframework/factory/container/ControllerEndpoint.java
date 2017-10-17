@@ -179,6 +179,9 @@ public final class ControllerEndpoint {
                 path.append(tmp);
             }
         }
+        if (path.length() == 0) {
+            path.append('/');
+        }
         if (path.charAt(path.length() - 1) != '/') {
             path.append('/');
         }
