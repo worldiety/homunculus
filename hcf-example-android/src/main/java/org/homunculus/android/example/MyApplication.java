@@ -46,6 +46,9 @@ public class MyApplication extends Application {
         container.start();
     }
 
+    /**
+     * load db, migrate db and provide the JPA entity manager API into the given scope
+     */
     private void setupDB(Scope scope) {
         File fname = new File(getFilesDir(), "mydb");
         String url = "jdbc:h2:" + fname + ";FILE_LOCK=FS;PAGE_SIZE=1024;CACHE_SIZE=8192;MODE=MySQL";

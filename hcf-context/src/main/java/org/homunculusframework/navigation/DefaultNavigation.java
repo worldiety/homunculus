@@ -22,6 +22,7 @@ import org.homunculusframework.factory.container.Container;
 import org.homunculusframework.factory.container.Request;
 import org.homunculusframework.lang.Classname;
 import org.homunculusframework.scope.Scope;
+import org.homunculusframework.scope.SettableTask;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
@@ -78,32 +79,42 @@ public class DefaultNavigation implements Navigation {
     private void execute(Request request) {
         request.put(Container.NAME_CALLSTACK, DefaultFactory.getCallStack(5));
         request.execute(scope).whenDone(res -> {
+            final Container container = scope.resolveNamedValue(Container.NAME_CONTAINER, Container.class);
+            if (container == null) {
+                LoggerFactory.getLogger(getClass()).error("no container found in scope, request discarded");
+                return;
+            }
+
             Object obj = res.get();
             if (obj instanceof ModelAndView) {
                 ModelAndView mav = (ModelAndView) obj;
-                Container container = scope.resolveNamedValue(Container.NAME_CONTAINER, Container.class);
-                if (container == null) {
-                    LoggerFactory.getLogger(getClass()).error("no container found in scope, request discarded");
-                } else {
-                    Scope uisScope = createChild(scope, mav);
-                    container.createProxies(uisScope);
-                    Task<Component<?>> task = container.createWidget(uisScope, mav.getView());
-                    task.whenDone(component -> {
-                        Object newUIS = component.get();
-                        if (newUIS != null && component.getFailures().isEmpty()) {
-                            uisScope.putNamedValue("$" + mav.getView(), newUIS);
-                            tearDownOldAndApplyNew(new UIS(uisScope, newUIS));
-                        } else {
-                            uisScope.destroy();
-                            LoggerFactory.getLogger(getClass()).error("denied applying UIS: {}", newUIS);
-                            for (Throwable t : component.getFailures()) {
-                                LoggerFactory.getLogger(getClass()).error("created failed", t);
-                            }
-                        }
-                    });
-                }
+                Scope uisScope = createChild(scope, mav);
+                container.createProxies(uisScope);
+                Task<Component<?>> task = container.createWidget(uisScope, mav.getView());
+                attachComponentTask(uisScope, task);
+            } else if (obj instanceof Component) {
+                Scope uisScope = ((Component) obj).getScope();
+                SettableTask<Component<?>> task = SettableTask.create(uisScope, "execute tmp");
+                task.set((Component) obj);
+                attachComponentTask(uisScope, task);
             } else {
                 LoggerFactory.getLogger(getClass()).error("invocation success, but result not useful to navigate (use ModelAndView): {} -> {}", request.getMapping(), obj);
+            }
+        });
+    }
+
+    private void attachComponentTask(Scope uisScope, Task<Component<?>> task) {
+        task.whenDone(component -> {
+            Object newUIS = component.get();
+            if (newUIS != null && component.getFailures().isEmpty()) {
+                uisScope.putNamedValue("$" + System.identityHashCode(newUIS), newUIS);
+                tearDownOldAndApplyNew(new UIS(uisScope, newUIS));
+            } else {
+                uisScope.destroy();
+                LoggerFactory.getLogger(getClass()).error("denied applying UIS: {}", newUIS);
+                for (Throwable t : component.getFailures()) {
+                    LoggerFactory.getLogger(getClass()).error("created failed", t);
+                }
             }
         });
     }
@@ -136,6 +147,15 @@ public class DefaultNavigation implements Navigation {
     public static Scope createChild(Scope parent, ModelAndView modelAndView) {
         Scope scope = new Scope("inflate:" + modelAndView.getView() + "@" + requestNo.incrementAndGet(), parent);
         modelAndView.forEach(entry -> {
+            scope.putNamedValue(entry.getKey(), entry.getValue());
+            return true;
+        });
+        return scope;
+    }
+
+    public static Scope createChild(Scope parent, Request params) {
+        Scope scope = new Scope("request:" + params.getMapping() + "@" + requestNo.incrementAndGet(), parent);
+        params.forEach(entry -> {
             scope.putNamedValue(entry.getKey(), entry.getValue());
             return true;
         });

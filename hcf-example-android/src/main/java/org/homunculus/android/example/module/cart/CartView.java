@@ -13,6 +13,7 @@ import org.homunculus.android.example.R;
 import org.homunculusframework.factory.flavor.hcf.Widget;
 import org.homunculusframework.factory.container.Request;
 import org.homunculusframework.navigation.Navigation;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -54,6 +55,7 @@ public class CartView extends LinearLayout {
     private void init() {
         removeAllViews();
         if (mCart == null) {
+            LoggerFactory.getLogger(getClass()).info("cart is empty");
             return;
         }
         setOrientation(VERTICAL);
@@ -95,5 +97,15 @@ public class CartView extends LinearLayout {
             company.testLoad();
         });
         addView(button3, new LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
+
+        Button button4 = new Button(getContext());
+        button4.setText("request UIS");
+        button4.setOnClickListener(view -> {
+            CartModel model = new CartModel();
+            model.setId(7338);
+            model.getEntries().add(new CartEntry("direct UIS navigation"));
+            mNav.forward(new Request("/cart/uis/list").put("cart", model));
+        });
+        addView(button4, new LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
     }
 }

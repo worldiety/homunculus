@@ -21,6 +21,7 @@ import org.homunculusframework.factory.flavor.hcf.Widget;
 import org.homunculusframework.lang.Function;
 import org.homunculusframework.lang.Panic;
 import org.homunculusframework.lang.Result;
+import org.homunculusframework.navigation.DefaultNavigation;
 import org.homunculusframework.navigation.Navigation;
 import org.homunculusframework.scope.Scope;
 import org.homunculusframework.scope.SettableTask;
@@ -149,8 +150,29 @@ public final class Request {
             Handler backgroundThread = scope.resolveNamedValue(Container.NAME_REQUEST_HANDLER, Handler.class);
             Runnable job = () -> {
                 try {
-                    Object result = container.invoke(scope, this);
-                    res.set(result);
+                    Object result;
+                    switch (container.getRequestType(this)) {
+                        case CONTROLLER_ENDPOINT:
+                            result = container.invoke(scope, this);
+                            res.set(result);
+                            break;
+                        case WIDGET:
+                            Scope widgetScope = DefaultNavigation.createChild(scope,this);
+                            container.createProxies(widgetScope);
+                            Task<Component<?>> widgetTask = container.createWidget(widgetScope, this.getMapping());
+                            widgetTask.whenDone(component -> {
+                                for (Throwable t : component.getFailures()) {
+                                    LoggerFactory.getLogger(getClass()).error("failed to create {}", this.getMapping(), t);
+                                }
+                                res.set(component);
+                            });
+                            break;
+                        case UNDEFINED:
+                            throw new RuntimeException("the mapping '" + this.getMapping() + "' is not configured.");
+                        default:
+                            throw new Panic();
+                    }
+
                 } catch (Exception e) {
                     LoggerFactory.getLogger(getClass()).error("failed to execute Request '{}':", this.getMapping(), e);
                     res.setThrowable(e);

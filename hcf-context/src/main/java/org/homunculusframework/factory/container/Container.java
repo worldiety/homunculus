@@ -191,6 +191,16 @@ public final class Container {
         }
     }
 
+    public RequestType getRequestType(Request request) {
+        if (controllerEndpoints.containsKey(request.getMapping())) {
+            return RequestType.CONTROLLER_ENDPOINT;
+        }
+        if (configuration.getWidgets().containsKey(request.getMapping())) {
+            return RequestType.WIDGET;
+        }
+        return RequestType.UNDEFINED;
+    }
+
     /**
      * Calls a configured endpoint, see also {@link ControllerEndpoint#invoke(Scope, Request)}
      *
@@ -219,7 +229,7 @@ public final class Container {
             List<Throwable> throwables = new ArrayList<>();
             throwables.add(new RuntimeException("@Widget not defined: '" + widgetId + "'. You need to add it to the configuration first."));
             SettableTask<Component<?>> task = SettableTask.create(scope, "createWidget#" + widgetId);
-            task.set(new Component<>(null, throwables));
+            task.set(new Component<>(scope, null, throwables));
             return task;
         }
         return createComponent(scope, widget);
@@ -276,10 +286,10 @@ public final class Container {
                 if (instance == null) {
                     throw new Panic("contract violation while creating " + clazz);
                 } else {
-                    configuration.getObjectInjector().inject(scope, instance, (scope1, instance1, failures) -> task.set(new Component<>((T) instance1, failures)));
+                    configuration.getObjectInjector().inject(scope, instance, (scope1, instance1, failures) -> task.set(new Component<>(scope, (T) instance1, failures)));
                 }
             } catch (Exception e) {
-                task.set(new Component<>(null, e));
+                task.set(new Component<>(scope, null, e));
             }
         };
         Handler handler = getHandler(scope, clazz);
@@ -306,7 +316,7 @@ public final class Container {
                     scope.destroy();
                 }
             } finally {
-                task.set(new Component<T>(instance, failures));
+                task.set(new Component<T>(scope, instance, failures));
             }
         });
         return task;
@@ -327,4 +337,18 @@ public final class Container {
     }
 
 
+    public enum RequestType {
+        /**
+         * Denotes a controller and an endpoint method
+         */
+        CONTROLLER_ENDPOINT,
+        /**
+         * Denotes a widget, which may be also a UIS (==applies itself to the screen)
+         */
+        WIDGET,
+        /**
+         * the mapping is not configured
+         */
+        UNDEFINED
+    }
 }

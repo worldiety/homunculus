@@ -15,6 +15,8 @@
  */
 package org.homunculusframework.factory.container;
 
+import org.homunculusframework.scope.Scope;
+
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,16 +31,19 @@ public class Component<T> {
     @Nullable
     private final T value;
     private final List<Throwable> failures;
+    private final Scope scope;
 
-    public Component(T value, List<Throwable> failures) {
+    public Component(Scope scope, T value, List<Throwable> failures) {
         this.value = value;
         this.failures = failures;
+        this.scope = scope;
     }
 
-    public Component(T value, Throwable failure) {
+    public Component(Scope scope, T value, Throwable failure) {
         this.value = value;
         this.failures = new ArrayList<>();
         this.failures.add(failure);
+        this.scope = scope;
     }
 
     /**
@@ -56,5 +61,12 @@ public class Component<T> {
      */
     public List<Throwable> getFailures() {
         return failures;
+    }
+
+    /**
+     * Returns the scope in which the component has been created
+     */
+    public Scope getScope() {
+        return scope;
     }
 }
