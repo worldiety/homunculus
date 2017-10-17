@@ -23,8 +23,8 @@ import org.homunculusframework.factory.connection.ConnectionProxyFactory;
 import org.homunculusframework.factory.container.AnnotatedComponentProcessor.AnnotatedComponent;
 import org.homunculusframework.factory.flavor.hcf.Execute;
 import org.homunculusframework.factory.flavor.hcf.Widget;
-import org.homunculusframework.lang.Classname;
 import org.homunculusframework.lang.Panic;
+import org.homunculusframework.lang.Reflection;
 import org.homunculusframework.scope.Scope;
 import org.homunculusframework.scope.SettableTask;
 import org.slf4j.LoggerFactory;
@@ -139,9 +139,9 @@ public final class Container {
                 if (instance == null) {
                     continue;
                 }
-                LoggerFactory.getLogger(getClass()).info("created {}", Classname.getName(clazz));
+                LoggerFactory.getLogger(getClass()).info("created {}", Reflection.getName(clazz));
                 controllers.add(instance);
-                containerScope.putNamedValue("$" + Classname.getName(clazz), instance);
+                containerScope.putNamedValue("$" + Reflection.getName(clazz), instance);
                 for (ControllerEndpoint endpoint : ControllerEndpoint.list(component.getName(), instance, configuration.getAnnotatedRequestMappings())) {
                     ControllerEndpoint existing = controllerEndpoints.get(endpoint.getRequestMapping());
                     if (existing != endpoint && existing != null) {
@@ -185,7 +185,7 @@ public final class Container {
 
                 //create and insert the proxy factory
                 ConnectionProxyFactory proxy = new ConnectionProxyFactory(controllerInstance, clazz, 0);
-                containerScope.putNamedValue("$proxyfactory@" + Classname.getName(controllerInstance.getClass()), proxy);
+                containerScope.putNamedValue("$proxyfactory@" + Reflection.getName(controllerInstance.getClass()), proxy);
             }
 
             containerScope.putNamedValue(NAME_CONTAINER, this);
@@ -246,7 +246,7 @@ public final class Container {
             if (entry.getValue() instanceof ConnectionProxyFactory) {
                 ConnectionProxyFactory factory = (ConnectionProxyFactory) entry.getValue();
                 Connection connection = factory.borrowConnection(scope);
-                scope.putNamedValue("$proxy@" + Classname.getName(factory.getControllerType()), connection);
+                scope.putNamedValue("$proxy@" + Reflection.getName(factory.getControllerType()), connection);
                 scope.addOnBeforeDestroyCallback(s -> factory.returnConnection(connection));
             }
 

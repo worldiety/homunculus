@@ -21,6 +21,7 @@ import org.homunculusframework.factory.flavor.hcf.Priority;
 import org.homunculusframework.factory.container.AnnotatedMethodsProcessor;
 import org.homunculusframework.factory.container.Container;
 import org.homunculusframework.factory.container.Handler;
+import org.homunculusframework.lang.Reflection;
 import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +55,7 @@ public class EEMethodsPostConstruct implements AnnotatedMethodsProcessor {
                     LoggerFactory.getLogger(instance.getClass()).error("{} is undefined, @PostConstruct {}() ignored", handlerName, method.getName());
                     continue;
                 }
-                if (method.getParameterTypes().length != 0) {
+                if (Reflection.getParameterTypes(method).length != 0) {
                     LoggerFactory.getLogger(instance.getClass()).error("invalid method, parameters must be empty, @PostConstruct {}() ignored", handlerName, method.getName());
                     continue;
                 }

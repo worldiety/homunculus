@@ -18,8 +18,8 @@ package org.homunculusframework.factory.flavor.hcf;
 import org.homunculusframework.factory.container.AnnotatedFieldProcessor;
 import org.homunculusframework.factory.component.DefaultFactory;
 import org.homunculusframework.factory.serializer.Serializer;
-import org.homunculusframework.lang.Classname;
 import org.homunculusframework.lang.Panic;
+import org.homunculusframework.lang.Reflection;
 import org.homunculusframework.scope.OnAfterDestroyCallback;
 import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
@@ -91,7 +91,7 @@ public class HCFFieldPersistent implements AnnotatedFieldProcessor {
     }
 
     public static void save(File targetDir, String name, Serializer serializer, Class<?> type, Object obj) throws IOException {
-        File dstFile = new File(targetDir, Classname.getName(type) + "_" + name + "." + serializer.getId());
+        File dstFile = new File(targetDir, Reflection.getName(type) + "_" + name + "." + serializer.getId());
         if (obj == null) {
             if (!dstFile.delete()) {
                 if (dstFile.exists()) {
@@ -131,7 +131,7 @@ public class HCFFieldPersistent implements AnnotatedFieldProcessor {
 
     @Nullable
     public static Object read(File targetDir, String name, Serializer serializer, Class<?> type) throws IOException {
-        File dstFile = new File(targetDir, Classname.getName(type) + "_" + name + "." + serializer.getId());
+        File dstFile = new File(targetDir, Reflection.getName(type) + "_" + name + "." + serializer.getId());
         if (dstFile.length() == 0) {
             return null;
         }

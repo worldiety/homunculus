@@ -18,16 +18,9 @@ package org.homunculusframework.jpa.ormlite;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.GenericRawResults;
 import com.j256.ormlite.dao.RawRowMapper;
-import com.j256.ormlite.stmt.PreparedQuery;
-import com.j256.ormlite.stmt.QueryBuilder;
-import org.homunculusframework.factory.component.DefaultFactory;
-import org.homunculusframework.lang.Classname;
 import org.homunculusframework.lang.Panic;
 
 import javax.persistence.*;
-import java.lang.reflect.Field;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.*;
 
 /**

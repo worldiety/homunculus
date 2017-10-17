@@ -20,14 +20,13 @@ import org.homunculusframework.factory.component.DefaultFactory;
 import org.homunculusframework.factory.container.Component;
 import org.homunculusframework.factory.container.Container;
 import org.homunculusframework.factory.container.Request;
-import org.homunculusframework.lang.Classname;
+import org.homunculusframework.lang.Reflection;
 import org.homunculusframework.scope.Scope;
 import org.homunculusframework.scope.SettableTask;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -176,7 +175,7 @@ public class DefaultNavigation implements Navigation {
         @Override
         public String toString() {
             if (widget != null) {
-                return Classname.getName(widget.getClass());
+                return Reflection.getName(widget.getClass());
             } else {
                 return "uis(null)";
             }

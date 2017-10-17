@@ -17,12 +17,10 @@ package org.homunculusframework.factory.flavor.hcf;
 
 import org.homunculusframework.factory.connection.Connection;
 import org.homunculusframework.factory.container.AnnotatedComponentProcessor;
-import org.homunculusframework.lang.Classname;
+import org.homunculusframework.lang.Reflection;
 import org.homunculusframework.scope.Scope;
 
 import javax.annotation.Nullable;
-import javax.inject.Named;
-import javax.inject.Singleton;
 
 /**
  * Supports {@link Connection} (assignability) and returns {@link ComponentType#CONTROLLER_CONNECTION}
@@ -35,7 +33,7 @@ public class HCFComponentCtrConnection implements AnnotatedComponentProcessor {
     @Override
     public <T> AnnotatedComponent<T> process(Scope scope, Class<T> clazz) {
         if (Connection.class.isAssignableFrom(clazz)) {
-            return new AnnotatedComponent(clazz, Classname.getName(clazz), ComponentType.CONTROLLER_CONNECTION);
+            return new AnnotatedComponent(clazz, Reflection.getName(clazz), ComponentType.CONTROLLER_CONNECTION);
         }
         return null;
     }

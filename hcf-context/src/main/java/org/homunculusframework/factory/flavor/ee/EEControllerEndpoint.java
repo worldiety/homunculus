@@ -16,6 +16,7 @@
 package org.homunculusframework.factory.flavor.ee;
 
 import org.homunculusframework.factory.container.AnnotatedRequestMapping;
+import org.homunculusframework.lang.Reflection;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
@@ -35,11 +36,11 @@ public class EEControllerEndpoint implements AnnotatedRequestMapping {
     public AnnotatedMethod process(Method method) {
         Named named = method.getAnnotation(Named.class);
         if (named != null) {
-            Class[] parameterTypes = method.getParameterTypes();
+            Class[] parameterTypes = Reflection.getParameterTypes(method);
             String[] parameterNames = new String[parameterTypes.length];
 
             AnnotatedMethod res = new AnnotatedMethod(method, named.value(), parameterTypes, parameterNames);
-            Annotation[][] declaredParameterAnnotations = method.getParameterAnnotations();
+            Annotation[][] declaredParameterAnnotations = Reflection.getParameterAnnotations(method);
             NEXT_PARAM:
             for (int i = 0; i < declaredParameterAnnotations.length; i++) {
                 Annotation[] annotations = declaredParameterAnnotations[i];

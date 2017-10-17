@@ -15,7 +15,10 @@
  */
 package org.homunculusframework.lang;
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.IdentityHashMap;
+import java.util.List;
 
 /**
  * The sole purpose of this class is to workaround performance issues on Java platforms like Android, where the
@@ -25,11 +28,12 @@ import java.util.IdentityHashMap;
  * @author Torben Schinke
  * @since 1.0
  */
-public final class Classname {
+final class Clazz {
     //this is not so good (leaking class files) when used in application servers, we can fix that if this will be a use case in the future
     private final static IdentityHashMap<Class, String> names = new IdentityHashMap<>();
+    private final static IdentityHashMap<Class, List<Field>> fields = new IdentityHashMap<>();
 
-    private Classname() {
+    private Clazz() {
 
     }
 
@@ -45,6 +49,29 @@ public final class Classname {
                 names.put(clazz, name);
             }
             return name;
+        }
+
+    }
+
+    /**
+     * Returns all declared fields and returns them from a non-defensive copy cache. Fields of the super class are last, otherwise fields are in reflective order (not in any particular order)
+     */
+    public static List<Field> getFields(Class clazz) {
+        synchronized (fields) {
+            List<Field> res = fields.get(clazz);
+            if (res == null) {
+                res = new ArrayList<>();
+                Class root = clazz;
+                while (root != null) {
+                    for (Field m : root.getDeclaredFields()) {
+                        res.add(m);
+                    }
+                    root = root.getSuperclass();
+                }
+                fields.put(clazz, res);
+            }
+
+            return res;
         }
 
     }

@@ -15,13 +15,11 @@
  */
 package org.homunculusframework.factory.container;
 
-import org.homunculusframework.factory.component.DefaultFactory;
 import org.homunculusframework.factory.container.AnnotatedRequestMapping.AnnotatedMethod;
-import org.homunculusframework.lang.Classname;
+import org.homunculusframework.lang.Reflection;
 import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -159,7 +157,7 @@ public final class ControllerEndpoint {
 
         //find methods, up the class hierarchy
         List<ControllerEndpoint> res = new ArrayList<>();
-        for (Method method : DefaultFactory.getMethods(clazz)) {
+        for (Method method : Reflection.getMethods(clazz)) {
             for (int i = 0; i < mappers.size(); i++) {
                 AnnotatedMethod mapping = mappers.get(i).process(method);
                 if (mapping == null) {
@@ -189,6 +187,6 @@ public final class ControllerEndpoint {
 
 
     public String toDebugCallString() {
-        return Classname.getName(instance.getClass()) + "." + method.getName();
+        return Reflection.getName(instance.getClass()) + "." + method.getName();
     }
 }

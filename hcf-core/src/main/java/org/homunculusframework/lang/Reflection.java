@@ -16,9 +16,14 @@
 package org.homunculusframework.lang;
 
 import javax.annotation.Nullable;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.List;
 
 /**
  * A helper class of reflection things which may be useful if they would have been in the default sdk.
+ * Improves performance on various Android versions, which provide inconsistent performance across still alive devices.
  *
  * @author Torben Schinke
  * @since 1.0
@@ -29,6 +34,40 @@ public class Reflection {
 
     }
 
+    /**
+     * See {@link Methods#getParameterTypes(Method)}
+     */
+    public static Class[] getParameterTypes(Method method) {
+        return Methods.getParameterTypes(method);
+    }
+
+    /**
+     * See {@link Methods#getParameterAnnotations(Method)}
+     */
+    public static Annotation[][] getParameterAnnotations(Method method) {
+        return Methods.getParameterAnnotations(method);
+    }
+
+    /**
+     * See {@link Methods#getMethods(Class)}
+     */
+    public static List<Method> getMethods(Class<?> clazz) {
+        return Methods.getMethods(clazz);
+    }
+
+    /**
+     * See {@link Clazz#getFields(Class)}
+     */
+    public static List<Field> getFields(Class<?> clazz) {
+        return Clazz.getFields(clazz);
+    }
+
+    /**
+     * See {@link Clazz#getName(Class)}
+     */
+    public static String getName(Class<?> clazz) {
+        return Clazz.getName(clazz);
+    }
 
     /**
      * Performs a duck cast, either by applying just a cast or by performing an expensive (copy) type conversion.

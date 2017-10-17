@@ -19,8 +19,8 @@ import org.homunculusframework.concurrent.Task;
 import org.homunculusframework.factory.component.DefaultFactory;
 import org.homunculusframework.factory.container.Container;
 import org.homunculusframework.factory.container.Handler;
-import org.homunculusframework.lang.Classname;
 import org.homunculusframework.lang.Panic;
+import org.homunculusframework.lang.Reflection;
 import org.homunculusframework.lang.Result;
 import org.homunculusframework.scope.Scope;
 import org.homunculusframework.scope.SettableTask;
@@ -98,7 +98,7 @@ public class ConnectionProxyFactory<T> {
         Task<Result<?>> invoke(Scope lifeTime, Method ifaceMethod, Handler handler, Object[] args) {
             if (notImplemented) {
                 SettableTask<Result<?>> task = SettableTask.create(lifeTime, ifaceMethod.getName() + "@" + mCounter.incrementAndGet());
-                String sig = Classname.getName(instance.getClass()) + "." + ifaceMethod.getName();
+                String sig = Reflection.getName(instance.getClass()) + "." + ifaceMethod.getName();
                 RuntimeException e = new RuntimeException("connection signature invalid: " + sig);
                 //TODO offset varies between android platform, e.g. S3 needs 6 but PixelXL needs 7
                 e.setStackTrace(DefaultFactory.getCallStack(6)); //create a short stack trace, directly pointing to the callee
@@ -123,7 +123,7 @@ public class ConnectionProxyFactory<T> {
                         task.set(Result.create(res));
                     }
                 } catch (InvocationTargetException e) {
-                    String sig = Classname.getName(instance.getClass()) + "." + ifaceMethod.getName();
+                    String sig = Reflection.getName(instance.getClass()) + "." + ifaceMethod.getName();
                     RuntimeException ee = new RuntimeException("connection call failed: " + sig);
                     ee.initCause(e.getTargetException());
                     ee.setStackTrace(trace);
@@ -151,12 +151,12 @@ public class ConnectionProxyFactory<T> {
             this.methods = new HashMap<>();
             this.proxyType = proxyType;
             this.actualProxy = Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{proxyType}, this);
-            List<Method> availableControllerMethods = DefaultFactory.getMethods(instance.getClass());
+            List<Method> availableControllerMethods = Reflection.getMethods(instance.getClass());
             Map<String, Method> availableControllerMethodsLookups = new HashMap<>();
             for (Method m : availableControllerMethods) {
                 availableControllerMethodsLookups.put(fingerPrint(m), m);
             }
-            for (Method methodToImplement : DefaultFactory.getMethods(proxyType)) {
+            for (Method methodToImplement : Reflection.getMethods(proxyType)) {
                 String fingerPrint = fingerPrint(methodToImplement);
                 Method controllerMethod = availableControllerMethodsLookups.get(fingerPrint);
                 if (controllerMethod == null) {
@@ -173,8 +173,8 @@ public class ConnectionProxyFactory<T> {
         private String fingerPrint(Method m) {
             StringBuilder sb = new StringBuilder();
             sb.append(m.getName());
-            for (Class c : m.getParameterTypes()) {
-                sb.append(Classname.getName(c));
+            for (Class c : Reflection.getParameterTypes(m)) {
+                sb.append(Reflection.getName(c));
             }
             return sb.toString();
         }

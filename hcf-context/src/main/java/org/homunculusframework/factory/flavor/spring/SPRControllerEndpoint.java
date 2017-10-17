@@ -16,6 +16,7 @@
 package org.homunculusframework.factory.flavor.spring;
 
 import org.homunculusframework.factory.container.AnnotatedRequestMapping;
+import org.homunculusframework.lang.Reflection;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -36,7 +37,7 @@ public class SPRControllerEndpoint implements AnnotatedRequestMapping {
     public AnnotatedMethod process(Method method) {
         RequestMapping named = method.getAnnotation(RequestMapping.class);
         if (named != null) {
-            Class[] parameterTypes = method.getParameterTypes();
+            Class[] parameterTypes = Reflection.getParameterTypes(method);
             String[] parameterNames = new String[parameterTypes.length];
             String name = "";
             if (named.value().length > 0) {
@@ -45,7 +46,7 @@ public class SPRControllerEndpoint implements AnnotatedRequestMapping {
                 name = method.getName();
             }
             AnnotatedMethod res = new AnnotatedMethod(method, name, parameterTypes, parameterNames);
-            Annotation[][] declaredParameterAnnotations = method.getParameterAnnotations();
+            Annotation[][] declaredParameterAnnotations = Reflection.getParameterAnnotations(method);
             NEXT_PARAM:
             for (int i = 0; i < declaredParameterAnnotations.length; i++) {
                 Annotation[] annotations = declaredParameterAnnotations[i];

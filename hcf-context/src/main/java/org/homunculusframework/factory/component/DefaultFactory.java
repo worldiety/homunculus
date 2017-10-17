@@ -19,12 +19,12 @@ import org.homunculusframework.factory.*;
 import org.homunculusframework.factory.container.AnnotatedFieldProcessor;
 import org.homunculusframework.factory.container.AnnotatedMethodsProcessor;
 import org.homunculusframework.factory.container.Configuration;
+import org.homunculusframework.lang.Reflection;
 import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -82,7 +82,7 @@ public class DefaultFactory implements ObjectCreator, ObjectInjector, ObjectDest
 
     @Override
     public void inject(Scope scope, Object instance, ProcessingCompleteCallback injectionCompleteCallback) throws FactoryException {
-        for (Field field : getFields(instance.getClass())) {
+        for (Field field : Reflection.getFields(instance.getClass())) {
             final int s = annotatedFieldProcessors.size();
             for (int i = 0; i < s; i++) {
                 AnnotatedFieldProcessor fieldInjector = annotatedFieldProcessors.get(i);
@@ -102,7 +102,7 @@ public class DefaultFactory implements ObjectCreator, ObjectInjector, ObjectDest
 
 
     private static void invokeMethods(Scope scope, Object instance, List<AnnotatedMethodsProcessor> processors, ProcessingCompleteCallback callback) {
-        List<Method> methods = getMethods(instance.getClass());
+        List<Method> methods = Reflection.getMethods(instance.getClass());
         final int s = processors.size();
         AtomicInteger completeCounter = new AtomicInteger();
         List<Throwable> exceptions = new ArrayList<>();
@@ -172,29 +172,6 @@ public class DefaultFactory implements ObjectCreator, ObjectInjector, ObjectDest
         return Arrays.copyOfRange(trace, offset, trace.length);
     }
 
-    public static List<Field> getFields(Class clazz) {
-        List<Field> res = new ArrayList<>();
-        Class root = clazz;
-        while (root != null) {
-            for (Field m : root.getDeclaredFields()) {
-                res.add(m);
-            }
-            root = root.getSuperclass();
-        }
-        return res;
-    }
-
-    public static List<Method> getMethods(Class clazz) {
-        List<Method> res = new ArrayList<>();
-        Class root = clazz;
-        while (root != null) {
-            for (Method m : root.getDeclaredMethods()) {
-                res.add(m);
-            }
-            root = root.getSuperclass();
-        }
-        return res;
-    }
 
     public static String stripToString(Object value) {
         if (value == null) {
