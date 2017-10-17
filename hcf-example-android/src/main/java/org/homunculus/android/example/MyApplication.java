@@ -3,22 +3,19 @@ package org.homunculus.android.example;
 import android.app.Application;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.android.ContextHolder;
-import org.h2.tools.RunScript;
 import org.homunculus.android.core.Android;
-import org.homunculus.android.example.module.cart.*;
+import org.homunculus.android.example.module.cart.CartController;
+import org.homunculus.android.example.module.cart.CartControllerConnection;
+import org.homunculus.android.example.module.cart.CartUIS;
+import org.homunculus.android.example.module.cart.CartView;
 import org.homunculus.android.example.module.company.CompanyController;
 import org.homunculusframework.factory.container.Configuration;
 import org.homunculusframework.factory.container.Container;
-import org.homunculusframework.factory.flavor.ee.EEFlavor;
 import org.homunculusframework.jpa.ormlite.ORMLiteEntityManager;
-import org.homunculusframework.lang.Panic;
 import org.homunculusframework.scope.Scope;
-import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
-import java.io.*;
-import java.sql.Connection;
-import java.sql.DriverManager;
+import java.io.File;
 
 public class MyApplication extends Application {
 
@@ -32,7 +29,6 @@ public class MyApplication extends Application {
         //add each module (== controllers + views), order is unimportant
         cfg.add(CartController.class);
         cfg.add(CartControllerConnection.class);
-        cfg.add(CartRepository.class);
         cfg.add(CartView.class);
         cfg.add(CartUIS.class);
         cfg.add(CompanyController.class);

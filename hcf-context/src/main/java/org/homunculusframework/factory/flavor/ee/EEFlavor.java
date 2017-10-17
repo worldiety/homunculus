@@ -47,5 +47,6 @@ public class EEFlavor implements Configurator {
         configuration.addMethodSetupProcessors(new EEMethodsPostConstruct());
         configuration.addMethodSetupProcessors(new EEMethodsPreDestroy());
         configuration.addComponentProcessor(new EEComponentController());
+        configuration.addRequestMapping(new EEControllerEndpoint());
     }
 }

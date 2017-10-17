@@ -49,7 +49,7 @@ public class Configuration {
     /**
      * Just the collection of all controllers which will be instantiated
      */
-    private final List<Class<?>> controllers;
+    private final List<AnnotatedComponent> controllers;
 
     /**
      * Controllers may have proxied connections to them to automatically implement various comfort functions
@@ -76,6 +76,7 @@ public class Configuration {
     private final ArrayList<AnnotatedMethodsProcessor> onInjectMethodProcessors;
     private final ArrayList<AnnotatedMethodsProcessor> onTearDownProcessors;
     private final ArrayList<AnnotatedComponentProcessor> annotatedComponentProcessors;
+    private final ArrayList<AnnotatedRequestMapping> annotatedRequestMappings;
 
     public Configuration(Scope scope) {
         this.widgets = new HashMap<>();
@@ -92,10 +93,15 @@ public class Configuration {
         this.onTearDownProcessors = new ArrayList<>();
         this.controllerConnections = new ArrayList<>();
         this.annotatedComponentProcessors = new ArrayList<>();
+        this.annotatedRequestMappings = new ArrayList<>();
     }
 
     public void addComponentProcessor(AnnotatedComponentProcessor annotatedComponentProcessor) {
         annotatedComponentProcessors.add(annotatedComponentProcessor);
+    }
+
+    public void addRequestMapping(AnnotatedRequestMapping annotatedRequestMapping) {
+        annotatedRequestMappings.add(annotatedRequestMapping);
     }
 
     public void addFieldProcessor(AnnotatedFieldProcessor proc) {
@@ -193,7 +199,7 @@ public class Configuration {
                             return false;
                         }
                         definedIds.put(component.getName(), clazz);
-                        controllers.add(clazz);
+                        controllers.add(component);
                         LoggerFactory.getLogger(getClass()).info("added @Controller {}", clazz);
                         return true;
                     case CONTROLLER_CONNECTION:
@@ -209,11 +215,14 @@ public class Configuration {
         return false;
     }
 
+    public List<AnnotatedRequestMapping> getAnnotatedRequestMappings() {
+        return Collections.unmodifiableList(annotatedRequestMappings);
+    }
 
     /**
      * Returns the controller classes registered by {@link #add(Class)}
      */
-    public List<Class<?>> getControllers() {
+    public List<AnnotatedComponent> getControllers() {
         return Collections.unmodifiableList(controllers);
     }
 

@@ -26,5 +26,6 @@ public class SpringFlavor implements Configurator {
     public void apply(Configuration configuration) {
         configuration.addFieldProcessor(new SPRFieldInject());
         configuration.addComponentProcessor(new SPRComponentController());
+        configuration.addRequestMapping(new SPRControllerEndpoint());
     }
 }

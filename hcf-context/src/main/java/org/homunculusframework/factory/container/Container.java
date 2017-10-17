@@ -20,6 +20,7 @@ import org.homunculusframework.factory.ObjectCreator;
 import org.homunculusframework.factory.ObjectInjector;
 import org.homunculusframework.factory.connection.Connection;
 import org.homunculusframework.factory.connection.ConnectionProxyFactory;
+import org.homunculusframework.factory.container.AnnotatedComponentProcessor.AnnotatedComponent;
 import org.homunculusframework.factory.flavor.hcf.Execute;
 import org.homunculusframework.factory.flavor.hcf.Widget;
 import org.homunculusframework.lang.Classname;
@@ -132,7 +133,8 @@ public final class Container {
             //create controllers first
             ObjectCreator factory = configuration.getObjectCreator();
             Scope containerScope = configuration.getRootScope();
-            for (Class<?> clazz : configuration.getControllers()) {
+            for (AnnotatedComponent component : configuration.getControllers()) {
+                Class<?> clazz = component.getAnnotatedClass();
                 Object instance = factory.create(containerScope, clazz);
                 if (instance == null) {
                     continue;
@@ -140,7 +142,7 @@ public final class Container {
                 LoggerFactory.getLogger(getClass()).info("created {}", Classname.getName(clazz));
                 controllers.add(instance);
                 containerScope.putNamedValue("$" + Classname.getName(clazz), instance);
-                for (ControllerEndpoint endpoint : ControllerEndpoint.list(instance)) {
+                for (ControllerEndpoint endpoint : ControllerEndpoint.list(component.getName(), instance, configuration.getAnnotatedRequestMappings())) {
                     ControllerEndpoint existing = controllerEndpoints.get(endpoint.getRequestMapping());
                     if (existing != endpoint && existing != null) {
                         LoggerFactory.getLogger(getClass()).error("ambiguous @RequestMapping '{}' for endpoints: {} and {}", endpoint.getRequestMapping(), existing.toDebugCallString(), endpoint.toDebugCallString());

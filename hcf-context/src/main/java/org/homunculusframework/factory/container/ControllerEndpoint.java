@@ -15,11 +15,12 @@
  */
 package org.homunculusframework.factory.container;
 
+import org.homunculusframework.factory.component.DefaultFactory;
+import org.homunculusframework.factory.container.AnnotatedRequestMapping.AnnotatedMethod;
 import org.homunculusframework.lang.Classname;
 import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Named;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -28,8 +29,8 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 /**
- * A configured endpoint, used to get invoked by reflection. Uses {@link javax.inject.Singleton}
- * and {@link Named}.
+ * A configured endpoint, used to get invoked by reflection. Is applied on {@link org.homunculusframework.factory.container.AnnotatedComponentProcessor.ComponentType#CONTROLLER}
+ * classes and identifies endpoints using {@link AnnotatedRequestMapping} and methods parameter names using {@link }
  *
  * @author Torben Schinke
  * @since 1.0
@@ -42,29 +43,16 @@ public final class ControllerEndpoint {
     private final Object[] callTmp;
     //this is ugly: by default and below java 8 parameter names cannot be read reliably. A name is null, if undefined, which should be avoid by the developer
     private final String[] parameterNames;
+    private final AnnotatedMethod annotatedMethod;
 
-    public ControllerEndpoint(String requestMapping, Object instance, Method method) {
+    public ControllerEndpoint(String requestMapping, Object instance, AnnotatedMethod annotatedMethod) {
         this.requestMapping = requestMapping;
+        this.annotatedMethod = annotatedMethod;
         this.instance = instance;
-        this.method = method;
-        this.parameterTypes = method.getParameterTypes();
+        this.method = annotatedMethod.getMethod();
+        this.parameterTypes = annotatedMethod.getParameterTypes();
         this.callTmp = new Object[this.parameterTypes.length];
-        this.parameterNames = new String[this.parameterTypes.length];
-
-        Annotation[][] declaredParameterAnnotations = method.getParameterAnnotations();
-        NEXT_PARAM:
-        for (int i = 0; i < declaredParameterAnnotations.length; i++) {
-            Annotation[] annotations = declaredParameterAnnotations[i];
-            for (Annotation annotation : annotations) {
-                if (annotation instanceof Named) {
-                    String name = ((Named) annotation).value();
-                    parameterNames[i] = name;
-                    continue NEXT_PARAM;
-                }
-            }
-            //if we come here, no annotation was found -> not good!
-            LoggerFactory.getLogger(instance.getClass()).error("{}.{}: {}. Parameter is unnamed and may cause invocation failure at runtime ", instance.getClass().getSimpleName(), getDebugNameWithParamTypes(), i);
-        }
+        this.parameterNames = annotatedMethod.getParameterNames();
     }
 
     /**
@@ -108,10 +96,10 @@ public final class ControllerEndpoint {
                     value = requestScope.resolve(type);
                 } else {
                     if (!requestScope.hasResolvableNamedValue(name)) {
-                        LoggerFactory.getLogger(instance.getClass()).error("{}.{}: required parameter '{}' is undefined in Request", instance.getClass().getSimpleName(), getDebugNameWithParamTypes(), name);
+                        LoggerFactory.getLogger(instance.getClass()).error("{}.{}: required parameter '{}' is undefined in Request", instance.getClass().getSimpleName(), annotatedMethod, name);
                     } else {
                         if (!requestScope.hasResolvableNamedValue(name, type)) {
-                            LoggerFactory.getLogger(instance.getClass()).error("{}.{}: required parameter '{}' is not assignable", instance.getClass().getSimpleName(), getDebugNameWithParamTypes(), name);
+                            LoggerFactory.getLogger(instance.getClass()).error("{}.{}: required parameter '{}' is not assignable", instance.getClass().getSimpleName(), annotatedMethod, name);
                         }
                     }
 
@@ -161,52 +149,26 @@ public final class ControllerEndpoint {
     }
 
     /**
-     * Grabs all available methods annotated with {@link Named} from the given class and normalizes the
+     * Grabs all available methods annotated from the given class and normalizes the
      * mapping path by guaranteeing a slash at the start and and the end.
+     *
+     * @param parentName normalized (starts and ends with /) path
      */
-    public static List<ControllerEndpoint> list(Object instance) {
+    public static List<ControllerEndpoint> list(String parentName, Object instance, List<AnnotatedRequestMapping> mappers) {
         Class<?> clazz = instance.getClass();
-        Named mapping = clazz.getAnnotation(Named.class);
-        StringBuilder path = new StringBuilder();
-        if (mapping != null) {
-            String tmp = mapping.value().trim();
-            if (tmp.length() == 0) {
-                path.append('/');
-            } else {
-                if (tmp.charAt(0) != '/') {
-                    path.append('/');
-                }
-                path.append(tmp);
-            }
-        }
-        if (path.length() == 0) {
-            path.append('/');
-        }
-        if (path.charAt(path.length() - 1) != '/') {
-            path.append('/');
-        }
 
         //find methods, up the class hierarchy
         List<ControllerEndpoint> res = new ArrayList<>();
-        for (Method method : clazz.getMethods()) {
-            Named methodMap = method.getAnnotation(Named.class);
-            if (methodMap != null) {
-                String tmp = methodMap.value().trim();
-                if (tmp.length() > 0) {
-                    if (tmp.charAt(0) == '/') {
-                        path.setLength(path.length() - 1);
-                    }
-                    path.append(tmp);
-                    if (path.charAt(path.length() - 1) != '/') {
-                        path.append('/');
-                    }
-
-                    //now we have something like /myMethod/ or like /myController/myMethod/
-                    ControllerEndpoint epoint = new ControllerEndpoint(path.toString(), instance, method);
-                    res.add(epoint);
-                } else {
-                    LoggerFactory.getLogger(ControllerEndpoint.class).error("invalid RequestMapping on {}.{}", clazz, method.getName());
+        for (Method method : DefaultFactory.getMethods(clazz)) {
+            for (int i = 0; i < mappers.size(); i++) {
+                AnnotatedMethod mapping = mappers.get(i).process(method);
+                if (mapping == null) {
+                    continue;
                 }
+                //now we have something like /myMethod/ or like /myController/myMethod/
+                ControllerEndpoint epoint = new ControllerEndpoint(parentName + mapping.getName(), instance, mapping);
+                res.add(epoint);
+
             }
         }
         return res;
@@ -225,17 +187,6 @@ public final class ControllerEndpoint {
         return res;
     }
 
-    private String getDebugNameWithParamTypes() {
-        String str = method.getName() + "(";
-        for (int i = 0; i < parameterTypes.length; i++) {
-            str += parameterTypes[i].getSimpleName();
-            if (i < parameterTypes.length - 1) {
-                str += ",";
-            }
-        }
-        str += ")";
-        return str;
-    }
 
     public String toDebugCallString() {
         return Classname.getName(instance.getClass()) + "." + method.getName();
