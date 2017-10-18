@@ -385,6 +385,12 @@ public final class Scope implements Destroyable {
             if (destroyed) {
                 return;
             }
+
+            //destroy all children first, we copy them here, because each child detaches itself causing concurrentmodificationexceptions
+            for (Scope child : new ArrayList<>(subScopes.values())) {
+                child.destroy();
+            }
+
             destroyed = true;
             //1.
             //avoid GC for Android when we can
