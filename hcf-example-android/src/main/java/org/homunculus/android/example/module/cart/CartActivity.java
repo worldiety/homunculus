@@ -3,16 +3,17 @@ package org.homunculus.android.example.module.cart;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import org.homunculus.android.compat.EventAppCompatActivity;
 import org.homunculus.android.core.Android;
 import org.homunculus.android.example.common.ViewWait;
 import org.homunculusframework.factory.container.Request;
+import org.homunculusframework.navigation.DefaultNavigation;
 import org.homunculusframework.navigation.Navigation;
 import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
 
-public class CartActivity extends AppCompatActivity {
+public class CartActivity extends EventAppCompatActivity {
 
-    private Scope mScope;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,9 +23,9 @@ public class CartActivity extends AppCompatActivity {
 
 
         //get the current scope
-
+        getScope().putNamedValue(Android.NAME_NAVIGATION, new DefaultNavigation(getScope()));
         //do some navigation, which replaces the content view itself. Note: what the target (behind the request mapping) does is undefined by intention
-        Navigation nav = Android.getScope(this).resolve(Navigation.class);
+        Navigation nav = getScope().resolve(Navigation.class);
         nav.forward(new Request("/cart/list").put("id", 1234));
     }
 
@@ -35,7 +36,7 @@ public class CartActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        Navigation navigation = Android.getScope(this).resolve(Navigation.class);
+        Navigation navigation = getScope().resolve(Navigation.class);
         if (navigation != null) {
             if (!navigation.backward()) {
                 super.onBackPressed();

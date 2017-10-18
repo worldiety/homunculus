@@ -1,8 +1,11 @@
 package org.homunculus.android.example;
 
 import android.app.Application;
+import android.content.Context;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.android.ContextHolder;
+import org.homunculus.android.compat.CompatApplication;
+import org.homunculus.android.compat.ContextScope;
 import org.homunculus.android.core.Android;
 import org.homunculus.android.example.module.benchmark.Register;
 import org.homunculus.android.example.module.cart.CartController;
@@ -19,18 +22,15 @@ import org.slf4j.LoggerFactory;
 import javax.persistence.EntityManager;
 import java.io.File;
 
-public class MyApplication extends Application {
+public class MyApplication extends CompatApplication {
+
+    private Scope mAppScope;
+
 
     @Override
     public void onCreate() {
         super.onCreate();
 
-//        System.out.println("!!!!!!! attach profiler now");
-//        try {
-//            Thread.sleep(10000);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
         //configure HCF for Android
         long start = System.currentTimeMillis();
         Configuration cfg = Android.getConfiguration(this);
@@ -48,7 +48,7 @@ public class MyApplication extends Application {
         LoggerFactory.getLogger(getClass()).info("configuration time {}ms", System.currentTimeMillis() - start);
 
 //        //setup the entity manager
-//        setupDB(cfg.getRootScope());
+        setupDB(cfg.getRootScope());
 
         //setup and start the HCF container
         Container container = new Container(cfg);
@@ -64,6 +64,7 @@ public class MyApplication extends Application {
          *   Dell V8    626ms | 721ms | 589ms  (Android 4.4.2)
          */
     }
+
 
     /**
      * load db, migrate db and provide the JPA entity manager API into the given scope
@@ -82,4 +83,5 @@ public class MyApplication extends Application {
         EntityManager em = new ORMLiteEntityManager(url);
         scope.putNamedValue("entityManager", em);
     }
+
 }

@@ -16,6 +16,7 @@
 package org.homunculus.android.compat;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
@@ -29,6 +30,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.*;
 import android.view.ActionMode.Callback;
 import org.homunculus.android.core.Android;
+import org.homunculusframework.lang.Panic;
+import org.homunculusframework.navigation.DefaultNavigation;
 import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
 
@@ -47,6 +50,25 @@ public class EventAppCompatActivity extends AppCompatActivity {
     private Intents mIntents;
     private Scope mScope;
     private View mContentView;
+
+    @Override
+    protected void attachBaseContext(Context base) {
+        Scope appScope = ContextScope.getScope(base.getApplicationContext());
+        if (appScope == null) {
+            throw new Panic("application is not correctly configured: ApplicationContext must provide a ContextScope (e.g. use CompatApplication)");
+        }
+        mScope = new Scope(toString(), appScope);
+        mScope.putNamedValue(Android.NAME_CONTEXT, this);
+        ContextScope ctx = new ContextScope(mScope, base);
+        super.attachBaseContext(ctx);
+    }
+
+    /**
+     * Returns the scope of this activity. Equal to {@link ContextScope#getScope(Context)} on "this"
+     */
+    public Scope getScope() {
+        return mScope;
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState, PersistableBundle persistentState) {
@@ -86,7 +108,6 @@ public class EventAppCompatActivity extends AppCompatActivity {
     }
 
     private void init() {
-        mScope = Android.getScope(this);
         mEventDispatcher = new ActivityEventDispatcher<>(mScope, this);
         mPermissions = new Permissions(mEventDispatcher);
         mIntents = new Intents(mEventDispatcher);
@@ -536,6 +557,7 @@ public class EventAppCompatActivity extends AppCompatActivity {
         mEventDispatcher.destroy();
         super.onDestroy();
         mEventDispatcher = null;
+        mScope.destroy();
     }
 
 

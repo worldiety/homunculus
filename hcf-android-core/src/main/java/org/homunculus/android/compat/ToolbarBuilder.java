@@ -126,6 +126,8 @@ public class ToolbarBuilder {
      * Creates the toolbar and binds optionally the life cycle of it (like registered callbacks)
      * to the scope of the given context. See also {@link ContextScope}. Elements are cleared using
      * {@link Scope#addOnBeforeDestroyCallback(OnBeforeDestroyCallback)}
+     *
+     * TODO this API is bad, introduce a proper superclass
      */
     public <V extends View & ToolbarControl> V create(@Nullable Context context, EventAppCompatActivity activity) {
         MyCustomRelativeLayout contentLayout = new MyCustomRelativeLayout(activity);

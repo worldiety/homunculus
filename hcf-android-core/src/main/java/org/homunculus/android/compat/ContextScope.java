@@ -16,8 +16,14 @@
 package org.homunculus.android.compat;
 
 import android.app.Activity;
+import android.arch.lifecycle.Lifecycle.Event;
+import android.arch.lifecycle.LifecycleObserver;
+import android.arch.lifecycle.LifecycleOwner;
+import android.arch.lifecycle.OnLifecycleEvent;
 import android.content.Context;
 import android.content.ContextWrapper;
+import org.homunculus.android.core.Android;
+import org.homunculusframework.navigation.DefaultNavigation;
 import org.homunculusframework.scope.Scope;
 
 import javax.annotation.Nullable;
@@ -58,5 +64,26 @@ public class ContextScope extends ContextWrapper {
             context = ((ContextWrapper) context).getBaseContext();
         }
         return null;
+    }
+
+
+    /**
+     * Creates a new scope for the given lifecycle owner (e.g. a Fragment or an Activity).
+     * Note: The lifetime is
+     * attached to the {@link android.arch.lifecycle.Lifecycle} AND the parent scope. So the returned
+     * scope is destroyed if either of them is destroyed.
+     */
+    public static Scope createScope(@Nullable Scope parent, LifecycleOwner lifecycleOwner) {
+        Scope scope = new Scope(lifecycleOwner.toString(), parent);
+        lifecycleOwner.getLifecycle().addObserver(new LifecycleObserver() {
+            @OnLifecycleEvent(Event.ON_DESTROY)
+            void onDestroy() {
+                scope.destroy();
+            }
+        });
+        if (lifecycleOwner instanceof Context) {
+            scope.putNamedValue(Android.NAME_CONTEXT, lifecycleOwner);
+        }
+        return scope;
     }
 }
