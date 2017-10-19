@@ -52,32 +52,5 @@ public class Android {
     private Android() {
     }
 
-    /**
-     * Returns the app wide configuration as a singelton. The configuration always uses the scope of the application context.
-     * Also the returned configuration is app-wide and should not provide leaky things to an activity.
-     * By default this provides a fully useable and reasonable out-of-the-box configuration for Android.
-     */
-    public static Configuration getConfiguration(Context context) {
-        Scope appScope = ContextScope.getScope(context.getApplicationContext());
-        if (appScope == null) {
-            throw new Panic("application is not correctly configured: ApplicationContext must provide a ContextScope (e.g. use CompatApplication)");
-        }
-        Configuration configuration = new Configuration(appScope);
-
-        File dir = new File(context.getFilesDir(), "hcf");
-
-        new AndroidFlavor(context).apply(configuration);
-        new EEFlavor().apply(configuration);
-        new HomunculusFlavor(dir).apply(configuration);
-        new SpringFlavor().apply(configuration);
-
-        //configure the factories
-        DefaultFactory defaultFactory = new DefaultFactory(configuration);
-        configuration.setObjectCreator(defaultFactory);
-        configuration.setObjectInjector(defaultFactory);
-        configuration.setObjectDestroyer(defaultFactory);
-
-        return configuration;
-    }
 
 }

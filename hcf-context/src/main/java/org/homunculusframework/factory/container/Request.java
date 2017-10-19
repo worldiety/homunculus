@@ -157,7 +157,7 @@ public final class Request {
                             res.set(result);
                             break;
                         case WIDGET:
-                            Scope widgetScope = DefaultNavigation.createChild(scope,this);
+                            Scope widgetScope = DefaultNavigation.createChild(scope, this);
                             container.createProxies(widgetScope);
                             Task<Component<?>> widgetTask = container.createWidget(widgetScope, this.getMapping());
                             widgetTask.whenDone(component -> {
@@ -188,6 +188,15 @@ public final class Request {
             }
             return task;
         }
+    }
+
+    /**
+     * Puts all key/value pairs from the given request into this request.
+     *
+     * @param other the other request
+     */
+    public void putAll(Request other) {
+        requestParams.putAll(other.requestParams);
     }
 
 }

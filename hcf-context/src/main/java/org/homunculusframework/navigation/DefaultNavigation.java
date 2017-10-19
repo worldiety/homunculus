@@ -26,8 +26,8 @@ import org.homunculusframework.scope.SettableTask;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -47,7 +47,7 @@ public class DefaultNavigation implements Navigation {
 
     public DefaultNavigation(Scope scope) {
         this.scope = scope;
-        this.stack = new ArrayList<>();
+        this.stack = new CopyOnWriteArrayList<>();
     }
 
     @Override
@@ -55,7 +55,7 @@ public class DefaultNavigation implements Navigation {
         synchronized (stack) {
             stack.add(request);
         }
-        execute(request);
+        apply(request);
     }
 
     @Override
@@ -70,12 +70,108 @@ public class DefaultNavigation implements Navigation {
                 return false;
             }
             //just execute it once again, so that it get's applied
-            execute(stack.get(stack.size() - 1));
+            apply(stack.get(stack.size() - 1));
             return true;
         }
     }
 
-    private void execute(Request request) {
+    @Override
+    public void backward(Request request) {
+        synchronized (stack) {
+            pop();//just pop the current entry from the stack
+            while (!stack.isEmpty()) {
+                Request prior = pop();
+                if (prior.getMapping().equals(request.getMapping())) {
+                    prior.putAll(request);
+                    apply(prior);
+                    return;
+                }
+            }
+            stack.add(request);
+            apply(request);
+        }
+    }
+
+    @Override
+    public void redirect(Request request) {
+        apply(request);
+    }
+
+    @Override
+    public boolean reload() {
+        Request request = getTop();
+        if (request != null) {
+            apply(request);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Nullable
+    @Override
+    public Request pop() {
+        synchronized (stack) {
+            while (!stack.isEmpty()) {
+                return stack.remove(stack.size() - 1);
+            }
+            return null;
+        }
+    }
+
+    @Override
+    public void push(Request request) {
+        synchronized (stack) {
+            stack.add(request);
+        }
+    }
+
+    @Nullable
+    @Override
+    public Request getTop() {
+        synchronized (stack) {
+            if (stack.isEmpty()) {
+                return null;
+            } else {
+                return stack.get(stack.size() - 1);
+            }
+        }
+    }
+
+    @Nullable
+    @Override
+    public Request getCurrent() {
+        synchronized (stack) {
+            UIS uis = currentUIS;
+            if (uis != null) {
+                return uis.request;
+            }
+        }
+        return null;
+    }
+
+    @Nullable
+    @Override
+    public Request getPriorTop() {
+        synchronized (stack) {
+            if (stack.size() > 1) {
+                return stack.get(stack.size() - 2);
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public List<Request> getStack() {
+        return stack;
+    }
+
+    /**
+     * Called to apply a new UIS for navigation.
+     *
+     * @param request the request
+     */
+    public void apply(Request request) {
         request.put(Container.NAME_CALLSTACK, DefaultFactory.getCallStack(5));
         request.execute(scope).whenDone(res -> {
             final Container container = scope.resolveNamedValue(Container.NAME_CONTAINER, Container.class);
@@ -90,24 +186,24 @@ public class DefaultNavigation implements Navigation {
                 Scope uisScope = createChild(scope, mav);
                 container.createProxies(uisScope);
                 Task<Component<?>> task = container.createWidget(uisScope, mav.getView());
-                attachComponentTask(uisScope, task);
+                attachComponentTask(request, uisScope, task);
             } else if (obj instanceof Component) {
                 Scope uisScope = ((Component) obj).getScope();
                 SettableTask<Component<?>> task = SettableTask.create(uisScope, "execute tmp");
                 task.set((Component) obj);
-                attachComponentTask(uisScope, task);
+                attachComponentTask(request, uisScope, task);
             } else {
                 LoggerFactory.getLogger(getClass()).error("invocation success, but result not useful to navigate (use ModelAndView): {} -> {}", request.getMapping(), obj);
             }
         });
     }
 
-    private void attachComponentTask(Scope uisScope, Task<Component<?>> task) {
+    private void attachComponentTask(Request request, Scope uisScope, Task<Component<?>> task) {
         task.whenDone(component -> {
             Object newUIS = component.get();
             if (newUIS != null && component.getFailures().isEmpty()) {
                 uisScope.putNamedValue("$" + System.identityHashCode(newUIS), newUIS);
-                tearDownOldAndApplyNew(new UIS(uisScope, newUIS));
+                tearDownOldAndApplyNew(new UIS(request, uisScope, newUIS));
             } else {
                 uisScope.destroy();
                 LoggerFactory.getLogger(getClass()).error("denied applying UIS: {}", newUIS);
@@ -165,9 +261,10 @@ public class DefaultNavigation implements Navigation {
     private static class UIS {
         private final Scope scope;
         private final Object widget;
+        private final Request request;
 
-
-        UIS(Scope scope, Object widget) {
+        UIS(Request request, Scope scope, Object widget) {
+            this.request = request;
             this.scope = scope;
             this.widget = widget;
         }

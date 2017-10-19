@@ -71,11 +71,19 @@ public class CartView extends LinearLayout {
         }
 
         Button button = new Button(getContext());
-        button.setText("next");
+        button.setText("/cart/list");
         button.setOnClickListener(view -> {
-            mNav.forward(new Request("/cart/list").put("id", "77777"));
+            mNav.forward(new Request("/cart/list").put("id", "111111"));
         });
         addView(button, new LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
+
+
+        Button button5 = new Button(getContext());
+        button5.setText("/cart/list2");
+        button5.setOnClickListener(view -> {
+            mNav.forward(new Request("/cart/list2").put("id", "222222"));
+        });
+        addView(button5, new LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
 
 
         Button button2 = new Button(getContext());

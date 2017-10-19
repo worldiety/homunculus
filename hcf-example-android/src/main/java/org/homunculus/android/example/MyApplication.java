@@ -33,7 +33,7 @@ public class MyApplication extends CompatApplication {
 
         //configure HCF for Android
         long start = System.currentTimeMillis();
-        Configuration cfg = Android.getConfiguration(this);
+        Configuration cfg = createConfiguration(this);
 
         //add each module (== controllers + views), order is unimportant
         cfg.add(CartController.class);
@@ -43,11 +43,10 @@ public class MyApplication extends CompatApplication {
         cfg.add(CompanyController.class);
 
         //try performance on real device
-
         Register.register(cfg);
         LoggerFactory.getLogger(getClass()).info("configuration time {}ms", System.currentTimeMillis() - start);
 
-//        //setup the entity manager
+        //setup the entity manager
         setupDB(cfg.getRootScope());
 
         //setup and start the HCF container

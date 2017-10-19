@@ -32,6 +32,9 @@ import java.util.TreeMap;
  * @since 1.0
  */
 public final class Result<T> {
+
+    public final static String TAG_CANCELLED = "task.cancelled";
+
     @Nullable
     private T value;
     @Nullable

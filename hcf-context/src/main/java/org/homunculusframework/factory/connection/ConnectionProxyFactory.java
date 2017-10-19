@@ -19,7 +19,9 @@ import org.homunculusframework.concurrent.Task;
 import org.homunculusframework.factory.component.DefaultFactory;
 import org.homunculusframework.factory.container.Container;
 import org.homunculusframework.factory.container.Handler;
+import org.homunculusframework.factory.container.RequestContext;
 import org.homunculusframework.lang.Panic;
+import org.homunculusframework.lang.Ref;
 import org.homunculusframework.lang.Reflection;
 import org.homunculusframework.lang.Result;
 import org.homunculusframework.scope.Scope;
@@ -113,25 +115,55 @@ public class ConnectionProxyFactory<T> {
             //capture the synchronous trace
             StackTraceElement[] trace = DefaultFactory.getCallStack(6);
             SettableTask<Result<?>> task = SettableTask.create(lifeTime, instanceTarget.getName() + "@" + mCounter.incrementAndGet());
+            ProxyRequestContext ctx = new ProxyRequestContext(task);
+            Ref<Thread> ref = new Ref<>();
             handler.post(() -> {
-
+                ref.set(Thread.currentThread());
+                //dispatch a cancel call into a thread interrupt, races are handled by the subsequent cancel call
+                task.addOnCancelledListener(mayInterruptIfRunning -> {
+                    if (mayInterruptIfRunning) {
+                        ref.get().interrupt();
+                    }
+                });
+                //early exit, for queued but never executed tasks
+                if (ctx.isCancelled()) {
+                    task.set(Result.create().putTag(Result.TAG_CANCELLED, null));
+                    return;
+                }
                 try {
+                    //implement also support for methods (or in general?) to inject RequestContext
                     Object res = instanceTarget.invoke(instance, args);
                     if (res instanceof Result) {
-                        task.set((Result) res);
+                        Result r = (Result) res;
+                        if (ctx.isCancelled()) {
+                            r.putTag(Result.TAG_CANCELLED, null);
+                        }
+                        task.set(r);
                     } else {
-                        task.set(Result.create(res));
+                        Result r = Result.create(res);
+                        if (ctx.isCancelled()) {
+                            r.putTag(Result.TAG_CANCELLED, null);
+                        }
+                        task.set(r);
                     }
                 } catch (InvocationTargetException e) {
                     String sig = Reflection.getName(instance.getClass()) + "." + ifaceMethod.getName();
                     RuntimeException ee = new RuntimeException("connection call failed: " + sig);
                     ee.initCause(e.getTargetException());
                     ee.setStackTrace(trace);
-                    task.set(Result.create().setThrowable(ee));
+                    Result r = Result.create().setThrowable(ee);
+                    if (ctx.isCancelled()) {
+                        r.putTag(Result.TAG_CANCELLED, null);
+                    }
+                    task.set(r);
                 } catch (Throwable e) {
                     ExecutionException ee = new ExecutionException(e);
                     ee.setStackTrace(trace);
-                    task.set(Result.create().setThrowable(ee));
+                    Result r = Result.create().setThrowable(ee);
+                    if (ctx.isCancelled()) {
+                        r.putTag(Result.TAG_CANCELLED, null);
+                    }
+                    task.set(r);
                 }
             });
             return task;
@@ -191,6 +223,19 @@ public class ConnectionProxyFactory<T> {
             Handler handler = currentScope.resolveNamedValue(Container.NAME_REQUEST_HANDLER, Handler.class);
             Task<Result<?>> task = connectionMethod.invoke(currentScope, method, handler, args);
             return task;
+        }
+    }
+
+    private static class ProxyRequestContext implements RequestContext {
+        private final SettableTask<?> task;
+
+        ProxyRequestContext(SettableTask<?> task) {
+            this.task = task;
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return task.isCancelled();
         }
     }
 }

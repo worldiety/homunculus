@@ -37,4 +37,12 @@ public interface Task<R> {
      * this is the same as for {@link #whenDone(Procedure)}
      */
     <X> Task<X> continueWith(Function<R, X> callback);
+
+
+    /**
+     * Tries to cancel the task. This signal is just a hint
+     * and it may be ignored or comes to late at all. Also it is not defined is a
+     * concrete task implementation supports cancelling.
+     */
+    void cancel(boolean mayInterruptIfRunning);
 }

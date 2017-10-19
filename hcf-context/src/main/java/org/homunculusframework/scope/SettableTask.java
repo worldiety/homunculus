@@ -25,6 +25,8 @@ import org.homunculusframework.lang.Procedure;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * An implementation of {@link Task} which is optionally connectable to a scope.
@@ -40,6 +42,9 @@ public class SettableTask<T> implements Task<T> {
     @Nullable
     private final Scope scope;
     private final ExecutionList leakyExecutionList;
+    private volatile boolean shouldCancel;
+    private volatile boolean shouldCancelWithInterrupt;
+    private final List<OnCancelledListener> onCancelledListeners = new ArrayList<>(1);
 
     private SettableTask(Scope scope, String name) {
         this.key = name + "@" + System.identityHashCode(this);
@@ -50,6 +55,12 @@ public class SettableTask<T> implements Task<T> {
             leakyExecutionList = null;
         } else {
             leakyExecutionList = new ExecutionList();
+        }
+    }
+
+    public void addOnCancelledListener(OnCancelledListener listener) {
+        synchronized (onCancelledListeners) {
+            onCancelledListeners.add(listener);
         }
     }
 
@@ -137,5 +148,36 @@ public class SettableTask<T> implements Task<T> {
             delayedRes.set(otherRes);
         });
         return delayedRes;
+    }
+
+    /**
+     * @param mayInterruptIfRunning
+     */
+    @Override
+    public void cancel(boolean mayInterruptIfRunning) {
+        if (shouldCancel) {
+            return;
+        }
+        shouldCancel = true;
+        shouldCancelWithInterrupt = mayInterruptIfRunning;
+        synchronized (onCancelledListeners) {
+            for (int i = 0; i < onCancelledListeners.size(); i++) {
+                onCancelledListeners.get(i).onCancelled(mayInterruptIfRunning);
+            }
+        }
+
+    }
+
+    public boolean isCancelled() {
+        return shouldCancel;
+    }
+
+    public boolean isInterrupted() {
+        return shouldCancelWithInterrupt;
+    }
+
+
+    public interface OnCancelledListener {
+        void onCancelled(boolean mayInterruptIfRunning);
     }
 }
