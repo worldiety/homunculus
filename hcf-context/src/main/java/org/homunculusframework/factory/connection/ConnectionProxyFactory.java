@@ -88,12 +88,14 @@ public class ConnectionProxyFactory<T> {
         private final Object instance;
         private boolean notImplemented;
         private final Method instanceTarget;
-
+        //used to detect and flag crossing concurrent invocations -> only the last call is not flagged as outdated
+        private final AtomicInteger callGeneration;
 
         public ConnectionMethod(Object instance, Method instanceTarget, boolean notImplemented) {
             this.instance = instance;
             this.notImplemented = notImplemented;
             this.instanceTarget = instanceTarget;
+            this.callGeneration = new AtomicInteger();
 
         }
 
@@ -111,7 +113,7 @@ public class ConnectionProxyFactory<T> {
                 );
                 return task;
             }
-
+            final int myGeneration = callGeneration.incrementAndGet();
             //capture the synchronous trace
             StackTraceElement[] trace = DefaultFactory.getCallStack(6);
             SettableTask<Result<?>> task = SettableTask.create(lifeTime, instanceTarget.getName() + "@" + mCounter.incrementAndGet());
@@ -133,19 +135,23 @@ public class ConnectionProxyFactory<T> {
                 try {
                     //implement also support for methods (or in general?) to inject RequestContext
                     Object res = instanceTarget.invoke(instance, args);
+                    Result r;
                     if (res instanceof Result) {
-                        Result r = (Result) res;
+                        r = (Result) res;
                         if (ctx.isCancelled()) {
                             r.putTag(Result.TAG_CANCELLED, null);
                         }
-                        task.set(r);
                     } else {
-                        Result r = Result.create(res);
+                        r = Result.create(res);
                         if (ctx.isCancelled()) {
                             r.putTag(Result.TAG_CANCELLED, null);
                         }
-                        task.set(r);
+
                     }
+                    if (callGeneration.get() != myGeneration) {
+                        r.putTag(Result.TAG_OUTDATED, null);
+                    }
+                    task.set(r);
                 } catch (InvocationTargetException e) {
                     String sig = Reflection.getName(instance.getClass()) + "." + ifaceMethod.getName();
                     RuntimeException ee = new RuntimeException("connection call failed: " + sig);

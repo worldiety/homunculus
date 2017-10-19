@@ -33,7 +33,7 @@ public class MyApplication extends CompatApplication {
 
         //configure HCF for Android
         long start = System.currentTimeMillis();
-        Configuration cfg = createConfiguration(this);
+        Configuration cfg = createConfiguration();
 
         //add each module (== controllers + views), order is unimportant
         cfg.add(CartController.class);

@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.Button;
 import org.homunculus.android.example.module.cart.CartActivity;
+import org.homunculus.android.example.module.toolbar.ToolbarActivity;
 import org.homunculusframework.scope.Scope;
 
 public class MainActivity extends AppCompatActivity {
@@ -18,6 +19,7 @@ public class MainActivity extends AppCompatActivity {
         btn.setOnClickListener(v -> {
             System.out.println("hallo welt");
             startActivity(new Intent(this, CartActivity.class));
+//            startActivity(new Intent(this, ToolbarActivity.class));
         });
         setContentView(btn);
     }

@@ -19,6 +19,8 @@
         </activity>
         <activity android:name=".module.cart.CartActivity">
         </activity>
+        <activity android:name=".module.toolbar.ToolbarActivity">
+        </activity>
     </application>
 
 </manifest>

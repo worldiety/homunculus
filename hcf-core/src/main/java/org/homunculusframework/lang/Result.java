@@ -20,7 +20,6 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
@@ -31,12 +30,22 @@ import java.util.TreeMap;
  * @author Torben Schinke
  * @since 1.0
  */
-public final class Result<T> {
+public final class Result<T> extends Ref<T> {
 
+    /**
+     * A conventional tag to indicate a cancelled task
+     */
     public final static String TAG_CANCELLED = "task.cancelled";
 
-    @Nullable
-    private T value;
+    /**
+     * A conventional tag to indicate an outdated task result. Definition of outdated:
+     * <p>
+     * Referring to a request on an instance of a task provider, invoking an asynchronous
+     * method multiple times before any result is available, the order of execution is not defined. Therefore the
+     * task provider must ensure that all results but the last one are tagged as outdated.
+     */
+    public final static String TAG_OUTDATED = "task.outdated";
+
     @Nullable
     private Throwable throwable;
 
@@ -55,6 +64,13 @@ public final class Result<T> {
         return r;
     }
 
+    /**
+     * A copy constructor which nulls out the value, so that any cast is allowed.
+     *
+     * @param other the other result
+     * @param <T>   target type
+     * @return a new result instance with throwable, parent and tags from other but a null value
+     */
     public static <T> Result<T> nullValue(Result<?> other) {
         Result<T> res = Result.create(null);
         res.throwable = other.throwable;
@@ -63,14 +79,6 @@ public final class Result<T> {
         return res;
     }
 
-    @Nullable
-    public T get() {
-        return value;
-    }
-
-    public void set(@Nullable T value) {
-        this.value = value;
-    }
 
     public Result<T> setThrowable(@Nullable Throwable throwable) {
         this.throwable = throwable;
@@ -96,11 +104,15 @@ public final class Result<T> {
         return this;
     }
 
+    public boolean hasTag(String key) {
+        return tags.containsKey(key);
+    }
+
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("value").append("=").append(value).append("\n");
+        sb.append("value").append("=").append(get()).append("\n");
         for (Entry<String, Object> entry : tags.entrySet()) {
             sb.append(entry.getKey()).append("=").append(entry.getValue()).append("\n");
         }
@@ -118,9 +130,27 @@ public final class Result<T> {
      * Prints into the log, if the value is null or a throwable is set
      */
     public Result<T> log() {
-        if (value == null || throwable != null) {
+        if (get() == null || throwable != null) {
             LoggerFactory.getLogger(getClass()).error(toString());
         }
         return this;
     }
+
+    /**
+     * Returns true if the result has been cancelled or interrupted. However a result may still be present.
+     * See also {@link #TAG_CANCELLED}
+     */
+    public boolean isCancelled() {
+        return hasTag(TAG_CANCELLED);
+    }
+
+    /**
+     * Returns true if the result has been outdated. See {@link #TAG_OUTDATED}
+     *
+     * @return true if outdated
+     */
+    public boolean isOutdated() {
+        return hasTag(TAG_OUTDATED);
+    }
+
 }

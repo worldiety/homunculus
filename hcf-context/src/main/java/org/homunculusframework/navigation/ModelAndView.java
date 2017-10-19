@@ -37,6 +37,13 @@ public final class ModelAndView {
         this.model = new TreeMap<>();
     }
 
+    /**
+     * Puts another key / value pair into the model, replacing any prior registered value for the given key.
+     *
+     * @param key   the key
+     * @param value the value, should be small and serializable (or a defensive copy). Never put observers, callbacks, listeners, threads etc. here
+     * @return the same instance
+     */
     public ModelAndView put(String key, Object value) {
         model.put(key, value);
         return this;

@@ -56,16 +56,16 @@ public class CompatApplication extends Application {
      * By default this provides a fully useable and reasonable out-of-the-box configuration for Android, providing
      * spring and ee annotation flavors.
      */
-    protected Configuration createConfiguration(Context context) {
-        Scope appScope = ContextScope.getScope(context.getApplicationContext());
+    protected Configuration createConfiguration() {
+        Scope appScope = ContextScope.getScope(this);
         if (appScope == null) {
             throw new Panic("application is not correctly configured: ApplicationContext must provide a ContextScope (e.g. use CompatApplication)");
         }
         Configuration configuration = new Configuration(appScope);
 
-        File dir = new File(context.getFilesDir(), "hcf");
+        File dir = new File(this.getFilesDir(), "hcf");
 
-        new AndroidFlavor(context).apply(configuration);
+        new AndroidFlavor(this).apply(configuration);
         new EEFlavor().apply(configuration);
         new HomunculusFlavor(dir).apply(configuration);
         new SpringFlavor().apply(configuration);
