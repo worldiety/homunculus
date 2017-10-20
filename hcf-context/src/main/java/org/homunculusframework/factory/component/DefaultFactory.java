@@ -178,6 +178,9 @@ public class DefaultFactory implements ObjectCreator, ObjectInjector, ObjectDest
             return "null";
         } else {
             String r = value.toString();
+            if (r == null) {
+                r = "";
+            }
             if (r.length() > 120) {
                 return r.substring(0, 120);
             }

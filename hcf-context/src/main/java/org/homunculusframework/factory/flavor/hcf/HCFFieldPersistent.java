@@ -17,6 +17,7 @@ package org.homunculusframework.factory.flavor.hcf;
 
 import org.homunculusframework.factory.container.AnnotatedFieldProcessor;
 import org.homunculusframework.factory.component.DefaultFactory;
+import org.homunculusframework.factory.container.Container;
 import org.homunculusframework.factory.serializer.Serializer;
 import org.homunculusframework.lang.Panic;
 import org.homunculusframework.lang.Reflection;
@@ -74,7 +75,7 @@ public class HCFFieldPersistent implements AnnotatedFieldProcessor {
                     } catch (IllegalAccessException e) {
                         throw new Panic(e);
                     } catch (IOException e) {
-                        LoggerFactory.getLogger(getClass()).warn("failed to save");
+                        LoggerFactory.getLogger(getClass()).warn("failed to save", e);
                     }
                 }
             });
@@ -82,13 +83,20 @@ public class HCFFieldPersistent implements AnnotatedFieldProcessor {
 
             try {
                 Object resolvedValue = read(folder, key.name(), serializer, field.getType());
+                if (resolvedValue == null) {
+                    Container container = scope.resolveNamedValue(Container.NAME_CONTAINER, Container.class);
+                    if (container != null) {
+                        resolvedValue = container.getConfiguration().getObjectCreator().create(scope, field.getType());
+                    }
+                }
                 field.set(instance, resolvedValue);
-                LoggerFactory.getLogger(instance.getClass()).debug("{}.{} = {}", instance.getClass().getSimpleName(), field.getName(), DefaultFactory.stripToString(resolvedValue));
+                LoggerFactory.getLogger(instance.getClass()).info("{}.{} = {}", instance.getClass().getSimpleName(), field.getName(), DefaultFactory.stripToString(resolvedValue));
             } catch (IllegalAccessException | IOException e) {
                 LoggerFactory.getLogger(instance.getClass()).error("failed to deserialize: {}.{} -> {}", instance.getClass().getSimpleName(), field.getName(), e);
             }
         }
     }
+
 
     public static void save(File targetDir, String name, Serializer serializer, Class<?> type, Object obj) throws IOException {
         File dstFile = new File(targetDir, Reflection.getName(type) + "_" + name + "." + serializer.getId());
@@ -102,12 +110,15 @@ public class HCFFieldPersistent implements AnnotatedFieldProcessor {
             }
         }
         File tmp = new File(targetDir, UUID.randomUUID().toString());
-        if (!tmp.createNewFile()) {
-            dstFile.mkdirs();
+        try {
+            tmp.createNewFile();
+        } catch (IOException e) {
+            dstFile.getParentFile().mkdirs();
             if (!tmp.createNewFile()) {
                 throw new IOException("failed to allocate tmp file " + tmp);
             }
         }
+
         FileOutputStream fout = new FileOutputStream(tmp);
         try {
             BufferedOutputStream bout = new BufferedOutputStream(fout);

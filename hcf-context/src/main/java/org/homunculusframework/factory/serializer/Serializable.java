@@ -39,7 +39,7 @@ public class Serializable implements Serializer {
     }
 
     @Override
-    public Object deserialize(InputStream in, Class<?> type) throws IOException{
+    public Object deserialize(InputStream in, Class<?> type) throws IOException {
         ObjectInputStream oin = new ObjectInputStream(in);
         try {
             return oin.readObject();

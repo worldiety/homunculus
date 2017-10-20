@@ -16,6 +16,7 @@
 package org.homunculusframework.factory.flavor.hcf;
 
 import org.homunculusframework.factory.ObjectCreator;
+import org.homunculusframework.factory.serializer.Serializable;
 import org.homunculusframework.factory.serializer.Serializer;
 import org.homunculusframework.factory.serializer.Xml;
 
@@ -30,7 +31,7 @@ import java.lang.annotation.*;
  * @author Torben Schinke
  * @since 1.0
  */
-@Target({ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.TYPE})
+@Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface Persistent {
@@ -44,5 +45,5 @@ public @interface Persistent {
      * The default serializer is the Xml serializer which trade-offs speed vs compatibility. The serializer must be
      * an exact match and cannot be satisfied with assignability of the class hierarchy.
      */
-    Class<? extends Serializer> serializer() default Xml.class;
+    Class<? extends Serializer> serializer() default Serializable.class;
 }

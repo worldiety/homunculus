@@ -17,6 +17,9 @@ package org.homunculusframework.factory.flavor.hcf;
 
 import org.homunculusframework.factory.container.Configuration;
 import org.homunculusframework.factory.container.Configurator;
+import org.homunculusframework.factory.serializer.Externalizable;
+import org.homunculusframework.factory.serializer.Serializable;
+import org.homunculusframework.factory.serializer.Xml;
 
 import java.io.File;
 
@@ -37,7 +40,11 @@ public class HomunculusFlavor implements Configurator {
 
     @Override
     public void apply(Configuration configuration) {
-        configuration.addFieldProcessor(new HCFFieldPersistent(privateStorageDirectory));
+        HCFFieldPersistent persistent = new HCFFieldPersistent(privateStorageDirectory);
+        persistent.putSerializer(new Externalizable());
+        persistent.putSerializer(new Serializable());
+        persistent.putSerializer(new Xml());
+        configuration.addFieldProcessor(persistent);
         configuration.addComponentProcessor(new HCFComponentCtrConnection());
         configuration.addComponentProcessor(new HCFComponentWidget());
     }

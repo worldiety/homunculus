@@ -10,6 +10,7 @@ import android.widget.TextView;
 import org.homunculus.android.example.module.company.CompanyController;
 import org.homunculus.android.flavor.Resource;
 import org.homunculus.android.example.R;
+import org.homunculusframework.factory.flavor.hcf.Persistent;
 import org.homunculusframework.factory.flavor.hcf.Widget;
 import org.homunculusframework.factory.container.Request;
 import org.homunculusframework.navigation.Navigation;
@@ -18,6 +19,9 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Named;
+
+import java.io.Serializable;
+import java.util.UUID;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
@@ -47,12 +51,18 @@ public class CartView extends LinearLayout {
     @Inject
     private CompanyController company;
 
+    @Persistent
+    private SomeSettings settings;
+
     public CartView(Context context) {
         super(context);
     }
 
     @PostConstruct
     private void init() {
+        LoggerFactory.getLogger(getClass()).info("{}", settings);
+        settings.value = UUID.randomUUID().toString();
+
         removeAllViews();
         if (mCart == null) {
             LoggerFactory.getLogger(getClass()).info("cart is empty");
@@ -115,5 +125,14 @@ public class CartView extends LinearLayout {
             mNav.forward(new Request("/cart/uis/list").put("cart", model));
         });
         addView(button4, new LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
+    }
+
+    public static class SomeSettings implements Serializable {
+        private String value;
+
+        @Override
+        public String toString() {
+            return value;
+        }
     }
 }

@@ -66,8 +66,8 @@ public class CompatApplication extends Application {
         File dir = new File(this.getFilesDir(), "hcf");
 
         new AndroidFlavor(this).apply(configuration);
+        new HomunculusFlavor(new File(getFilesDir(), "persistent")).apply(configuration);
         new EEFlavor().apply(configuration);
-        new HomunculusFlavor(dir).apply(configuration);
         new SpringFlavor().apply(configuration);
 
         //configure the factories

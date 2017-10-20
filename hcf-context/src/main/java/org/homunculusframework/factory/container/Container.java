@@ -172,6 +172,11 @@ public final class Container {
                     }
                 });
             }
+            if (controllers.isEmpty()) {
+                if (onCompleteClosure != null) {
+                    onCompleteClosure.onComplete(Container.this, new ArrayList<>());
+                }
+            }
 
             //automatically implement connection proxies
             for (Class<Connection> clazz : configuration.getControllerConnections()) {

@@ -113,6 +113,19 @@ public class ToolbarBuilder {
         return new ToolbarBuilder();
     }
 
+    /**
+     * See {@link #create(Scope, EventAppCompatActivity, View, View, View)}
+     */
+    public <ContentView extends View, LeftDrawer extends View, RightDrawer extends View> ContentViewHolder<ToolbarHolder<ContentView>, LeftDrawer, RightDrawer> create(@Nullable Scope scope, EventAppCompatActivity activity, ContentView contentView) {
+        return create(scope, activity, contentView, null, null);
+    }
+
+    /**
+     * See {@link #create(Scope, EventAppCompatActivity, View, View, View)}
+     */
+    public <ContentView extends View, LeftDrawer extends View, RightDrawer extends View> ContentViewHolder<ToolbarHolder<ContentView>, LeftDrawer, RightDrawer> create(@Nullable Scope scope, EventAppCompatActivity activity, ContentView contentView, @Nullable LeftDrawer leftDrawer) {
+        return create(scope, activity, contentView, leftDrawer, null);
+    }
 
     /**
      * Creates the toolbar and binds optionally the life cycle of it (like registered callbacks)
@@ -284,7 +297,7 @@ public class ToolbarBuilder {
 
         //insert the drawer toggle
         if (mLeftDrawer != null || mRightDrawer != null) {
-            ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(activity, mDrawerLayout, R.string.app_name, R.string.app_name);
+            ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(activity, mDrawerLayout, R.string.toolbarbuilder_open_drawer_content_desc_res, R.string.toolbarbuilder_close_drawer_content_desc_res);
             if (mLeftDrawer != null) {
                 toggle.setDrawerIndicatorEnabled(true);
             } else {

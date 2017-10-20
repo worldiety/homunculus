@@ -46,8 +46,6 @@ public class AndroidFlavor implements Configurator {
 
     @Override
     public void apply(Configuration configuration) {
-        new HomunculusFlavor(new File(context.getFilesDir(), "persistent")).apply(configuration);
-
 
         configuration.addFieldProcessor(new ResourceAnnotationLoader());
 
