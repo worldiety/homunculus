@@ -16,6 +16,7 @@
 package org.homunculusframework.factory.connection;
 
 import org.homunculusframework.concurrent.Task;
+import org.homunculusframework.concurrent.ThreadInterruptible;
 import org.homunculusframework.factory.component.DefaultFactory;
 import org.homunculusframework.factory.container.Container;
 import org.homunculusframework.factory.container.Handler;
@@ -90,13 +91,14 @@ public class ConnectionProxyFactory<T> {
         private final Method instanceTarget;
         //used to detect and flag crossing concurrent invocations -> only the last call is not flagged as outdated
         private final AtomicInteger callGeneration;
+        private final boolean interruptible;
 
         public ConnectionMethod(Object instance, Method instanceTarget, boolean notImplemented) {
             this.instance = instance;
             this.notImplemented = notImplemented;
             this.instanceTarget = instanceTarget;
             this.callGeneration = new AtomicInteger();
-
+            this.interruptible = instanceTarget.getAnnotation(ThreadInterruptible.class) != null;
         }
 
         Task<Result<?>> invoke(Scope lifeTime, Method ifaceMethod, Handler handler, Object[] args) {
@@ -122,11 +124,13 @@ public class ConnectionProxyFactory<T> {
             handler.post(() -> {
                 ref.set(Thread.currentThread());
                 //dispatch a cancel call into a thread interrupt, races are handled by the subsequent cancel call
-                task.addOnCancelledListener(mayInterruptIfRunning -> {
-                    if (mayInterruptIfRunning) {
-                        ref.get().interrupt();
-                    }
-                });
+                if (interruptible) {
+                    task.addOnCancelledListener(mayInterruptIfRunning -> {
+                        if (mayInterruptIfRunning) {
+                            ref.get().interrupt();
+                        }
+                    });
+                }
                 //early exit, for queued but never executed tasks
                 if (ctx.isCancelled()) {
                     task.set(Result.create().putTag(Result.TAG_CANCELLED, null));

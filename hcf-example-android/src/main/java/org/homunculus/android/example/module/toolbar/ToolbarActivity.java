@@ -19,15 +19,10 @@ public class ToolbarActivity extends EventAppCompatActivity {
         setContentView(contentView);
     }
 
-    @SuppressWarnings("unchecked")
     private static ContentViewHolder<ToolbarHolder<MyContentView>, MyLeftDrawer, MyRightDrawer> applyState(EventAppCompatActivity context) {
-        ContentViewHolder<?, ?, ?> contentView = ToolbarBuilder.
+        return ToolbarBuilder.
                 define().
-                setContentView(new MyContentView(context)).
-                setLeftDrawer(new MyLeftDrawer(context)).
-                setRightDrawer(new MyRightDrawer(context)).
-                create(null, context);
-        return (ContentViewHolder<ToolbarHolder<MyContentView>, MyLeftDrawer, MyRightDrawer>) contentView;
+                create(null, context, new MyContentView(context), new MyLeftDrawer(context), new MyRightDrawer(context));
     }
 
     private static class MyContentView extends View {

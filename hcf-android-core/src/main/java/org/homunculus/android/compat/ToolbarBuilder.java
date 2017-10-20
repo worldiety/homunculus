@@ -113,13 +113,14 @@ public class ToolbarBuilder {
         return new ToolbarBuilder();
     }
 
+
     /**
      * Creates the toolbar and binds optionally the life cycle of it (like registered callbacks)
      * to the scope of the given context. See also {@link ContextScope}. Elements are cleared using
      * {@link Scope#addOnBeforeDestroyCallback(OnBeforeDestroyCallback)}
      * <p>
      */
-    public ContentViewHolder<ToolbarHolder<?>, ?, ?> create(@Nullable Scope scope, EventAppCompatActivity activity) {
+    public <ContentView extends View, LeftDrawer extends View, RightDrawer extends View> ContentViewHolder<ToolbarHolder<ContentView>, LeftDrawer, RightDrawer> create(@Nullable Scope scope, EventAppCompatActivity activity, ContentView contentView, @Nullable LeftDrawer leftDrawer, @Nullable RightDrawer rightDrawer) {
 
         if (scope != null) {
             scope.addOnBeforeDestroyCallback(obj -> {
@@ -128,6 +129,9 @@ public class ToolbarBuilder {
             });
         }
 
+        mContentView = contentView;
+        mLeftDrawer = leftDrawer;
+        mRightDrawer = rightDrawer;
         // Initialize menu
         initMenu(activity);
         // Initialize toolbar
@@ -292,44 +296,6 @@ public class ToolbarBuilder {
         return mDrawerLayout;
     }
 
-
-    /**
-     * Set the main content view
-     *
-     * @param contentView
-     * @return
-     */
-    public ToolbarBuilder setContentView(View contentView) {
-        mContentView = contentView;
-        return this;
-    }
-
-    /**
-     * Sets the left hand drawer view.
-     * When setting this view the hamburger view will be displayed instead of back arrow if {@link ToolbarBuilder#setShowNavigationIcons(boolean)} was set to true.
-     * <p>
-     * Notice: When the view is in action mode, drawers are disabled
-     *
-     * @param navDrawer
-     * @return
-     */
-    public ToolbarBuilder setLeftDrawer(View navDrawer) {
-        mLeftDrawer = navDrawer;
-        return this;
-    }
-
-    /**
-     * Sets the right hand drawer view.
-     * <p>
-     * Notice: When the view is in action mode, drawers are disabled
-     *
-     * @param contentDrawer
-     * @return
-     */
-    public ToolbarBuilder setRightDrawer(View contentDrawer) {
-        mRightDrawer = contentDrawer;
-        return this;
-    }
 
     /**
      * Set the toolbar background color

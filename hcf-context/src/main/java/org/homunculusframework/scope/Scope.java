@@ -19,6 +19,7 @@ package org.homunculusframework.scope;
 import org.homunculusframework.lang.Destroyable;
 import org.homunculusframework.lang.Function;
 import org.homunculusframework.lang.Reflection;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -29,7 +30,7 @@ import java.util.Map.Entry;
  * of a hierarchy and has no cycles but siblings and children (subScopes). The implementation is thread safe, however that
  * does not mean it is logically safe when used. By definition a scope has the ownership of {@link Destroyable} values.
  * If you don't want that for specific values, you have to remove such values manually before destroying. After destroyed,
- * most methods throw {@link IllegalStateException} to indicate a programming failure.
+ * most methods do nothing and act like an empty and detached scope. Also inserting values are ignored.
  * <p>
  * By convention, named framework specific members are prefixed with $.
  *
@@ -120,11 +121,12 @@ public final class Scope implements Destroyable {
         }
     }
 
-    private void checkDestroyed() {
-        synchronized (lock) {
-            if (destroyed) {
-                throw new IllegalStateException("already destroyed");
-            }
+    private boolean printDestroyedWarning(String msg) {
+        if (destroyed) {
+            LoggerFactory.getLogger(getClass()).warn("{}.{}: is already destroyed", name, msg);
+            return true;
+        } else {
+            return false;
         }
     }
 
@@ -141,7 +143,7 @@ public final class Scope implements Destroyable {
     @Nullable
     public Scope getParent() {
         synchronized (lock) {
-            checkDestroyed();
+            printDestroyedWarning("getParent()");
             return parent;
         }
     }
@@ -152,7 +154,7 @@ public final class Scope implements Destroyable {
     @Nullable
     public Scope getScope(String name) {
         synchronized (lock) {
-            checkDestroyed();
+            printDestroyedWarning("getScope()");
             return subScopes.get(name);
         }
     }
@@ -163,7 +165,9 @@ public final class Scope implements Destroyable {
     @Nullable
     public Scope attach(Scope scope) {
         synchronized (lock) {
-            checkDestroyed();
+            if (printDestroyedWarning("attach()")) {
+                return null;
+            }
             Scope other = subScopes.put(scope.getName(), scope);
             if (other != null) {
                 synchronized (other.lock) {
@@ -181,7 +185,7 @@ public final class Scope implements Destroyable {
     @Nullable
     public Scope detach(String name) {
         synchronized (lock) {
-            checkDestroyed();
+            printDestroyedWarning("detach()");
             Scope scope = subScopes.remove(name);
             if (scope != null) {
                 //detach the parent of child
@@ -198,6 +202,7 @@ public final class Scope implements Destroyable {
      */
     public boolean hasNamedValue(String name) {
         synchronized (lock) {
+            printDestroyedWarning("hasNamedValue()");
             return namedValues.containsKey(name);
         }
     }
@@ -208,6 +213,7 @@ public final class Scope implements Destroyable {
      */
     public boolean hasResolvableNamedValue(String name) {
         synchronized (lock) {
+            printDestroyedWarning("hasResolveableNamedValue()");
             if (!namedValues.containsKey(name) && parent != null) {
                 return parent.hasResolvableNamedValue(name);
             }
@@ -220,6 +226,7 @@ public final class Scope implements Destroyable {
      */
     public boolean hasNamedValue(String name, Class<?> type) {
         synchronized (lock) {
+            printDestroyedWarning("hasNamedValue()");
             Object obj = namedValues.get(name);
             if (obj != null && type.isAssignableFrom(obj.getClass())) {
                 return true;
@@ -234,6 +241,7 @@ public final class Scope implements Destroyable {
      */
     public boolean hasResolvableNamedValue(String name, Class<?> type) {
         synchronized (lock) {
+            printDestroyedWarning("hasResolvableNamedValue()");
             if (!namedValues.containsKey(name) && parent != null) {
                 return parent.hasResolvableNamedValue(name, type);
             }
@@ -262,7 +270,7 @@ public final class Scope implements Destroyable {
     @Nullable
     public <T> T getNamedValue(String name, Class<T> type) {
         synchronized (lock) {
-            checkDestroyed();
+            printDestroyedWarning("getNamedValue()");
 
             Object obj = namedValues.get(name);
             return (T) Reflection.castDuck(obj, type);
@@ -276,7 +284,7 @@ public final class Scope implements Destroyable {
      */
     public <T> T resolveNamedValue(String name, Class<T> type) {
         synchronized (lock) {
-            checkDestroyed();
+            printDestroyedWarning("resolveNamedValue()");
 
             if (!namedValues.containsKey(name) && parent != null) {
                 return parent.resolveNamedValue(name, type);
@@ -294,7 +302,7 @@ public final class Scope implements Destroyable {
     @Nullable
     public Object getNamedValue(String name) {
         synchronized (lock) {
-            checkDestroyed();
+            printDestroyedWarning("getNamedValue()");
             return namedValues.get(name);
         }
     }
@@ -305,7 +313,7 @@ public final class Scope implements Destroyable {
     @Nullable
     public Object removeNamedValue(String name) {
         synchronized (lock) {
-            checkDestroyed();
+            printDestroyedWarning("removeNamedValue()");
             return namedValues.remove(name);
         }
     }
@@ -316,7 +324,9 @@ public final class Scope implements Destroyable {
     @Nullable
     public Object putNamedValue(String name, Object value) {
         synchronized (lock) {
-            checkDestroyed();
+            if (printDestroyedWarning("putNamedValue()")) {
+                return null;
+            }
             return namedValues.put(name, value);
         }
     }
@@ -333,7 +343,7 @@ public final class Scope implements Destroyable {
     @Nullable
     public <T> T resolve(Class<T> type) {
         synchronized (lock) {
-            checkDestroyed();
+            printDestroyedWarning("resolve()");
             if (type == Scope.class) {
                 return (T) this;
             }
@@ -427,9 +437,12 @@ public final class Scope implements Destroyable {
      * Loops over all child scopes, as long as the closure returns true
      */
     public void forEachScope(Function<Scope, Boolean> closure) {
-        for (Scope scope : subScopes.values()) {
-            if (!closure.apply(scope)) {
-                return;
+        synchronized (lock) {
+            printDestroyedWarning("forEachScope()");
+            for (Scope scope : subScopes.values()) {
+                if (!closure.apply(scope)) {
+                    return;
+                }
             }
         }
     }
@@ -438,9 +451,12 @@ public final class Scope implements Destroyable {
      * Loops over all entries (non-recursive), as long as the closure returns true
      */
     public void forEachEntry(Function<Entry<String, Object>, Boolean> closure) {
-        for (Entry<String, Object> entry : namedValues.entrySet()) {
-            if (!closure.apply(entry)) {
-                return;
+        synchronized (lock) {
+            printDestroyedWarning("forEachEntry()");
+            for (Entry<String, Object> entry : namedValues.entrySet()) {
+                if (!closure.apply(entry)) {
+                    return;
+                }
             }
         }
     }

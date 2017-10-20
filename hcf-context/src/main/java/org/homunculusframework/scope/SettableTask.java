@@ -31,7 +31,8 @@ import java.util.List;
 /**
  * An implementation of {@link Task} which is optionally connectable to a scope.
  * When created in the context of a {@link Scope}, the callbacks are removed automatically
- * to avoid (especially view-) leaks through inner classes or similar constructs.
+ * to avoid (especially view-) leaks through inner classes or similar constructs. Automatically
+ * cancels when going out of scope and result is not known yet.
  *
  * @author Torben Schinke
  * @since 1.0
@@ -45,15 +46,18 @@ public class SettableTask<T> implements Task<T> {
     private volatile boolean shouldCancel;
     private volatile boolean shouldCancelWithInterrupt;
     private final List<OnCancelledListener> onCancelledListeners = new ArrayList<>(1);
+    private final OnBeforeDestroyCallback beforeDestroyCallback;
 
     private SettableTask(Scope scope, String name) {
         this.key = name + "@" + System.identityHashCode(this);
         this.scope = scope;
 
         if (scope != null) {
+            this.beforeDestroyCallback = s -> cancel(true);
             scope.putNamedValue(key, new ExecutionList());
             leakyExecutionList = null;
         } else {
+            this.beforeDestroyCallback = null;
             leakyExecutionList = new ExecutionList();
         }
     }
@@ -120,6 +124,8 @@ public class SettableTask<T> implements Task<T> {
             synchronized (this) {
                 if (scope == null) {
                     throw new Panic();
+                } else {
+                    scope.removeOnBeforeDestroyCallback(beforeDestroyCallback);
                 }
                 this.result = result;
                 Handler handler = scope.resolveNamedValue(Container.NAME_MAIN_HANDLER, Handler.class);
@@ -155,6 +161,9 @@ public class SettableTask<T> implements Task<T> {
      */
     @Override
     public void cancel(boolean mayInterruptIfRunning) {
+        if (beforeDestroyCallback != null && scope != null) {
+            scope.removeOnBeforeDestroyCallback(beforeDestroyCallback);
+        }
         if (shouldCancel) {
             return;
         }

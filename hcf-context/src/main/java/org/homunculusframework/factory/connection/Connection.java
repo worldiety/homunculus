@@ -23,6 +23,7 @@ package org.homunculusframework.factory.connection;
  * <li>The name and parameters of the method must be equal</li>
  * <li>Declared exception must not be repeated, they are forwarded in the result</li>
  * <li>If a controller already returns a result, it is automatically re-used without double wrapping</li>
+ * <li>If a controller has annotated @ThreadInterruptible, the flag {@link org.homunculusframework.concurrent.Task#cancel(boolean)} will cause a thread interrupt</li>
  * </ul>
  * <p>
  * Example:
@@ -32,6 +33,7 @@ package org.homunculusframework.factory.connection;
  *             ...
  *         }
  *
+ *         @ThreadInterruptible
  *         public Result< ModelX> query2(ParamY param) throws QueryException{
  *             ...
  *         }
