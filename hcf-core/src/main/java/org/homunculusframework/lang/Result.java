@@ -108,6 +108,14 @@ public final class Result<T> extends Ref<T> {
         return tags.containsKey(key);
     }
 
+    /**
+     * Checks if the value exists (is not null)
+     *
+     * @return true if {@link #get()} will not return true
+     */
+    public boolean exists() {
+        return get() != null;
+    }
 
     @Override
     public String toString() {

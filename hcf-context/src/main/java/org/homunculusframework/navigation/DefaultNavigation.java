@@ -40,7 +40,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class DefaultNavigation implements Navigation {
     private final Scope scope;
     @Nullable
-    private UIS currentUIS;
+    private UserInterfaceState currentUIS;
     private static final AtomicInteger requestNo = new AtomicInteger();
 
     private final List<Request> stack;
@@ -50,12 +50,25 @@ public class DefaultNavigation implements Navigation {
         this.stack = new CopyOnWriteArrayList<>();
     }
 
+    /**
+     * Returns the current user interface state, which may be null if not defined.
+     * Note that "current" is not well defined in transition state, because when
+     * applying a new one, both states exists at the same time, which is prone to
+     * logical races.
+     *
+     * @return the current state
+     */
+    @Nullable
+    public UserInterfaceState getUserInterfaceState() {
+        return currentUIS;
+    }
+
     @Override
     public void forward(Request request) {
         synchronized (stack) {
             stack.add(request);
         }
-        apply(request);
+        applyInternal(request);
     }
 
     @Override
@@ -70,7 +83,7 @@ public class DefaultNavigation implements Navigation {
                 return false;
             }
             //just execute it once again, so that it get's applied
-            apply(stack.get(stack.size() - 1));
+            applyInternal(stack.get(stack.size() - 1));
             return true;
         }
     }
@@ -83,25 +96,25 @@ public class DefaultNavigation implements Navigation {
                 Request prior = pop();
                 if (prior.getMapping().equals(request.getMapping())) {
                     prior.putAll(request);
-                    apply(prior);
+                    applyInternal(prior);
                     return;
                 }
             }
             stack.add(request);
-            apply(request);
+            applyInternal(request);
         }
     }
 
     @Override
     public void redirect(Request request) {
-        apply(request);
+        applyInternal(request);
     }
 
     @Override
     public boolean reload() {
         Request request = getTop();
         if (request != null) {
-            apply(request);
+            applyInternal(request);
             return true;
         } else {
             return false;
@@ -142,7 +155,7 @@ public class DefaultNavigation implements Navigation {
     @Override
     public Request getCurrent() {
         synchronized (stack) {
-            UIS uis = currentUIS;
+            UserInterfaceState uis = currentUIS;
             if (uis != null) {
                 return uis.request;
             }
@@ -172,7 +185,12 @@ public class DefaultNavigation implements Navigation {
      * @param request the request
      */
     public void apply(Request request) {
-        request.put(Container.NAME_CALLSTACK, DefaultFactory.getCallStack(5));
+        //this double wrapping call is needed to ensure that our stack capturing always cuts at the correct depth
+        applyInternal(request);
+    }
+
+    private void applyInternal(Request request) {
+        request.put(Container.NAME_CALLSTACK, DefaultFactory.getCallStack(0));
         request.execute(scope).whenDone(res -> {
             final Container container = scope.resolveNamedValue(Container.NAME_CONTAINER, Container.class);
             if (container == null) {
@@ -184,7 +202,7 @@ public class DefaultNavigation implements Navigation {
             if (obj instanceof ModelAndView) {
                 ModelAndView mav = (ModelAndView) obj;
                 Scope uisScope = createChild(scope, mav);
-                container.createProxies(uisScope);
+                container.prepareScope(uisScope);
                 Task<Component<?>> task = container.createWidget(uisScope, mav.getView());
                 attachComponentTask(request, uisScope, task);
             } else if (obj instanceof Component) {
@@ -203,7 +221,7 @@ public class DefaultNavigation implements Navigation {
             Object newUIS = component.get();
             if (newUIS != null && component.getFailures().isEmpty()) {
                 uisScope.putNamedValue("$" + System.identityHashCode(newUIS), newUIS);
-                tearDownOldAndApplyNew(new UIS(request, uisScope, newUIS));
+                tearDownOldAndApplyNew(new UserInterfaceState(request, uisScope, newUIS));
             } else {
                 uisScope.destroy();
                 LoggerFactory.getLogger(getClass()).error("denied applying UIS: {}", newUIS);
@@ -214,8 +232,8 @@ public class DefaultNavigation implements Navigation {
         });
     }
 
-    private void tearDownOldAndApplyNew(UIS uis) {
-        UIS oldUIS = currentUIS;
+    private void tearDownOldAndApplyNew(UserInterfaceState uis) {
+        UserInterfaceState oldUIS = currentUIS;
         if (oldUIS == null) {
             currentUIS = uis;
             LoggerFactory.getLogger(getClass()).info("applied UIS {}", uis);
@@ -258,12 +276,15 @@ public class DefaultNavigation implements Navigation {
     }
 
 
-    private static class UIS {
+    /**
+     * Represents a user interface state, see also {@link org.homunculusframework.stereotype.UserInterfaceState}
+     */
+    public final static class UserInterfaceState {
         private final Scope scope;
         private final Object widget;
         private final Request request;
 
-        UIS(Request request, Scope scope, Object widget) {
+        UserInterfaceState(Request request, Scope scope, Object widget) {
             this.request = request;
             this.scope = scope;
             this.widget = widget;
@@ -276,6 +297,35 @@ public class DefaultNavigation implements Navigation {
             } else {
                 return "uis(null)";
             }
+        }
+
+        /**
+         * Returns the scope in which this UIS exists
+         *
+         * @return the scope
+         */
+        public Scope getScope() {
+            return scope;
+        }
+
+        /**
+         * Returns the instantiated widget class which may be anything, even a simple pojo.
+         * Usually a UIS applies itself to the screen or window with a  {@link javax.annotation.PostConstruct}
+         * and is annotated itself with {@link org.homunculusframework.factory.flavor.hcf.Widget}.
+         *
+         * @return the widget
+         */
+        public Object getWidget() {
+            return widget;
+        }
+
+        /**
+         * Returns the request which caused this UIS.
+         *
+         * @return the request
+         */
+        public Request getRequest() {
+            return request;
         }
     }
 }

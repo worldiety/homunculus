@@ -6,6 +6,7 @@ import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.android.ContextHolder;
 import org.homunculus.android.compat.CompatApplication;
 import org.homunculus.android.compat.ContextScope;
+import org.homunculus.android.compat.UnbreakableCrashHandler;
 import org.homunculus.android.core.Android;
 import org.homunculus.android.example.module.benchmark.Register;
 import org.homunculus.android.example.module.cart.CartController;
@@ -62,6 +63,8 @@ public class MyApplication extends CompatApplication {
          *   XperiaXZ   263ms | 253ms | 566ms  (Android 7.1.1)
          *   Dell V8    626ms | 721ms | 589ms  (Android 4.4.2)
          */
+
+        new UnbreakableCrashHandler().install(this);
     }
 
 

@@ -243,20 +243,15 @@ public final class Container {
     }
 
     /**
-     * Creates all supported proxies and inserts them into the given scope. The proxies are recycled when the scope
-     * dies (and not thrown away).
+     * Runs all {@link ScopePrepareProcessor}s to prepare the given scope. This may be quite expensive and could involve creating
+     * a lot of proxy instance etc.
      */
-    public void createProxies(Scope scope) {
-        getConfiguration().getRootScope().forEachEntry(entry -> {
-            if (entry.getValue() instanceof ConnectionProxyFactory) {
-                ConnectionProxyFactory factory = (ConnectionProxyFactory) entry.getValue();
-                Connection connection = factory.borrowConnection(scope);
-                scope.putNamedValue("$proxy@" + Reflection.getName(factory.getControllerType()), connection);
-                scope.addOnBeforeDestroyCallback(s -> factory.returnConnection(connection));
-            }
-
-            return true;
-        });
+    public void prepareScope(Scope scope) {
+        final int s = getConfiguration().getScopePrepareProcessors().size();
+        for (int i = 0; i < s; i++) {
+            ScopePrepareProcessor proc = getConfiguration().getScopePrepareProcessors().get(i);
+            proc.process(getConfiguration(), scope);
+        }
     }
 
     private static String normalize(String text) {

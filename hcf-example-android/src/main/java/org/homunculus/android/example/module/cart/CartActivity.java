@@ -1,5 +1,6 @@
 package org.homunculus.android.example.module.cart;
 
+import android.app.AlertDialog.Builder;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -12,7 +13,9 @@ import org.homunculusframework.navigation.Navigation;
 import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
 
-public class CartActivity extends EventAppCompatActivity {
+import java.lang.Thread.UncaughtExceptionHandler;
+
+public class CartActivity extends EventAppCompatActivity implements UncaughtExceptionHandler {
 
 
     @Override
@@ -45,5 +48,10 @@ public class CartActivity extends EventAppCompatActivity {
             LoggerFactory.getLogger(getClass()).error("no navigation available");
             super.onBackPressed();
         }
+    }
+
+    @Override
+    public void uncaughtException(Thread thread, Throwable throwable) {
+        new Builder(this).setMessage("caught weired crash: " + throwable.toString()).create().show();
     }
 }

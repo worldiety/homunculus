@@ -98,6 +98,9 @@ public class Reflection {
             if (in instanceof Number) {
                 return primitiveCastDuck((Number) in, out);
             }
+            if (in instanceof Boolean && out == boolean.class || out == Boolean.class) {
+                return (Out) in;
+            }
             if (in instanceof String) {
                 String sin = (String) in;
 

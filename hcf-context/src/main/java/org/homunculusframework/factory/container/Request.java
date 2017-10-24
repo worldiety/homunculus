@@ -16,6 +16,7 @@
 package org.homunculusframework.factory.container;
 
 import org.homunculusframework.concurrent.Task;
+import org.homunculusframework.factory.component.DefaultFactory;
 import org.homunculusframework.factory.flavor.hcf.Persistent;
 import org.homunculusframework.factory.flavor.hcf.Widget;
 import org.homunculusframework.lang.Function;
@@ -27,6 +28,7 @@ import org.homunculusframework.scope.Scope;
 import org.homunculusframework.scope.SettableTask;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
@@ -117,6 +119,43 @@ public final class Request {
     }
 
     /**
+     * Removes a key and it's according key.
+     *
+     * @param key the key
+     * @return the request
+     */
+    public Request remove(String key) {
+        requestParams.remove(key);
+        return this;
+    }
+
+    /**
+     * Returns the value for the given key. See also {@link #get(String, Class)}
+     *
+     * @param key the key
+     * @return the value or null
+     */
+    @Nullable
+    public Object get(String key) {
+        return requestParams.get(key);
+    }
+
+    /**
+     * Returns the value for the given key if assignable from type
+     *
+     * @param key the key
+     * @return the value or null it does not exist or is not assignable
+     */
+    @Nullable
+    public <T> T get(String key, Class<T> type) {
+        Object obj = requestParams.get(key);
+        if (obj != null && type.isAssignableFrom(obj.getClass())) {
+            return (T) obj;
+        }
+        return null;
+    }
+
+    /**
      * Walks over the contained parameters until the closure returns false.
      */
     public void forEach(Function<Entry<String, Object>, Boolean> closure) {
@@ -148,6 +187,7 @@ public final class Request {
             SettableTask<Result<Object>> task = SettableTask.create(scope, mapping);
             Result<Object> res = Result.create();
             Handler backgroundThread = scope.resolveNamedValue(Container.NAME_REQUEST_HANDLER, Handler.class);
+            StackTraceElement[] callstack = DefaultFactory.getCallStack(3);
             Runnable job = () -> {
                 try {
                     Object result;
@@ -158,7 +198,7 @@ public final class Request {
                             break;
                         case WIDGET:
                             Scope widgetScope = DefaultNavigation.createChild(scope, this);
-                            container.createProxies(widgetScope);
+                            container.prepareScope(widgetScope);
                             Task<Component<?>> widgetTask = container.createWidget(widgetScope, this.getMapping());
                             widgetTask.whenDone(component -> {
                                 for (Throwable t : component.getFailures()) {
@@ -168,7 +208,9 @@ public final class Request {
                             });
                             break;
                         case UNDEFINED:
-                            throw new RuntimeException("the mapping '" + this.getMapping() + "' is not configured.");
+                            RuntimeException e = new RuntimeException("the mapping '" + this.getMapping() + "' is not configured.");
+                            e.setStackTrace(callstack);
+                            throw e;
                         default:
                             throw new Panic();
                     }

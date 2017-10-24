@@ -22,6 +22,7 @@ import android.content.Intent;
 import org.homunculus.android.compat.ActivityEventDispatcher.AbsActivityEventCallback;
 import org.homunculusframework.concurrent.Task;
 import org.homunculusframework.lang.Destroyable;
+import org.homunculusframework.lang.Result;
 import org.homunculusframework.scope.Scope;
 import org.homunculusframework.scope.SettableTask;
 
@@ -66,7 +67,6 @@ public final class Intents implements Destroyable {
                             }
                         }
 
-                        res.failResult(TAG_UNACCEPTED_RESULT_CODE);
                         mActivityIntents.remove(res);
                         return true;
                     }
@@ -80,7 +80,7 @@ public final class Intents implements Destroyable {
     /**
      * See {@link #startIntent(Context, Intent, int...)}. Accepts only {@link Activity#RESULT_OK}
      */
-    public final Task<ActivityResult> startIntent(@Nullable Context context, Intent intent) {
+    public final Task<Result<ActivityResult>> startIntent(@Nullable Context context, Intent intent) {
         return startIntent(context, intent, Activity.RESULT_OK);
     }
 
@@ -92,8 +92,20 @@ public final class Intents implements Destroyable {
      * @param acceptableResults the acceptable result codes, e.g. {@link Activity#RESULT_OK}, otherwise fails with {@link #TAG_UNACCEPTED_RESULT_CODE}
      * @return
      */
-    public final Task<ActivityResult> startIntent(@Nullable Context context, Intent intent, int... acceptableResults) {
-        SettableTask<ActivityResult> task = SettableTask.create(ContextScope.getScope(context), "Intents.startIntent");
+    public final Task<Result<ActivityResult>> startIntent(@Nullable Context context, Intent intent, int... acceptableResults) {
+        return startIntent(ContextScope.getScope(context), intent, acceptableResults);
+    }
+
+    /**
+     * Starts an intent and returns it's result using a task. Consider providing a non-null scope to avoid leaks
+     * through the registered listeners.
+     *
+     * @param intent            the intent to start. see {@link Activity#startActivityForResult(Intent, int)}
+     * @param acceptableResults the acceptable result codes, e.g. {@link Activity#RESULT_OK}, otherwise fails with {@link #TAG_UNACCEPTED_RESULT_CODE}
+     * @return
+     */
+    public final Task<Result<ActivityResult>> startIntent(@Nullable Scope scope, Intent intent, int... acceptableResults) {
+        SettableTask<Result<ActivityResult>> task = SettableTask.create(scope, "Intents.startIntent");
         final int requestCode = ActivityEventDispatcher.generateNextRequestId();
         final ActivityResult activityResult = new ActivityResult(intent, requestCode, acceptableResults, task);
         try {
@@ -123,17 +135,16 @@ public final class Intents implements Destroyable {
         private Intent mIntentResponse;
         private int mResultCode;
         private final int mId;
-        private final SettableTask<ActivityResult> mTask;
-        private Map<String, Object> mTags = new TreeMap<>();
+        private final SettableTask<Result<ActivityResult>> mTask;
 
-        ActivityResult(Intent request, int id, int[] acceptableResultCodes, SettableTask<ActivityResult> task) {
+        ActivityResult(Intent request, int id, int[] acceptableResultCodes, SettableTask<Result<ActivityResult>> task) {
             mIntentRequest = request;
             mTask = task;
             mId = id;
             mAcceptableResultCodes = acceptableResultCodes;
         }
 
-        SettableTask<ActivityResult> getTask() {
+        SettableTask<Result<ActivityResult>> getTask() {
             return mTask;
         }
 
@@ -160,14 +171,17 @@ public final class Intents implements Destroyable {
         void setResult(Intent response, int resultCode) {
             mResultCode = resultCode;
             mIntentResponse = response;
-            mTask.set(this);
-        }
+            Result<ActivityResult> result = Result.create(this);
 
+            mTask.set(result);
+        }
 
         void failResult(String tag) {
-            mTags.put(tag, null);
-            mTask.set(this);
+            Result<ActivityResult> result = Result.create();
+            result.putTag(tag, null);
+            mTask.set(result);
         }
+
     }
 
 

@@ -117,6 +117,7 @@ public class ActivityEventDispatcher<T extends Activity> {
 
     /**
      * Registers a new callback with all activity events within the given scope. See also {@link #register(ActivityEventCallback)}
+     * Tries to grab the scope from the given context, and calls {@link #register(Scope, ActivityEventCallback)}
      */
     public void register(@Nullable Context context, ActivityEventCallback<T> callback) {
         Scope scope = ContextScope.getScope(context);

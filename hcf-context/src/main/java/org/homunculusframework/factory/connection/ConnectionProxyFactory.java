@@ -107,7 +107,7 @@ public class ConnectionProxyFactory<T> {
                 String sig = Reflection.getName(instance.getClass()) + "." + ifaceMethod.getName();
                 RuntimeException e = new RuntimeException("connection signature invalid: " + sig);
                 //TODO offset varies between android platform, e.g. S3 needs 6 but PixelXL needs 7
-                e.setStackTrace(DefaultFactory.getCallStack(6)); //create a short stack trace, directly pointing to the callee
+                e.setStackTrace(DefaultFactory.getCallStack(4)); //create a short stack trace, directly pointing to the callee
                 task.set(Result.
                         create().
                         putTag("signature.missing", sig).
@@ -117,7 +117,7 @@ public class ConnectionProxyFactory<T> {
             }
             final int myGeneration = callGeneration.incrementAndGet();
             //capture the synchronous trace
-            StackTraceElement[] trace = DefaultFactory.getCallStack(6);
+            StackTraceElement[] trace = DefaultFactory.getCallStack(4);
             SettableTask<Result<?>> task = SettableTask.create(lifeTime, instanceTarget.getName() + "@" + mCounter.incrementAndGet());
             ProxyRequestContext ctx = new ProxyRequestContext(task);
             Ref<Thread> ref = new Ref<>();

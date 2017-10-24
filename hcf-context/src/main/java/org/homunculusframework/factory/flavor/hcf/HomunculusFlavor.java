@@ -47,5 +47,6 @@ public class HomunculusFlavor implements Configurator {
         configuration.addFieldProcessor(persistent);
         configuration.addComponentProcessor(new HCFComponentCtrConnection());
         configuration.addComponentProcessor(new HCFComponentWidget());
+        configuration.addScopePrepareProcessor(new HCFScopeConnectionProxy());
     }
 }

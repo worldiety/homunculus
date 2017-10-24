@@ -76,6 +76,15 @@ public class CompatApplication extends Application {
         configuration.setObjectInjector(defaultFactory);
         configuration.setObjectDestroyer(defaultFactory);
 
+        appScope.putNamedValue(Display.NAME_DISPLAY, new Display(this));
+
         return configuration;
+    }
+
+    /**
+     * Returns the application scope
+     */
+    public Scope getScope() {
+        return mAppScope;
     }
 }

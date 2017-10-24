@@ -86,4 +86,39 @@ public class ContextScope extends ContextWrapper {
         }
         return scope;
     }
+
+    /**
+     * See {@link Scope#resolveNamedValue(String, Class)}
+     *
+     * @param context the context to get the scope form
+     * @param name    the name to resolve
+     * @param type    the type to cast to
+     * @param <T>     the target type
+     * @return the instance or null
+     */
+    @Nullable
+    public static <T> T resolveNamedValue(@Nullable Context context, String name, Class<T> type) {
+        Scope scope = getScope(context);
+        if (scope != null) {
+            return scope.resolveNamedValue(name, type);
+        }
+        return null;
+    }
+
+    /**
+     * See {@link Scope#resolve(Class)}
+     *
+     * @param context the context to get the scope form
+     * @param type    the type to cast to
+     * @param <T>     the target type
+     * @return the instance or null
+     */
+    @Nullable
+    public static <T> T resolve(@Nullable Context context, Class<T> type) {
+        Scope scope = getScope(context);
+        if (scope != null) {
+            return scope.resolve(type);
+        }
+        return null;
+    }
 }

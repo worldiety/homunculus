@@ -77,6 +77,7 @@ public class Configuration {
     private final ArrayList<AnnotatedMethodsProcessor> onTearDownProcessors;
     private final ArrayList<AnnotatedComponentProcessor> annotatedComponentProcessors;
     private final ArrayList<AnnotatedRequestMapping> annotatedRequestMappings;
+    private final ArrayList<ScopePrepareProcessor> scopePrepareProcessors;
 
     public Configuration(Scope scope) {
         this.widgets = new HashMap<>();
@@ -94,6 +95,11 @@ public class Configuration {
         this.controllerConnections = new ArrayList<>();
         this.annotatedComponentProcessors = new ArrayList<>();
         this.annotatedRequestMappings = new ArrayList<>();
+        this.scopePrepareProcessors = new ArrayList<>();
+    }
+
+    public void addScopePrepareProcessor(ScopePrepareProcessor scopePrepareProcessor) {
+        scopePrepareProcessors.add(scopePrepareProcessor);
     }
 
     public void addComponentProcessor(AnnotatedComponentProcessor annotatedComponentProcessor) {
@@ -231,5 +237,14 @@ public class Configuration {
      */
     public Map<String, Class<?>> getWidgets() {
         return immutableWidgets;
+    }
+
+    /**
+     * Returns the processors to prepare a scope and fill it with custom objects ({@link Container#prepareScope(Scope)})
+     *
+     * @return the list of processors, never null
+     */
+    public ArrayList<ScopePrepareProcessor> getScopePrepareProcessors() {
+        return scopePrepareProcessors;
     }
 }

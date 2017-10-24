@@ -102,6 +102,13 @@ public class Permissions implements Destroyable {
     }
 
     /**
+     * See {@link #request(Context, Feature, ShowRationaleForFeature)}
+     */
+    public Task<Result<Feature>> request(@Nullable Scope scope, Feature feature) {
+        return request(scope, feature, null);
+    }
+
+    /**
      * Checks if permission for given feature is granted.
      *
      * @param feature to check
@@ -126,6 +133,23 @@ public class Permissions implements Destroyable {
      */
     public Task<Result<Feature>> request(@Nullable Context context, Feature feature, ShowRationaleForFeature explanationFeature) {
         Scope scope = ContextScope.getScope(context);
+        return request(scope, feature, explanationFeature);
+    }
+
+    /**
+     * Requests a feature and returns a task for it.
+     * If registered, a callback is used to explain a feature request to the user.
+     * <p>
+     * Consider using requestFeature* methods because it serves you a view to the actual allowed function set which you have requested.
+     * See:
+     * <ul>
+     * <li>{@link #requestFeatureReadContacts(Context)}</li>
+     * </ul>
+     *
+     * @param feature            the feature you want to use
+     * @param explanationFeature if not null, used to explain the feature for the user
+     */
+    public Task<Result<Feature>> request(@Nullable Scope scope, Feature feature, ShowRationaleForFeature explanationFeature) {
         final int id = ActivityEventDispatcher.generateNextRequestId();
         SettableTask<Result<Feature>> task = SettableTask.create(scope, "Permissions-request-" + feature);
         SettableTask<Result<Feature>> returnValue = SettableTask.create(scope, "Permissions-request-ret" + feature);
@@ -165,7 +189,11 @@ public class Permissions implements Destroyable {
 
 
     public Task<Result<FeatureCamera>> requestFeatureCamera(@Nullable Context context) {
-        return request(context, Feature.Camera).continueWith(rFeature -> {
+        return requestFeatureCamera(ContextScope.getScope(context));
+    }
+
+    public Task<Result<FeatureCamera>> requestFeatureCamera(@Nullable Scope scope) {
+        return request(scope, Feature.Camera).continueWith(rFeature -> {
             if (rFeature.get() != null) {
                 return Result.create(new FeatureCamera(rFeature.get(), getActivity()));
             } else {
@@ -174,8 +202,13 @@ public class Permissions implements Destroyable {
         });
     }
 
+
     public Task<Result<FeatureReadContacts>> requestFeatureReadContacts(@Nullable Context context) {
-        return request(context, Feature.ReadContacts).continueWith(rFeature -> {
+        return requestFeatureReadContacts(ContextScope.getScope(context));
+    }
+
+    public Task<Result<FeatureReadContacts>> requestFeatureReadContacts(@Nullable Scope scope) {
+        return request(scope, Feature.ReadContacts).continueWith(rFeature -> {
             if (rFeature.get() != null) {
                 return Result.create(new FeatureReadContacts(rFeature.get(), getActivity()));
             } else {
@@ -189,7 +222,11 @@ public class Permissions implements Destroyable {
     }
 
     public Task<Result<FeatureLocationGPS>> requestFeatureLocationGPS(@Nullable Context context) {
-        return request(context, Feature.AccessFineLocation).continueWith(rFeature -> {
+        return requestFeatureLocationGPS(ContextScope.getScope(context));
+    }
+
+    public Task<Result<FeatureLocationGPS>> requestFeatureLocationGPS(@Nullable Scope scope) {
+        return request(scope, Feature.AccessFineLocation).continueWith(rFeature -> {
             if (rFeature.get() != null) {
                 return Result.create(new FeatureLocationGPS(rFeature.get(), getActivity()));
             } else {
@@ -199,7 +236,11 @@ public class Permissions implements Destroyable {
     }
 
     public Task<Result<FeatureLocationNetwork>> requestFeatureLocationNetwork(@Nullable Context context) {
-        return request(context, Feature.AccessCoarseLocation).continueWith(rFeature -> {
+        return requestFeatureLocationNetwork(ContextScope.getScope(context));
+    }
+
+    public Task<Result<FeatureLocationNetwork>> requestFeatureLocationNetwork(@Nullable Scope scope) {
+        return request(scope, Feature.AccessCoarseLocation).continueWith(rFeature -> {
             if (rFeature.get() != null) {
                 return Result.create(new FeatureLocationNetwork(rFeature.get(), getActivity()));
             } else {
@@ -209,7 +250,11 @@ public class Permissions implements Destroyable {
     }
 
     public Task<Result<FeatureReadExternalStorage>> requestFeatureReadExternal(@Nullable Context context) {
-        return request(context, Feature.ReadExternalStorage).continueWith(rFeature -> {
+        return requestFeatureReadExternal(ContextScope.getScope(context));
+    }
+
+    public Task<Result<FeatureReadExternalStorage>> requestFeatureReadExternal(@Nullable Scope scope) {
+        return request(scope, Feature.ReadExternalStorage).continueWith(rFeature -> {
             if (rFeature.get() != null) {
                 return Result.create(new FeatureReadExternalStorage(rFeature.get(), getActivity()));
             } else {
@@ -219,7 +264,11 @@ public class Permissions implements Destroyable {
     }
 
     public Task<Result<FeatureWriteExternalStorage>> requestFeatureWriteExternal(@Nullable Context context) {
-        return request(context, Feature.WriteExternalStorage).continueWith(rFeature -> {
+        return requestFeatureWriteExternal(ContextScope.getScope(context));
+    }
+
+    public Task<Result<FeatureWriteExternalStorage>> requestFeatureWriteExternal(@Nullable Scope scope) {
+        return request(scope, Feature.WriteExternalStorage).continueWith(rFeature -> {
             if (rFeature.get() != null) {
                 return Result.create(new FeatureWriteExternalStorage(rFeature.get(), getActivity()));
             } else {
@@ -229,7 +278,11 @@ public class Permissions implements Destroyable {
     }
 
     public Task<Result<FeatureMediaStore>> requestFeatureReadMediaStore(@Nullable Context context) {
-        return request(context, Feature.ReadExternalStorage).continueWith(rFeature -> {
+        return requestFeatureReadMediaStore(ContextScope.getScope(context));
+    }
+
+    public Task<Result<FeatureMediaStore>> requestFeatureReadMediaStore(@Nullable Scope scope) {
+        return request(scope, Feature.ReadExternalStorage).continueWith(rFeature -> {
             if (rFeature.get() != null) {
                 return Result.create(new FeatureMediaStore(rFeature.get(), getActivity()));
             } else {
@@ -239,7 +292,11 @@ public class Permissions implements Destroyable {
     }
 
     public Task<Result<FeatureMediaStore>> requestFeatureWriteMediaStore(@Nullable Context context) {
-        return request(context, Feature.WriteExternalStorage).continueWith(rFeature -> {
+        return requestFeatureReadMediaStore(ContextScope.getScope(context));
+    }
+
+    public Task<Result<FeatureMediaStore>> requestFeatureWriteMediaStore(@Nullable Scope scope) {
+        return request(scope, Feature.WriteExternalStorage).continueWith(rFeature -> {
             if (rFeature.get() != null) {
                 return Result.create(new FeatureMediaStore(rFeature.get(), getActivity()));
             } else {
@@ -247,7 +304,6 @@ public class Permissions implements Destroyable {
             }
         });
     }
-
 
     public Activity getActivity() {
         return mEventDispatcher.getActivity();

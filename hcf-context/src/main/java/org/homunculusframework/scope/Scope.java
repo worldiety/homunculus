@@ -439,7 +439,8 @@ public final class Scope implements Destroyable {
     public void forEachScope(Function<Scope, Boolean> closure) {
         synchronized (lock) {
             printDestroyedWarning("forEachScope()");
-            for (Scope scope : subScopes.values()) {
+            //the defensive copy causes GC but allows easier code without ConcurrentModificationException
+            for (Scope scope : new ArrayList<>(subScopes.values())) {
                 if (!closure.apply(scope)) {
                     return;
                 }
@@ -453,7 +454,8 @@ public final class Scope implements Destroyable {
     public void forEachEntry(Function<Entry<String, Object>, Boolean> closure) {
         synchronized (lock) {
             printDestroyedWarning("forEachEntry()");
-            for (Entry<String, Object> entry : namedValues.entrySet()) {
+            //the defensive copy causes GC but allows easier code without ConcurrentModificationException
+            for (Entry<String, Object> entry : new ArrayList<>(namedValues.entrySet())) {
                 if (!closure.apply(entry)) {
                     return;
                 }

@@ -23,22 +23,34 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 /**
- * A simple display helper class to give access to the current settings for a specific context.
+ * A simple display helper class to give access to the current settings for a specific context. This class
+ * is intentionally kept open to introduce additional or different behavior and scalings.
  *
  * @author Torben Schinke
  * @since 1.0
  */
 public class Display {
+    public final static String NAME_DISPLAY = "$display";
 
     private final static Map<Context, Display> sDisplays = new WeakHashMap<>();
 
     private final DisplayMetrics mMetrics;
 
-    private Display(Context context) {
+    protected Display(Context context) {
         mMetrics = context.getResources().getDisplayMetrics();
     }
 
+    /**
+     * Returns the display instance either from the context or from a static cache, connected to the context.
+     *
+     * @param context the context
+     * @return the display, never null
+     */
     public static Display from(Context context) {
+        Display display = ContextScope.resolveNamedValue(context, NAME_DISPLAY, Display.class);
+        if (display != null) {
+            return display;
+        }
         synchronized (sDisplays) {
             Display dp = sDisplays.get(context);
             if (dp == null) {
@@ -49,16 +61,28 @@ public class Display {
         }
     }
 
+    /**
+     * Calculates the dip (Device Independent Pixels) into pixels
+     *
+     * @param dp the dp value
+     * @return the rounded pixel value
+     */
     public int dipToPix(int dp) {
         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, mMetrics);
     }
 
+    /**
+     * The reverse function of {@link #dipToPix(int)}
+     *
+     * @param px the pixel
+     * @return the rounded dp value
+     */
     public int pixToDip(int px) {
         return (int) (px / mMetrics.density);
     }
 
     /**
-     * @return width in pixel
+     * @return width in pixel (minus top- and bottom bar)
      */
     public int getWidth() {
         return mMetrics.widthPixels;

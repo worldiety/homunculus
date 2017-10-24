@@ -125,6 +125,36 @@ public class CartView extends LinearLayout {
             mNav.forward(new Request("/cart/uis/list").put("cart", model));
         });
         addView(button4, new LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
+
+        Button button6 = new Button(getContext());
+        button6.setText("request unconfigured");
+        button6.setOnClickListener(view -> {
+            mNav.forward(new Request("/notconfigured/widget/or/controller"));
+        });
+        addView(button6, new LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
+
+
+        Button crashBackground = new Button(getContext());
+        crashBackground.setText("crash in background");
+        crashBackground.setOnClickListener(view -> {
+            new Thread() {
+                @Override
+                public void run() {
+                    throw new RuntimeException("the thread died");
+                }
+            }.start();
+        });
+        addView(crashBackground, new LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
+
+
+        Button crashMain = new Button(getContext());
+        crashMain.setText("crash in main");
+        crashMain.setOnClickListener(view -> {
+            throw new RuntimeException("the main thread is dead, or not?");
+        });
+        addView(crashMain, new LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
+
+
     }
 
     public static class SomeSettings implements Serializable {

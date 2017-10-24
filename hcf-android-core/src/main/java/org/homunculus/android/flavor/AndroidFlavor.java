@@ -34,6 +34,9 @@ import java.io.File;
  * <li>{@link Container#NAME_BACKGROUND_HANDLER} using 8 threads (for post construct and pre destroy)</li>
  * <li>{@link Container#NAME_REQUEST_HANDLER} using 8 threads (see also {@link org.homunculusframework.factory.container.Request})</li>
  * <li>{@link Container#NAME_INFLATER_HANDLER} using 8 threads (concurrent view inflation)</li>
+ * <li>{@link AndroidScopeContext} which is used by {@link org.homunculusframework.navigation.DefaultNavigation} for UIS.
+ * You should always use {@link org.homunculus.android.core.Android#NAME_CONTEXT} to create your views and to allow a proper
+ * scoping for sub-components. Do not use your Activity or others by default.</li>
  * </ul>
  */
 public class AndroidFlavor implements Configurator {
@@ -53,5 +56,6 @@ public class AndroidFlavor implements Configurator {
         configuration.getRootScope().putNamedValue(Container.NAME_BACKGROUND_HANDLER, new AndroidBackgroundHandler(8, Container.NAME_BACKGROUND_HANDLER, Thread.MIN_PRIORITY));
         configuration.getRootScope().putNamedValue(Container.NAME_REQUEST_HANDLER, new AndroidBackgroundHandler(8, Container.NAME_REQUEST_HANDLER, Thread.MIN_PRIORITY));
         configuration.getRootScope().putNamedValue(Container.NAME_INFLATER_HANDLER, new AndroidInflaterHandler(8, Thread.MIN_PRIORITY));
+        configuration.addScopePrepareProcessor(new AndroidScopeContext());
     }
 }

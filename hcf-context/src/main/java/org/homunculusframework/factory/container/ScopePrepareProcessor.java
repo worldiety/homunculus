@@ -13,45 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.homunculusframework.lang;
+package org.homunculusframework.factory.container;
+
+import org.homunculusframework.scope.Scope;
 
 /**
- * A simple reference, just like the ref or out keyword of other languages.
+ * Provides the possibility to modify a scope before it is used (e.g. by {@link org.homunculusframework.navigation.DefaultNavigation}
+ * and {@link Container#prepareScope(Scope)}).
  *
  * @author Torben Schinke
  * @since 1.0
  */
-public class Ref<T> {
-
-    private T value;
-
-    public Ref() {
-
-    }
-
-    public Ref(T value) {
-        this.value = value;
-    }
-
-    public static <T> Ref<T> of(T value) {
-        return new Ref(value);
-    }
-
+public interface ScopePrepareProcessor {
     /**
-     * Returns the value
+     * Prepares the given scope.
      *
-     * @return the value
+     * @param configuration the configuration
+     * @param scope         the scope to prepare
      */
-    public T get() {
-        return value;
-    }
-
-    /**
-     * Sets the value
-     *
-     * @param value the value
-     */
-    public void set(T value) {
-        this.value = value;
-    }
+    void process(Configuration configuration, Scope scope);
 }
