@@ -17,7 +17,6 @@ package org.homunculus.android.compat;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
-import android.content.Context;
 import android.content.Intent;
 import org.homunculus.android.compat.ActivityEventDispatcher.AbsActivityEventCallback;
 import org.homunculusframework.concurrent.Task;
@@ -26,11 +25,8 @@ import org.homunculusframework.lang.Result;
 import org.homunculusframework.scope.Scope;
 import org.homunculusframework.scope.SettableTask;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 
 /**
@@ -50,8 +46,10 @@ public final class Intents implements Destroyable {
     private final ActivityEventDispatcher mActivityEvents;
     private final AbsActivityEventCallback mCallback;
     private final List<ActivityResult> mActivityIntents;
+    private final Scope mScope;
 
-    public Intents(ActivityEventDispatcher events) {
+    public Intents(Scope scope, ActivityEventDispatcher events) {
+        mScope = scope;
         mActivityEvents = events;
         mActivityIntents = new ArrayList<>();
         mCallback = new AbsActivityEventCallback() {
@@ -77,24 +75,6 @@ public final class Intents implements Destroyable {
         mActivityEvents.register(mCallback);
     }
 
-    /**
-     * See {@link #startIntent(Context, Intent, int...)}. Accepts only {@link Activity#RESULT_OK}
-     */
-    public final Task<Result<ActivityResult>> startIntent(@Nullable Context context, Intent intent) {
-        return startIntent(context, intent, Activity.RESULT_OK);
-    }
-
-    /**
-     * Starts an intent and returns it's result using a task. Consider providing a {@link ContextScope} to avoid leaks
-     * through the registered listeners.
-     *
-     * @param intent            the intent to start. see {@link Activity#startActivityForResult(Intent, int)}
-     * @param acceptableResults the acceptable result codes, e.g. {@link Activity#RESULT_OK}, otherwise fails with {@link #TAG_UNACCEPTED_RESULT_CODE}
-     * @return
-     */
-    public final Task<Result<ActivityResult>> startIntent(@Nullable Context context, Intent intent, int... acceptableResults) {
-        return startIntent(ContextScope.getScope(context), intent, acceptableResults);
-    }
 
     /**
      * Starts an intent and returns it's result using a task. Consider providing a non-null scope to avoid leaks
@@ -104,8 +84,8 @@ public final class Intents implements Destroyable {
      * @param acceptableResults the acceptable result codes, e.g. {@link Activity#RESULT_OK}, otherwise fails with {@link #TAG_UNACCEPTED_RESULT_CODE}
      * @return
      */
-    public final Task<Result<ActivityResult>> startIntent(@Nullable Scope scope, Intent intent, int... acceptableResults) {
-        SettableTask<Result<ActivityResult>> task = SettableTask.create(scope, "Intents.startIntent");
+    public final Task<Result<ActivityResult>> startIntent(Intent intent, int... acceptableResults) {
+        SettableTask<Result<ActivityResult>> task = SettableTask.create(mScope, "Intents.startIntent");
         final int requestCode = ActivityEventDispatcher.generateNextRequestId();
         final ActivityResult activityResult = new ActivityResult(intent, requestCode, acceptableResults, task);
         try {

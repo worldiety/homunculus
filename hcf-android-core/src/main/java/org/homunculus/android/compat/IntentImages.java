@@ -60,22 +60,22 @@ public class IntentImages implements Destroyable {
     private final ActivityEventDispatcher<?> mEvents;
     private final ActivityEventCallback mCallback;
     private List<Uri> mLastParsedUris;
+    private final Scope mScope;
 
     /**
      * Creates a new instance to handle image intents and onNewIntent events. Always checks the current activities intent for any uris when created. Due to the nature of the matter, it cannot decide if an uri
      * refers actually to an image without resolving it.
      *
-     * @param events      may be null. If so, no onNewIntent events are handled.
-     * @param permissions
-     * @param manager
+     * @param events may be null. If so, no onNewIntent events are handled.
      */
-    public IntentImages(ActivityEventDispatcher<?> events, Permissions permissions, Intents manager) {
-        mIntentManager = manager;
-        mPermissions = permissions;
+    public IntentImages(Scope scope, ActivityEventDispatcher<?> events) {
+        mIntentManager = new Intents(scope, events);
+        mPermissions = new Permissions(scope, events);
         mListeners = new ArrayList<>();
         mEvents = events;
+        mScope = scope;
 
-        mLastParsedUris = parseUris(permissions.getActivity().getIntent());
+        mLastParsedUris = parseUris(mPermissions.getActivity().getIntent());
         mCallback = new AbsActivityEventCallback() {
             @Override
             public void onActivityNewIntent(Activity activity, Intent intent) {
@@ -89,15 +89,6 @@ public class IntentImages implements Destroyable {
 
     }
 
-    /**
-     * Creates a new instance to handle image intents. See {@link #IntentImages(ActivityEventDispatcher, Permissions, Intents)}
-     *
-     * @param permissions
-     * @param manager
-     */
-    public IntentImages(Permissions permissions, Intents manager) {
-        this(null, permissions, manager);
-    }
 
     private void notifyUrisChanged() {
         for (Procedure<List<Uri>> cb : mListeners) {
@@ -111,10 +102,10 @@ public class IntentImages implements Destroyable {
      *
      * @return
      */
-    public Task<Result<List<Uri>>> pickImage(Scope scope) {
+    public Task<Result<List<Uri>>> pickImage() {
         Intent pickImages = new Intent(Intent.ACTION_GET_CONTENT);
         pickImages.setType("image/*");
-        return pickUris(scope, pickImages);
+        return pickUris(pickImages);
     }
 
     /**
@@ -122,7 +113,7 @@ public class IntentImages implements Destroyable {
      *
      * @return
      */
-    public Task<Result<List<Uri>>> pickImages(Scope scope) {
+    public Task<Result<List<Uri>>> pickImages() {
         Intent pickImages = new Intent(Intent.ACTION_GET_CONTENT);
         pickImages.setType("image/*");
         if (VERSION.SDK_INT >= VERSION_CODES.JELLY_BEAN_MR2) {
@@ -130,7 +121,7 @@ public class IntentImages implements Destroyable {
         } else {
             LoggerFactory.getLogger(getClass()).debug(VERSION.SDK_INT + " does not support EXTRA_ALLOW_MULTIPLE");
         }
-        return pickUris(scope, pickImages);
+        return pickUris(pickImages);
     }
 
 
@@ -141,16 +132,16 @@ public class IntentImages implements Destroyable {
      * @param authority the android authority as defined in manifest in the FileProvider android:authorities attribute
      * @return a task returning the given file to write the image into. Fails if the image was not captured.
      */
-    public Task<Result<File>> pickCameraPhoto(Scope scope, String authority) {
-        SettableTask<Result<File>> resFile = SettableTask.create(scope, "IntentImages.pickCameraPhoto");
+    public Task<Result<File>> pickCameraPhoto(String authority) {
+        SettableTask<Result<File>> resFile = SettableTask.create("IntentImages.pickCameraPhoto");
 
-        mPermissions.requestFeatureCamera(mIntentManager.getContext()).whenDone(r -> {
+        mPermissions.requestFeatureCamera().whenDone(r -> {
             if (r.exists()) {
                 Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                 // Ensure that there's a camera activity to handle the intent
                 if (takePictureIntent.resolveActivity(mPermissions.getActivity().getPackageManager()) != null) {
 
-                    Async.createTask(scope, (ctx) -> {
+                    Async.createTask(mScope, (ctx) -> {
                         File file;
                         try {
                             file = proposeImageFile();
@@ -167,7 +158,7 @@ public class IntentImages implements Destroyable {
 
                         takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
                         //hold this task until the intent returns. Actually we are not parsing uris from it
-                        Result<List<Uri>> resPicIntent = Async.await(pickUris(scope, takePictureIntent));
+                        Result<List<Uri>> resPicIntent = Async.await(pickUris(takePictureIntent));
                         if (resPicIntent.hasTag(Intents.TAG_UNACCEPTED_RESULT_CODE)) {
                             return Result.<File>create().putTag(Result.TAG_CANCELLED, null);
                         }
@@ -208,13 +199,13 @@ public class IntentImages implements Destroyable {
     }
 
 
-    private Task<Result<List<Uri>>> pickUris(Scope scope, Intent queryIntent) {
-        SettableTask<Result<List<Uri>>> resFile = SettableTask.create(scope, "IntentImages.pickUris");
-        mPermissions.requestFeatureReadMediaStore(scope).whenDone(feature -> {
+    private Task<Result<List<Uri>>> pickUris(Intent queryIntent) {
+        SettableTask<Result<List<Uri>>> resFile = SettableTask.create(mScope, "IntentImages.pickUris");
+        mPermissions.requestFeatureReadMediaStore().whenDone(feature -> {
             if (feature.exists()) {
-                mIntentManager.startIntent(scope, queryIntent).whenDone(rIntent -> {
+                mIntentManager.startIntent(queryIntent).whenDone(rIntent -> {
                     if (rIntent.exists()) {
-                        asyncParseUris(scope, rIntent.get().getResponse()).whenDone(resList -> {
+                        asyncParseUris(mScope, rIntent.get().getResponse()).whenDone(resList -> {
                             resFile.set(resList);
                         });
                     } else {

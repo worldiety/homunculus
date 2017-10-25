@@ -48,6 +48,11 @@ public class Android {
      */
     public final static String NAME_CONTEXT = "$context";
 
+    /**
+     * The name for {@link org.homunculus.android.compat.ActivityEventDispatcher}
+     */
+    public final static String NAME_ACTIVITY_EVENT_DISPATCHER = "$eventDispatcher";
+
 
     private Android() {
     }

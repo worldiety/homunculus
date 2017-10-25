@@ -15,8 +15,10 @@
  */
 package org.homunculusframework.factory.flavor.ee;
 
+import org.homunculusframework.concurrent.Async;
 import org.homunculusframework.factory.container.AnnotatedFieldProcessor;
 import org.homunculusframework.factory.component.DefaultFactory;
+import org.homunculusframework.factory.container.Container;
 import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
 
@@ -36,12 +38,21 @@ public class EEFieldInject implements AnnotatedFieldProcessor {
     public void process(Scope scope, Object instance, Field field) {
         javax.inject.Inject autowired = field.getAnnotation(javax.inject.Inject.class);
         Named named = field.getAnnotation(Named.class);
+        String name = named != null ? named.value() : field.getName();
         if (autowired != null) {
             Object resolvedValue;
             if (named != null) {
-                resolvedValue = scope.resolveNamedValue(named.value(), field.getType());
+                resolvedValue = scope.resolveNamedValue(name, field.getType());
             } else {
                 resolvedValue = scope.resolve(field.getType());
+            }
+            //check if null and not resolvable -> try to create such an instance
+            if (resolvedValue == null && !scope.hasResolvableNamedValue(name)) {
+                Container container = scope.resolveNamedValue(Container.NAME_CONTAINER, Container.class);
+                if (container != null) {
+                    //await has danger of deadlocks, especially for PostConstructs in main thread (which is the default case)
+                    resolvedValue = Async.await(container.createComponent(scope, field.getType())).get();
+                }
             }
 
             field.setAccessible(true);

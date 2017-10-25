@@ -38,13 +38,14 @@ import java.util.List;
  * @since 1.0
  */
 public class SettableTask<T> implements Task<T> {
-    private T result;
+    private volatile T result;
     private final String key;
     @Nullable
     private final Scope scope;
     private final ExecutionList leakyExecutionList;
     private volatile boolean shouldCancel;
     private volatile boolean shouldCancelWithInterrupt;
+    private volatile boolean done;
     private final List<OnCancelledListener> onCancelledListeners = new ArrayList<>(1);
     private final OnBeforeDestroyCallback beforeDestroyCallback;
 
@@ -66,6 +67,17 @@ public class SettableTask<T> implements Task<T> {
         synchronized (onCancelledListeners) {
             onCancelledListeners.add(listener);
         }
+    }
+
+    @Nullable
+    @Override
+    public T peek() {
+        return result;
+    }
+
+    @Override
+    public boolean isDone() {
+        return done;
     }
 
     /**
@@ -118,28 +130,35 @@ public class SettableTask<T> implements Task<T> {
      * Expects by default {@link Container#NAME_MAIN_HANDLER}
      */
     public void set(T result) {
-        if (leakyExecutionList != null) {
-            leakyExecutionList.execute();
-        } else {
-            synchronized (this) {
-                if (scope == null) {
-                    throw new Panic();
-                } else {
-                    scope.removeOnBeforeDestroyCallback(beforeDestroyCallback);
-                }
-                this.result = result;
-                Handler handler = scope.resolveNamedValue(Container.NAME_MAIN_HANDLER, Handler.class);
-                if (handler != null) {
-                    handler.post(() -> {
+        synchronized (this) {
+            if (done) {
+                return;
+            }
+            done = true;
+            this.result = result;
+            if (leakyExecutionList != null) {
+                leakyExecutionList.execute();
+            } else {
+                synchronized (this) {
+                    if (scope == null) {
+                        throw new Panic();
+                    } else {
+                        scope.removeOnBeforeDestroyCallback(beforeDestroyCallback);
+                    }
+                    this.result = result;
+                    Handler handler = scope.resolveNamedValue(Container.NAME_MAIN_HANDLER, Handler.class);
+                    if (handler != null) {
+                        handler.post(() -> {
+                            ExecutionList list = getExecutionList();
+                            if (list != null) {
+                                list.execute();
+                            }
+                        });
+                    } else {
                         ExecutionList list = getExecutionList();
                         if (list != null) {
                             list.execute();
                         }
-                    });
-                } else {
-                    ExecutionList list = getExecutionList();
-                    if (list != null) {
-                        list.execute();
                     }
                 }
             }

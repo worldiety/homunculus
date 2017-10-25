@@ -18,6 +18,8 @@ package org.homunculusframework.concurrent;
 import org.homunculusframework.lang.Function;
 import org.homunculusframework.lang.Procedure;
 
+import javax.annotation.Nullable;
+
 /**
  * A really simple Task contract with a specific meaning regarding the callback.
  *
@@ -45,4 +47,19 @@ public interface Task<R> {
      * concrete task implementation supports cancelling.
      */
     void cancel(boolean mayInterruptIfRunning);
+
+    /**
+     * Checks if the task is already done.
+     *
+     * @return Returns true if this task is done and has a result.
+     */
+    boolean isDone();
+
+    /**
+     * Returns the value of this task, if available (see also {@link #isDone()}). Does not block.
+     *
+     * @return null if not yet available or if null at all
+     */
+    @Nullable
+    R peek();
 }

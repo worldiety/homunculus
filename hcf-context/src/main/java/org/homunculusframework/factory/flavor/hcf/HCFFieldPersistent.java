@@ -15,6 +15,7 @@
  */
 package org.homunculusframework.factory.flavor.hcf;
 
+import org.homunculusframework.concurrent.Async;
 import org.homunculusframework.factory.container.AnnotatedFieldProcessor;
 import org.homunculusframework.factory.component.DefaultFactory;
 import org.homunculusframework.factory.container.Container;
@@ -83,12 +84,15 @@ public class HCFFieldPersistent implements AnnotatedFieldProcessor {
 
             try {
                 Object resolvedValue = read(folder, key.name(), serializer, field.getType());
+                //check if null and not resolvable -> try to create such an instance
                 if (resolvedValue == null) {
                     Container container = scope.resolveNamedValue(Container.NAME_CONTAINER, Container.class);
                     if (container != null) {
-                        resolvedValue = container.getConfiguration().getObjectCreator().create(scope, field.getType());
+                        //await has danger of deadlocks, especially for PostConstructs in main thread (which is the default case)
+                        resolvedValue = Async.await(container.createComponent(scope, field.getType())).get();
                     }
                 }
+
                 field.set(instance, resolvedValue);
                 LoggerFactory.getLogger(instance.getClass()).info("{}.{} = {}", instance.getClass().getSimpleName(), field.getName(), DefaultFactory.stripToString(resolvedValue));
             } catch (IllegalAccessException | IOException e) {

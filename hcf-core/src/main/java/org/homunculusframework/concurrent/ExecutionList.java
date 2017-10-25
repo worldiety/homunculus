@@ -61,4 +61,10 @@ public final class ExecutionList {
             }
         }
     }
+
+    public boolean hasExecuted() {
+        synchronized (jobs) {
+            return executed;
+        }
+    }
 }

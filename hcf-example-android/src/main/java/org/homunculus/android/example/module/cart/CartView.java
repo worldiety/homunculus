@@ -7,6 +7,7 @@ import android.graphics.drawable.Drawable;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import org.homunculus.android.compat.Permissions;
 import org.homunculus.android.example.module.company.CompanyController;
 import org.homunculus.android.flavor.Resource;
 import org.homunculus.android.example.R;
@@ -53,6 +54,9 @@ public class CartView extends LinearLayout {
 
     @Persistent
     private SomeSettings settings;
+
+    @Inject
+    private Permissions permissions;
 
     public CartView(Context context) {
         super(context);

@@ -133,9 +133,19 @@ public class Async {
      * This method will never be removed, because there are always
      * valid situations when to use it. However most(!) situations are badly designed when this is required, so
      * think more than once before using!
+     * <p>
+     * Implementation notes:
+     * <ul>
+     * <li>Tries to avoid trivial deadlocks when getting a tasks which is already done (e.g. when already available by main-thread synchronously)</li>
+     * </ul>
      */
     @Deprecated
     public static <T> T await(Task<T> task) {
+        //avoid blocking in trivial situations and avoid a little deadlock case
+        if (task.isDone()) {
+            return task.peek();
+        }
+
         MyFutureTask<T> tmp = new MyFutureTask<>(() -> {
             return null;
         });

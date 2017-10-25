@@ -278,6 +278,8 @@ public final class Container {
      * <li>Tries to apply all field and method annotations, which are defined by the configuration</li>
      * <li>Tries to ignore errors, as much as possible</li>
      * <li>Respects {@link Execute} to execute creation and injection population (and depending on the configuration additional injectional loading operations)</li>
+     * <li>TODO does not support creating instances based on constructor parameters</li>
+     * <li>TODO does not support recursive creation</li>
      * </ul>
      */
     public <T> Task<Component<T>> createComponent(Scope scope, Class<T> clazz) {

@@ -342,6 +342,9 @@ public final class Scope implements Destroyable {
      */
     @Nullable
     public <T> T resolve(Class<T> type) {
+        if (type == null) {
+            throw new IllegalArgumentException();
+        }
         synchronized (lock) {
             printDestroyedWarning("resolve()");
             if (type == Scope.class) {
@@ -351,6 +354,9 @@ public final class Scope implements Destroyable {
 
         //2.
         for (Object value : namedValues.values()) {
+            if (value == null) {
+                continue;
+            }
             if (type.isAssignableFrom(value.getClass())) {
                 return (T) value;
             }

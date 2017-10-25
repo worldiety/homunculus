@@ -60,8 +60,22 @@ public class ConnectionProxyFactory<T> {
         }
     }
 
+    /**
+     * The (synchronous) contract, which is implemented by the developer
+     *
+     * @return the original class
+     */
     public Class<T> getControllerType() {
         return (Class<T>) controllerInstance.getClass();
+    }
+
+    /**
+     * The asynchronous contract, which is a connection and implemented by proxy.
+     *
+     * @return the connection type
+     */
+    public Class<? extends Connection<T>> getContract() {
+        return asyncContract;
     }
 
     /**

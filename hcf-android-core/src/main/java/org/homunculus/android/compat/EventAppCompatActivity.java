@@ -31,7 +31,6 @@ import android.view.*;
 import android.view.ActionMode.Callback;
 import org.homunculus.android.core.Android;
 import org.homunculusframework.lang.Panic;
-import org.homunculusframework.navigation.DefaultNavigation;
 import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
 
@@ -46,8 +45,6 @@ import org.slf4j.LoggerFactory;
 public class EventAppCompatActivity extends AppCompatActivity {
     private ActivityEventDispatcher<EventAppCompatActivity> mEventDispatcher;
     private boolean mEverCreated;
-    private Permissions mPermissions;
-    private Intents mIntents;
     private Scope mScope;
     private View mContentView;
 
@@ -109,26 +106,10 @@ public class EventAppCompatActivity extends AppCompatActivity {
 
     private void init() {
         mEventDispatcher = new ActivityEventDispatcher<>(mScope, this);
-        mPermissions = new Permissions(mEventDispatcher);
-        mIntents = new Intents(mEventDispatcher);
         mEverCreated = true;
+        mScope.putNamedValue(Android.NAME_ACTIVITY_EVENT_DISPATCHER, mEventDispatcher);
     }
 
-    /**
-     * Returns a lightweight permission handling system to wrap and repair the the android API.
-     * The sole dependency is {@link #getEventDispatcher()}
-     */
-    public Permissions getPermissions() {
-        return mPermissions;
-    }
-
-    /**
-     * Returns a lightweight intent handling system to wrap and repair the android API.
-     * The only dependency is {@link #getEventDispatcher()}
-     */
-    public Intents getIntents() {
-        return mIntents;
-    }
 
 
     public ActivityEventDispatcher<EventAppCompatActivity> getEventDispatcher() {

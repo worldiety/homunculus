@@ -141,7 +141,7 @@ public class UnbreakableCrashHandler {
                 //fix around weired redraw/buffer/vsync problem, see also https://source.android.com/devices/graphics/implement-vsync
                 if (activity instanceof EventAppCompatActivity) {
                     EventAppCompatActivity eventApp = (EventAppCompatActivity) activity;
-                    new Permissions(eventApp.getEventDispatcher()).requestFeatureReadExternal(root).whenDone(res -> {
+                    new Permissions(root, eventApp.getEventDispatcher()).requestFeatureReadExternal().whenDone(res -> {
                         tmp.forceLayout();
                         tmp.invalidate();
                         tmp.requestLayout();

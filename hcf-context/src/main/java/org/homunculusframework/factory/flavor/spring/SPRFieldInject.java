@@ -15,8 +15,10 @@
  */
 package org.homunculusframework.factory.flavor.spring;
 
+import org.homunculusframework.concurrent.Async;
 import org.homunculusframework.factory.component.DefaultFactory;
 import org.homunculusframework.factory.container.AnnotatedFieldProcessor;
+import org.homunculusframework.factory.container.Container;
 import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,11 +41,21 @@ public class SPRFieldInject implements AnnotatedFieldProcessor {
         Autowired autowired = field.getAnnotation(Autowired.class);
         Qualifier named = field.getAnnotation(Qualifier.class);
         if (autowired != null) {
+            String name = named != null ? named.value() : field.getName();
             Object resolvedValue;
             if (named != null) {
-                resolvedValue = scope.resolveNamedValue(named.value(), field.getType());
+                resolvedValue = scope.resolveNamedValue(name, field.getType());
             } else {
                 resolvedValue = scope.resolve(field.getType());
+            }
+
+            //check if null and not resolvable -> try to create such an instance
+            if (resolvedValue == null && !scope.hasResolvableNamedValue(name)) {
+                Container container = scope.resolveNamedValue(Container.NAME_CONTAINER, Container.class);
+                if (container != null) {
+                    //await has danger of deadlocks, especially for PostConstructs in main thread (which is the default case)
+                    resolvedValue = Async.await(container.createComponent(scope, field.getType())).get();
+                }
             }
 
             field.setAccessible(true);
