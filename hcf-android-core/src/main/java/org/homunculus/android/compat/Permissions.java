@@ -71,7 +71,7 @@ public class Permissions implements Destroyable {
                         if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                             holder.task.set(Result.create(holder.feature));
                         } else {
-                            holder.task.set(Result.<Feature>create().putTag(TAG_PERMISSION_DENIED, "denied access to " + holder.feature));
+                            holder.task.set(Result.<Feature>create().put(TAG_PERMISSION_DENIED, "denied access to " + holder.feature));
 
                         }
 

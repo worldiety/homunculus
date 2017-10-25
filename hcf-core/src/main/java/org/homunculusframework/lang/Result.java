@@ -20,9 +20,8 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.TreeMap;
 
 /**
  * A simple tagged result. Kind of a tuple type.
@@ -46,6 +45,12 @@ public final class Result<T> extends Ref<T> {
      */
     public final static String TAG_OUTDATED = "task.outdated";
 
+    /**
+     * A conventional tag to provide a message
+     */
+    public final static String TAG_MESSAGE = "message";
+
+
     @Nullable
     private Throwable throwable;
 
@@ -54,10 +59,43 @@ public final class Result<T> extends Ref<T> {
 
     private final Map<String, Object> tags = new TreeMap<>();
 
+    private List<Result<?>> suppressed = Collections.emptyList();
+
+    /**
+     * Creates a new null value result with the according throwable set. Tries to determine some default tags, from the given exception for
+     * easier inspection.
+     *
+     * @param t   the throwable
+     * @param <T> the type
+     * @return a new instance
+     */
+    public static <T> Result<T> auto(@Nullable Throwable t) {
+        //TODO the current implementation does not provide default tags
+        Result<T> res = Result.create(null);
+        if (t != null) {
+            res.put(TAG_MESSAGE, t.getMessage());
+            res.put(t.getClass().getName());
+        }
+        return res;
+    }
+
+    /**
+     * Creates an empty result instance, with a null value
+     *
+     * @param <T> the type
+     * @return a new instance
+     */
     public static <T> Result<T> create() {
         return new Result<>();
     }
 
+    /**
+     * Creates a new instance of a result with the given value
+     *
+     * @param value the value
+     * @param <T>   the type
+     * @return a new instance
+     */
     public static <T> Result<T> create(@Nullable T value) {
         Result<T> r = new Result<>();
         r.set(value);
@@ -80,38 +118,150 @@ public final class Result<T> extends Ref<T> {
     }
 
 
+    /**
+     * Sets a throwable into this result. It is still valid to provide also a result.
+     *
+     * @param throwable the throwable
+     * @return this
+     */
     public Result<T> setThrowable(@Nullable Throwable throwable) {
         this.throwable = throwable;
         return this;
     }
 
+    /**
+     * Returns an attached throwable
+     *
+     * @return the throwable, or null
+     */
     @Nullable
     public Throwable getThrowable() {
         return throwable;
     }
 
+    /**
+     * Sets the parent result
+     *
+     * @param parent the parent
+     */
     public void setParent(@Nullable Result<?> parent) {
         this.parent = parent;
     }
 
+    /**
+     * Returns the parent result, if any
+     *
+     * @return the parent, or null if not defined
+     */
     @Nullable
     public Result<?> getParent() {
         return parent;
     }
 
-    public Result<T> putTag(String key, Object value) {
-        tags.put(key, value);
+    /**
+     * Puts a tag into this result (not any parent) and replaces any existing tag/value combination.
+     *
+     * @param tag   the tag
+     * @param value the value
+     * @return this result
+     */
+    public Result<T> put(String tag, @Nullable Object value) {
+        tags.put(tag, value);
         return this;
     }
 
-    public boolean hasTag(String key) {
-        return tags.containsKey(key);
+    /**
+     * Same as {@link #put(String, Object)} with a null value
+     *
+     * @param tag the tag
+     * @return this result
+     */
+    public Result<T> put(String tag) {
+        return put(tag, null);
     }
+
+    /**
+     * Checks if this result or any parent has the requested key.
+     *
+     * @param key the tag to search
+     * @return true if any this result or any parent has such
+     */
+    public boolean containsKey(String key) {
+        boolean has = tags.containsKey(key);
+        Result p = parent;
+        if (!has && p != null) {
+            return p.containsKey(key);
+        }
+        return has;
+    }
+
+    /**
+     * See {@link #containsKey(String)}
+     *
+     * @param tag the tag to search
+     * @return true if contained
+     */
+    public boolean has(String tag) {
+        return containsKey(tag);
+    }
+
+    /**
+     * Recursively gets the value for the given tag
+     *
+     * @param tag the tag (key)
+     * @return the value
+     */
+    @Nullable
+    public Object get(String tag) {
+        boolean has = tags.containsKey(tag);
+        if (has) {
+            return tags.get(tag);
+        }
+        Result p = parent;
+        if (p != null) {
+            return p.get(tag);
+        }
+        return null;
+    }
+
+    /**
+     * Recursively gets the value for the given tag and performs a safe typecast
+     *
+     * @param tag the tag (key)
+     * @return the casted value or null
+     */
+    @Nullable
+    public <T> T get(String tag, Class<T> type) {
+        boolean has = tags.containsKey(tag);
+        if (has) {
+            Object obj = tags.get(tag);
+            if (obj != null && type.isAssignableFrom(obj.getClass())) {
+                return (T) obj;
+            }
+            return null;
+        }
+        Result p = parent;
+        if (p != null) {
+            return (T) p.get(tag, type);
+        }
+        return null;
+    }
+
+    /**
+     * Returns the backing map for the tags, which are modified and inspected by {@link #put(String, Object)} {@link #get(String)}.
+     * It does not contains the parent tags.
+     *
+     * @return the actual tags of this result
+     */
+    public Map<String, Object> getTags() {
+        return tags;
+    }
+
 
     /**
      * Checks if the value exists (is not null)
      *
-     * @return true if {@link #get()} will not return true
+     * @return true if {@link #get()} will not return null
      */
     public boolean exists() {
         return get() != null;
@@ -149,7 +299,7 @@ public final class Result<T> extends Ref<T> {
      * See also {@link #TAG_CANCELLED}
      */
     public boolean isCancelled() {
-        return hasTag(TAG_CANCELLED);
+        return containsKey(TAG_CANCELLED);
     }
 
     /**
@@ -158,7 +308,56 @@ public final class Result<T> extends Ref<T> {
      * @return true if outdated
      */
     public boolean isOutdated() {
-        return hasTag(TAG_OUTDATED);
+        return has(TAG_OUTDATED);
     }
 
+
+    /**
+     * Returns other (intermediate) results which have been suppressed but are still available for inspection or use.
+     */
+    public List<Result<?>> getSuppressed() {
+        return suppressed;
+    }
+
+    /**
+     * Adds another suppressed result
+     *
+     * @param r the result
+     */
+    public void addSuppressed(Result<?> r) {
+        if (r == null) {
+            return;
+        }
+        synchronized (this) {
+            if (r == null) {
+                return;
+            }
+            if (suppressed.isEmpty()) {
+                suppressed = new ArrayList<>(1);
+            }
+            suppressed.add(r);
+        }
+    }
+
+
+    /**
+     * See also {@link #TAG_MESSAGE}
+     *
+     * @return the message if such tag is defined (also in any parent)
+     */
+    @Nullable
+    public String getMessage() {
+        return get(TAG_MESSAGE, String.class);
+    }
+
+    /**
+     * Sets the {@link #TAG_MESSAGE} tag
+     *
+     * @param msg the message
+     * @return this
+     */
+    public Result<T> setMessage(@Nullable String msg) {
+        put(TAG_MESSAGE, msg);
+        return this;
+    }
 }

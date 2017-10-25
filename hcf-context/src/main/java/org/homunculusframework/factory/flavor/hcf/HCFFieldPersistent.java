@@ -145,7 +145,7 @@ public class HCFFieldPersistent implements AnnotatedFieldProcessor {
     }
 
     @Nullable
-    public static Object read(File targetDir, String name, Serializer serializer, Class<?> type) throws IOException {
+    public static <T> T read(File targetDir, String name, Serializer serializer, Class<T> type) throws IOException {
         File dstFile = new File(targetDir, Reflection.getName(type) + "_" + name + "." + serializer.getId());
         if (dstFile.length() == 0) {
             return null;
@@ -155,7 +155,7 @@ public class HCFFieldPersistent implements AnnotatedFieldProcessor {
         try {
             BufferedInputStream bin = new BufferedInputStream(fin);
             Object res = serializer.deserialize(bin, type);
-            return res;
+            return (T) res;
         } finally {
             fin.close();
         }

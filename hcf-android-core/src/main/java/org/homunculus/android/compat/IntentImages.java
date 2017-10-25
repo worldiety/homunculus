@@ -159,8 +159,8 @@ public class IntentImages implements Destroyable {
                         takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
                         //hold this task until the intent returns. Actually we are not parsing uris from it
                         Result<List<Uri>> resPicIntent = Async.await(pickUris(takePictureIntent));
-                        if (resPicIntent.hasTag(Intents.TAG_UNACCEPTED_RESULT_CODE)) {
-                            return Result.<File>create().putTag(Result.TAG_CANCELLED, null);
+                        if (resPicIntent.has(Intents.TAG_UNACCEPTED_RESULT_CODE)) {
+                            return Result.<File>create().put(Result.TAG_CANCELLED);
                         }
                         if (file.length() == 0) {
                             return Result.<File>create().setThrowable(new IOException("camera failed to write into " + file + ", either the app does not support the feature or access right are missing."));
@@ -171,7 +171,7 @@ public class IntentImages implements Destroyable {
                     });
 
                 } else {
-                    resFile.set(Result.<File>create().putTag("intent.camera.misssing", null));
+                    resFile.set(Result.<File>create().put("intent.camera.misssing"));
                 }
             } else {
                 resFile.set(Result.nullValue(r));

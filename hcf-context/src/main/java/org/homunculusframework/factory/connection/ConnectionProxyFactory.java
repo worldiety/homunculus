@@ -124,7 +124,7 @@ public class ConnectionProxyFactory<T> {
                 e.setStackTrace(DefaultFactory.getCallStack(4)); //create a short stack trace, directly pointing to the callee
                 task.set(Result.
                         create().
-                        putTag("signature.missing", sig).
+                        put("signature.missing", sig).
                         setThrowable(e)
                 );
                 return task;
@@ -147,7 +147,7 @@ public class ConnectionProxyFactory<T> {
                 }
                 //early exit, for queued but never executed tasks
                 if (ctx.isCancelled()) {
-                    task.set(Result.create().putTag(Result.TAG_CANCELLED, null));
+                    task.set(Result.create().put(Result.TAG_CANCELLED));
                     return;
                 }
                 try {
@@ -157,17 +157,17 @@ public class ConnectionProxyFactory<T> {
                     if (res instanceof Result) {
                         r = (Result) res;
                         if (ctx.isCancelled()) {
-                            r.putTag(Result.TAG_CANCELLED, null);
+                            r.put(Result.TAG_CANCELLED);
                         }
                     } else {
                         r = Result.create(res);
                         if (ctx.isCancelled()) {
-                            r.putTag(Result.TAG_CANCELLED, null);
+                            r.put(Result.TAG_CANCELLED);
                         }
 
                     }
                     if (callGeneration.get() != myGeneration) {
-                        r.putTag(Result.TAG_OUTDATED, null);
+                        r.put(Result.TAG_OUTDATED);
                     }
                     task.set(r);
                 } catch (InvocationTargetException e) {
@@ -177,7 +177,7 @@ public class ConnectionProxyFactory<T> {
                     ee.setStackTrace(trace);
                     Result r = Result.create().setThrowable(ee);
                     if (ctx.isCancelled()) {
-                        r.putTag(Result.TAG_CANCELLED, null);
+                        r.put(Result.TAG_CANCELLED);
                     }
                     task.set(r);
                 } catch (Throwable e) {
@@ -185,7 +185,7 @@ public class ConnectionProxyFactory<T> {
                     ee.setStackTrace(trace);
                     Result r = Result.create().setThrowable(ee);
                     if (ctx.isCancelled()) {
-                        r.putTag(Result.TAG_CANCELLED, null);
+                        r.put(Result.TAG_CANCELLED);
                     }
                     task.set(r);
                 }

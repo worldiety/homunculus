@@ -158,7 +158,7 @@ public final class Intents implements Destroyable {
 
         void failResult(String tag) {
             Result<ActivityResult> result = Result.create();
-            result.putTag(tag, null);
+            result.put(tag);
             mTask.set(result);
         }
 

@@ -102,7 +102,7 @@ public class Async {
             try {
                 if (ctx.isCancelled()) {
                     res = Result.create();
-                    res.putTag(Result.TAG_CANCELLED, null);
+                    res.put(Result.TAG_CANCELLED);
                 } else {
                     res = closure.apply(ctx);
                     if (res == null) {
@@ -113,7 +113,7 @@ public class Async {
                 res = Result.create();
                 res.setThrowable(t);
                 if (ctx.isCancelled()) {
-                    res.putTag(Result.TAG_CANCELLED, null);
+                    res.put(Result.TAG_CANCELLED);
                 }
             }
             task.set(res);
@@ -136,7 +136,7 @@ public class Async {
      * <p>
      * Implementation notes:
      * <ul>
-     * <li>Tries to avoid trivial deadlocks when getting a tasks which is already done (e.g. when already available by main-thread synchronously)</li>
+     * <li>Tries to avoid trivial deadlocks when awaiting a task which is already done (e.g. when already available by main-thread synchronous calculation and {@link SettableTask})</li>
      * </ul>
      */
     @Deprecated
