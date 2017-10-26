@@ -524,4 +524,9 @@ public final class Scope implements Destroyable, org.homunculusframework.lang.Ma
         });
         return Void.Value;
     }
+
+    @Override
+    public String toString() {
+        return "scope@" + name;
+    }
 }

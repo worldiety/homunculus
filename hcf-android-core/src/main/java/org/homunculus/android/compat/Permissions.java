@@ -81,7 +81,7 @@ public class Permissions implements Destroyable {
                 }
             }
         };
-        eventDispatcher.register(mCallback);
+        eventDispatcher.register(scope, mCallback);
     }
 
     public void setShowDialogOnFails(boolean mShowDialogOnFails) {
