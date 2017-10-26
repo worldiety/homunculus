@@ -10,6 +10,7 @@ See the [Quick start](quickstart.md) for more details.
 
 1. Setup your Android project as usual
 2. Add the following to your build.gradle (app module)
+
 ```groovy
     //hcf for android, also includes the core and context artifacts
     compile 'org.homunculusframework:hcf-android-core:0.0.24'
@@ -28,3 +29,6 @@ See the [Quick start](quickstart.md) for more details.
     
 ```
 
+```java
+public class
+```
