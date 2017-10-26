@@ -1,3 +1,8 @@
+---
+title: This is my title
+layout: post
+---
+
 # homunculus
 
 The homunculus framework proposes solutions and receipts for building large Android applications.
