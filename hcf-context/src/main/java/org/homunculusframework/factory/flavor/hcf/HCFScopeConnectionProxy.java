@@ -42,7 +42,7 @@ public class HCFScopeConnectionProxy implements ScopePrepareProcessor {
 
     private static Connection init(Scope scope, ConnectionProxyFactory factory) {
         Connection connection = factory.borrowConnection(scope);
-        scope.putNamedValue("$proxy@" + Reflection.getName(factory.getControllerType()), connection);
+        scope.put("$proxy@" + Reflection.getName(factory.getControllerType()), connection);
         scope.addOnBeforeDestroyCallback(s -> factory.returnConnection(connection));
         return connection;
     }
@@ -56,7 +56,7 @@ public class HCFScopeConnectionProxy implements ScopePrepareProcessor {
      */
     public static <T extends Connection> T create(Scope scope, Class<T> clazz) {
         Ref<T> ref = new Ref<>();
-        Container container = scope.resolveNamedValue(Container.NAME_CONTAINER, Container.class);
+        Container container = scope.resolve(Container.NAME_CONTAINER, Container.class);
         container.getConfiguration().getRootScope().forEachEntry(entry -> {
             if (entry.getValue() instanceof ConnectionProxyFactory) {
                 ConnectionProxyFactory factory = (ConnectionProxyFactory) entry.getValue();

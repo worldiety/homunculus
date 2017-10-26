@@ -53,7 +53,7 @@ import java.util.TreeMap;
  * @author Torben Schinke
  * @since 1.0
  */
-public final class Request {
+public final class Request implements org.homunculusframework.lang.Map<String, Object> {
     private final String mapping;
     private final Map<String, Object> requestParams;
 
@@ -113,9 +113,15 @@ public final class Request {
      * * there is no security net which protects you from doing this, but please just don't do that
      * </ul>
      */
+    @Override
     public Request put(String key, Object value) {
         requestParams.put(key, value);
         return this;
+    }
+
+    @Override
+    public boolean has(String s) {
+        return requestParams.containsKey(s);
     }
 
     /**
@@ -124,6 +130,7 @@ public final class Request {
      * @param key the key
      * @return the request
      */
+    @Override
     public Request remove(String key) {
         requestParams.remove(key);
         return this;
@@ -158,12 +165,14 @@ public final class Request {
     /**
      * Walks over the contained parameters until the closure returns false.
      */
-    public void forEach(Function<Entry<String, Object>, Boolean> closure) {
+    @Override
+    public Request forEachEntry(Function<Entry<String, Object>, Boolean> closure) {
         for (Entry<String, Object> entry : requestParams.entrySet()) {
             if (!closure.apply(entry)) {
-                return;
+                return this;
             }
         }
+        return this;
     }
 
     /**
@@ -175,7 +184,7 @@ public final class Request {
      * </ul>
      */
     public Task<Result<Object>> execute(Scope scope) {
-        Container container = scope.resolveNamedValue(Container.NAME_CONTAINER, Container.class);
+        Container container = scope.resolve(Container.NAME_CONTAINER, Container.class);
         if (container == null) {
             LoggerFactory.getLogger(getClass()).error("execution not possible: {} missing ({})", Container.class, mapping);
             SettableTask<Result<Object>> task = SettableTask.create(scope, mapping);
@@ -186,7 +195,7 @@ public final class Request {
         } else {
             SettableTask<Result<Object>> task = SettableTask.create(scope, mapping);
             Result<Object> res = Result.create();
-            Handler backgroundThread = scope.resolveNamedValue(Container.NAME_REQUEST_HANDLER, Handler.class);
+            Handler backgroundThread = scope.resolve(Container.NAME_REQUEST_HANDLER, Handler.class);
             StackTraceElement[] callstack = DefaultFactory.getCallStack(3);
             Runnable job = () -> {
                 try {
@@ -237,8 +246,13 @@ public final class Request {
      *
      * @param other the other request
      */
-    public void putAll(Request other) {
-        requestParams.putAll(other.requestParams);
+    @Override
+    public Request putAll(org.homunculusframework.lang.Map<String, Object> other) {
+        other.forEachEntry(entry -> {
+            requestParams.put(entry.getKey(), entry.getValue());
+            return true;
+        });
+        return this;
     }
 
 }

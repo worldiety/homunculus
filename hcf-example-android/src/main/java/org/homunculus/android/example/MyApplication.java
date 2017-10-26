@@ -1,13 +1,9 @@
 package org.homunculus.android.example;
 
-import android.app.Application;
-import android.content.Context;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.android.ContextHolder;
 import org.homunculus.android.compat.CompatApplication;
-import org.homunculus.android.compat.ContextScope;
 import org.homunculus.android.compat.UnbreakableCrashHandler;
-import org.homunculus.android.core.Android;
 import org.homunculus.android.example.module.benchmark.Register;
 import org.homunculus.android.example.module.cart.CartController;
 import org.homunculus.android.example.module.cart.CartControllerConnection;
@@ -83,7 +79,7 @@ public class MyApplication extends CompatApplication {
 
 
         EntityManager em = new ORMLiteEntityManager(url);
-        scope.putNamedValue("entityManager", em);
+        scope.put("entityManager", em);
     }
 
 }

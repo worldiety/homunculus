@@ -244,7 +244,7 @@ public class ConnectionProxyFactory<T> {
                 }
                 throw new Panic();
             }
-            Handler handler = currentScope.resolveNamedValue(Container.NAME_REQUEST_HANDLER, Handler.class);
+            Handler handler = currentScope.resolve(Container.NAME_REQUEST_HANDLER, Handler.class);
             Task<Result<?>> task = connectionMethod.invoke(currentScope, method, handler, args);
             return task;
         }

@@ -15,6 +15,18 @@
  */
 package org.homunculusframework.lang;
 
-public class Lang {
-    public final static Void Void = org.homunculusframework.lang.Void.Value;
+/**
+ * The void-type in java is broken, because every "null" reference (independent of it's type)
+ * can be cast to void (which is nothing special in java btw) but you cannot distinguish if you
+ * meant really void or just null ("pattern matching"), which is a huge difference, especially when working with generic or
+ * reflection (or just instanceof) logic.
+ *
+ * @author Torben Schinke
+ * @since 1.0
+ */
+public final class Void {
+    public final static Void Value = new Void();
+
+    private Void() {
+    }
 }

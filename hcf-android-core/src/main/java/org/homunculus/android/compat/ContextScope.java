@@ -23,7 +23,6 @@ import android.arch.lifecycle.OnLifecycleEvent;
 import android.content.Context;
 import android.content.ContextWrapper;
 import org.homunculus.android.core.Android;
-import org.homunculusframework.navigation.DefaultNavigation;
 import org.homunculusframework.scope.Scope;
 
 import javax.annotation.Nullable;
@@ -82,13 +81,13 @@ public class ContextScope extends ContextWrapper {
             }
         });
         if (lifecycleOwner instanceof Context) {
-            scope.putNamedValue(Android.NAME_CONTEXT, lifecycleOwner);
+            scope.put(Android.NAME_CONTEXT, lifecycleOwner);
         }
         return scope;
     }
 
     /**
-     * See {@link Scope#resolveNamedValue(String, Class)}
+     * See {@link Scope#resolve(String, Class)}
      *
      * @param context the context to get the scope form
      * @param name    the name to resolve
@@ -100,7 +99,7 @@ public class ContextScope extends ContextWrapper {
     public static <T> T resolveNamedValue(@Nullable Context context, String name, Class<T> type) {
         Scope scope = getScope(context);
         if (scope != null) {
-            return scope.resolveNamedValue(name, type);
+            return scope.resolve(name, type);
         }
         return null;
     }

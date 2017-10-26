@@ -15,6 +15,8 @@
  */
 package org.homunculusframework.scope;
 
+import org.homunculusframework.lang.Reference;
+
 import javax.annotation.Nullable;
 
 /**
@@ -23,25 +25,25 @@ import javax.annotation.Nullable;
  * @author Torben Schinke
  * @since 1.0
  */
-public class ScopeLocal<T> {
+public class ScopeLocal<T> implements Reference<T> {
 
     private final String key;
     private final Scope scope;
 
     public ScopeLocal(Scope scope) {
-        this.key = "scopeLocal@" + System.identityHashCode(scope);
+        this.key = "scopeLocal@" + System.identityHashCode(this);
         this.scope = scope;
     }
 
-    @Nullable
+    @Override
     public T get() {
-        return (T) scope.getNamedValue(key);
+        //this is safe as long generics are actually used
+        return (T) scope.get(key);
     }
 
+    @Override
     public void set(@Nullable T value) {
-        if (!scope.isDestroyed()) {
-            scope.putNamedValue(key, value);
-        }
+        scope.put(key, value);
     }
 
 }

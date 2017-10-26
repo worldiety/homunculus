@@ -21,7 +21,7 @@ package org.homunculusframework.lang;
  * @author Torben Schinke
  * @since 1.0
  */
-public class Ref<T> {
+public class Ref<T> implements Reference<T> {
 
     private T value;
 
@@ -37,20 +37,12 @@ public class Ref<T> {
         return new Ref(value);
     }
 
-    /**
-     * Returns the value
-     *
-     * @return the value
-     */
+    @Override
     public T get() {
         return value;
     }
 
-    /**
-     * Sets the value
-     *
-     * @param value the value
-     */
+    @Override
     public void set(T value) {
         this.value = value;
     }

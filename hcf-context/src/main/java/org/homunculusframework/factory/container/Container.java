@@ -141,7 +141,7 @@ public final class Container {
                 }
                 LoggerFactory.getLogger(getClass()).info("created {}", Reflection.getName(clazz));
                 controllers.add(instance);
-                containerScope.putNamedValue("$" + Reflection.getName(clazz), instance);
+                containerScope.put("$" + Reflection.getName(clazz), instance);
                 for (ControllerEndpoint endpoint : ControllerEndpoint.list(component.getName(), instance, configuration.getAnnotatedRequestMappings())) {
                     ControllerEndpoint existing = controllerEndpoints.get(endpoint.getRequestMapping());
                     if (existing != endpoint && existing != null) {
@@ -190,10 +190,10 @@ public final class Container {
 
                 //create and insert the proxy factory
                 ConnectionProxyFactory proxy = new ConnectionProxyFactory(controllerInstance, clazz, 0);
-                containerScope.putNamedValue("$proxyfactory@" + Reflection.getName(controllerInstance.getClass()), proxy);
+                containerScope.put("$proxyfactory@" + Reflection.getName(controllerInstance.getClass()), proxy);
             }
 
-            containerScope.putNamedValue(NAME_CONTAINER, this);
+            containerScope.put(NAME_CONTAINER, this);
             running = true;
         }
     }
@@ -332,7 +332,7 @@ public final class Container {
         if (lifecycleHandler == null) {
             return null;
         }
-        return scope.resolveNamedValue(lifecycleHandler.value(), Handler.class);
+        return scope.resolve(lifecycleHandler.value(), Handler.class);
     }
 
 

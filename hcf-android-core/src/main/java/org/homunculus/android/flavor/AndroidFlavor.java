@@ -22,8 +22,6 @@ import org.homunculusframework.factory.container.Container;
 import org.homunculusframework.factory.flavor.hcf.HomunculusFlavor;
 import org.homunculusframework.factory.flavor.hcf.Persistent;
 
-import java.io.File;
-
 /**
  * Provides annotations and default environment values:
  * <p>
@@ -52,10 +50,10 @@ public class AndroidFlavor implements Configurator {
 
         configuration.addFieldProcessor(new ResourceAnnotationLoader());
 
-        configuration.getRootScope().putNamedValue(Container.NAME_MAIN_HANDLER, new AndroidMainHandler());
-        configuration.getRootScope().putNamedValue(Container.NAME_BACKGROUND_HANDLER, new AndroidBackgroundHandler(8, Container.NAME_BACKGROUND_HANDLER, Thread.MIN_PRIORITY));
-        configuration.getRootScope().putNamedValue(Container.NAME_REQUEST_HANDLER, new AndroidBackgroundHandler(8, Container.NAME_REQUEST_HANDLER, Thread.MIN_PRIORITY));
-        configuration.getRootScope().putNamedValue(Container.NAME_INFLATER_HANDLER, new AndroidInflaterHandler(8, Thread.MIN_PRIORITY));
+        configuration.getRootScope().put(Container.NAME_MAIN_HANDLER, new AndroidMainHandler());
+        configuration.getRootScope().put(Container.NAME_BACKGROUND_HANDLER, new AndroidBackgroundHandler(8, Container.NAME_BACKGROUND_HANDLER, Thread.MIN_PRIORITY));
+        configuration.getRootScope().put(Container.NAME_REQUEST_HANDLER, new AndroidBackgroundHandler(8, Container.NAME_REQUEST_HANDLER, Thread.MIN_PRIORITY));
+        configuration.getRootScope().put(Container.NAME_INFLATER_HANDLER, new AndroidInflaterHandler(8, Thread.MIN_PRIORITY));
         configuration.addScopePrepareProcessor(new AndroidScopeContext());
     }
 }

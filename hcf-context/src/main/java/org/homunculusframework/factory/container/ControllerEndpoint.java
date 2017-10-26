@@ -93,16 +93,16 @@ public final class ControllerEndpoint {
                     //no name available, try to resolve by type only
                     value = requestScope.resolve(type);
                 } else {
-                    if (!requestScope.hasResolvableNamedValue(name)) {
+                    if (!requestScope.hasResolvable(name)) {
                         LoggerFactory.getLogger(instance.getClass()).error("{}.{}: required parameter '{}' is undefined in Request", instance.getClass().getSimpleName(), annotatedMethod, name);
                     } else {
-                        if (!requestScope.hasResolvableNamedValue(name, type)) {
+                        if (!requestScope.hasResolvable(name, type)) {
                             LoggerFactory.getLogger(instance.getClass()).error("{}.{}: required parameter '{}' is not assignable", instance.getClass().getSimpleName(), annotatedMethod, name);
                         }
                     }
 
                     //this can be null, even if another value could resolve that, but those are intentionally ignored and treated explicitly as null by definition
-                    value = requestScope.resolveNamedValue(name, type);
+                    value = requestScope.resolve(name, type);
                 }
                 callTmp[i] = value;
             }
@@ -115,7 +115,7 @@ public final class ControllerEndpoint {
                 ExecutionException ee = new ExecutionException(e.getTargetException());
 
                 //grab the original call stack and get married with that, too
-                StackTraceElement[] elems = requestScope.getNamedValue(Container.NAME_CALLSTACK, StackTraceElement[].class);
+                StackTraceElement[] elems = requestScope.get(Container.NAME_CALLSTACK, StackTraceElement[].class);
                 if (elems != null) {
                     ee.setStackTrace(elems);
                 }
@@ -125,7 +125,7 @@ public final class ControllerEndpoint {
                 ExecutionException ee = new ExecutionException(t);
 
                 //grab the original call stack and get married with that, too
-                StackTraceElement[] elems = requestScope.getNamedValue(Container.NAME_CALLSTACK, StackTraceElement[].class);
+                StackTraceElement[] elems = requestScope.get(Container.NAME_CALLSTACK, StackTraceElement[].class);
                 if (elems != null) {
                     ee.setStackTrace(elems);
                 }
@@ -139,8 +139,8 @@ public final class ControllerEndpoint {
 
     public static Scope createChild(Scope parent, Request request) {
         Scope scope = new Scope("request:" + request.getMapping(), parent);
-        request.forEach(entry -> {
-            scope.putNamedValue(entry.getKey(), entry.getValue());
+        request.forEachEntry(entry -> {
+            scope.put(entry.getKey(), entry.getValue());
             return true;
         });
         return scope;

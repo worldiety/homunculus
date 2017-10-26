@@ -55,7 +55,7 @@ public class EventAppCompatActivity extends AppCompatActivity {
             throw new Panic("application is not correctly configured: ApplicationContext must provide a ContextScope (e.g. use CompatApplication)");
         }
         mScope = new Scope(toString(), appScope);
-        mScope.putNamedValue(Android.NAME_CONTEXT, this);
+        mScope.put(Android.NAME_CONTEXT, this);
         ContextScope ctx = new ContextScope(mScope, base);
         super.attachBaseContext(ctx);
     }
@@ -107,7 +107,7 @@ public class EventAppCompatActivity extends AppCompatActivity {
     private void init() {
         mEventDispatcher = new ActivityEventDispatcher<>(mScope, this);
         mEverCreated = true;
-        mScope.putNamedValue(Android.NAME_ACTIVITY_EVENT_DISPATCHER, mEventDispatcher);
+        mScope.put(Android.NAME_ACTIVITY_EVENT_DISPATCHER, mEventDispatcher);
     }
 
 

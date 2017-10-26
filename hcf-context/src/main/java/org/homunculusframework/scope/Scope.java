@@ -19,6 +19,7 @@ package org.homunculusframework.scope;
 import org.homunculusframework.lang.Destroyable;
 import org.homunculusframework.lang.Function;
 import org.homunculusframework.lang.Reflection;
+import org.homunculusframework.lang.Void;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
@@ -37,7 +38,7 @@ import java.util.Map.Entry;
  * @author Torben Schinke
  * @since 1.0
  */
-public final class Scope implements Destroyable {
+public final class Scope implements Destroyable, org.homunculusframework.lang.Map<String, Object> {
     /**
      * Each scope has a unique name
      */
@@ -89,7 +90,7 @@ public final class Scope implements Destroyable {
      * Adds the callback. Note: You can also implement {@link Destroyable} instead of registering for the lifecycle event.
      */
     public void addOnBeforeDestroyCallback(OnBeforeDestroyCallback cb) {
-        synchronized (lock) {
+        synchronized (dcbBefore) {
             dcbBefore.add(cb);
         }
     }
@@ -98,7 +99,7 @@ public final class Scope implements Destroyable {
      * Removes the callback and returns true if it has been removed.
      */
     public boolean removeOnBeforeDestroyCallback(OnBeforeDestroyCallback cb) {
-        synchronized (lock) {
+        synchronized (dcbBefore) {
             return dcbBefore.remove(cb);
         }
     }
@@ -107,7 +108,7 @@ public final class Scope implements Destroyable {
      * Adds the callback. Note: You can also implement {@link Destroyable} instead of registering for the lifecycle event.
      */
     public void addOnAfterDestroyCallback(OnAfterDestroyCallback cb) {
-        synchronized (lock) {
+        synchronized (dcbAfter) {
             dcbAfter.add(cb);
         }
     }
@@ -116,7 +117,7 @@ public final class Scope implements Destroyable {
      * Removes the callback and returns true if it has been removed.
      */
     public boolean removeOnAfterDestroyCallback(OnAfterDestroyCallback cb) {
-        synchronized (lock) {
+        synchronized (dcbAfter) {
             return dcbAfter.remove(cb);
         }
     }
@@ -153,7 +154,7 @@ public final class Scope implements Destroyable {
      */
     @Nullable
     public Scope getScope(String name) {
-        synchronized (lock) {
+        synchronized (subScopes) {
             printDestroyedWarning("getScope()");
             return subScopes.get(name);
         }
@@ -164,7 +165,7 @@ public final class Scope implements Destroyable {
      */
     @Nullable
     public Scope attach(Scope scope) {
-        synchronized (lock) {
+        synchronized (subScopes) {
             if (printDestroyedWarning("attach()")) {
                 return null;
             }
@@ -184,7 +185,7 @@ public final class Scope implements Destroyable {
      */
     @Nullable
     public Scope detach(String name) {
-        synchronized (lock) {
+        synchronized (subScopes) {
             printDestroyedWarning("detach()");
             Scope scope = subScopes.remove(name);
             if (scope != null) {
@@ -200,9 +201,10 @@ public final class Scope implements Destroyable {
     /**
      * To differentiate between null values and absent values this method has been introduced.
      */
-    public boolean hasNamedValue(String name) {
-        synchronized (lock) {
-            printDestroyedWarning("hasNamedValue()");
+    @Override
+    public boolean has(String name) {
+        synchronized (namedValues) {
+            printDestroyedWarning("has()");
             return namedValues.containsKey(name);
         }
     }
@@ -211,11 +213,11 @@ public final class Scope implements Destroyable {
      * To differentiate between null values and absent values this method has been introduced.
      * Walks up the parents, if any of them defines something like that.
      */
-    public boolean hasResolvableNamedValue(String name) {
-        synchronized (lock) {
+    public boolean hasResolvable(String name) {
+        synchronized (namedValues) {
             printDestroyedWarning("hasResolveableNamedValue()");
             if (!namedValues.containsKey(name) && parent != null) {
-                return parent.hasResolvableNamedValue(name);
+                return parent.hasResolvable(name);
             }
             return namedValues.containsKey(name);
         }
@@ -224,9 +226,9 @@ public final class Scope implements Destroyable {
     /**
      * To differentiate between null values and absent values this method has been introduced.
      */
-    public boolean hasNamedValue(String name, Class<?> type) {
-        synchronized (lock) {
-            printDestroyedWarning("hasNamedValue()");
+    public boolean has(String name, Class<?> type) {
+        synchronized (namedValues) {
+            printDestroyedWarning("has()");
             Object obj = namedValues.get(name);
             if (obj != null && type.isAssignableFrom(obj.getClass())) {
                 return true;
@@ -239,11 +241,11 @@ public final class Scope implements Destroyable {
      * To differentiate between null values and absent values this method has been introduced.
      * Walks up the parents, if any of them defines something like that and tries to duck type it.
      */
-    public boolean hasResolvableNamedValue(String name, Class<?> type) {
-        synchronized (lock) {
-            printDestroyedWarning("hasResolvableNamedValue()");
+    public boolean hasResolvable(String name, Class<?> type) {
+        synchronized (namedValues) {
+            printDestroyedWarning("hasResolvable()");
             if (!namedValues.containsKey(name) && parent != null) {
-                return parent.hasResolvableNamedValue(name, type);
+                return parent.hasResolvable(name, type);
             }
             Object obj = namedValues.get(name);
             Object res = Reflection.castDuck(obj, type);
@@ -264,13 +266,13 @@ public final class Scope implements Destroyable {
 
     /**
      * A convenience helper method. Returns the named value and tries to cast it.
-     * If not possible, returns null, as it would have been never defined. See also {@link #getNamedValue(String)}.
+     * If not possible, returns null, as it would have been never defined. See also {@link #get(String)}.
      * The logic performs a duck type and tries to make some reasonable casts or type conversions, e.g. between string and numbers.
      */
     @Nullable
-    public <T> T getNamedValue(String name, Class<T> type) {
-        synchronized (lock) {
-            printDestroyedWarning("getNamedValue()");
+    public <T> T get(String name, Class<T> type) {
+        synchronized (namedValues) {
+            printDestroyedWarning("get()");
 
             Object obj = namedValues.get(name);
             return (T) Reflection.castDuck(obj, type);
@@ -278,16 +280,16 @@ public final class Scope implements Destroyable {
     }
 
     /**
-     * Similar to {@link #getNamedValue(String, Class)} but resolves the variable also by looking into the parents.
+     * Similar to {@link #get(String, Class)} but resolves the variable also by looking into the parents.
      * Each child of a parent may shadow the parents variable with the same name.
      * The logic performs a duck type and tries to make some reasonable casts or type conversions, e.g. between string and numbers.
      */
-    public <T> T resolveNamedValue(String name, Class<T> type) {
-        synchronized (lock) {
-            printDestroyedWarning("resolveNamedValue()");
+    public <T> T resolve(String name, Class<T> type) {
+        synchronized (namedValues) {
+            printDestroyedWarning("resolve()");
 
             if (!namedValues.containsKey(name) && parent != null) {
-                return parent.resolveNamedValue(name, type);
+                return parent.resolve(name, type);
             }
 
             Object obj = namedValues.get(name);
@@ -300,9 +302,9 @@ public final class Scope implements Destroyable {
      * Just returns the named value, returning null if unknown or null.
      */
     @Nullable
-    public Object getNamedValue(String name) {
-        synchronized (lock) {
-            printDestroyedWarning("getNamedValue()");
+    public Object get(String name) {
+        synchronized (namedValues) {
+            printDestroyedWarning("get()");
             return namedValues.get(name);
         }
     }
@@ -311,9 +313,10 @@ public final class Scope implements Destroyable {
      * Just removes a named value and returns it.
      */
     @Nullable
-    public Object removeNamedValue(String name) {
-        synchronized (lock) {
-            printDestroyedWarning("removeNamedValue()");
+    @Override
+    public Object remove(String name) {
+        synchronized (namedValues) {
+            printDestroyedWarning("remove()");
             return namedValues.remove(name);
         }
     }
@@ -322,9 +325,10 @@ public final class Scope implements Destroyable {
      * Puts a named values and returns any existing value.
      */
     @Nullable
-    public Object putNamedValue(String name, Object value) {
-        synchronized (lock) {
-            if (printDestroyedWarning("putNamedValue()")) {
+    @Override
+    public Object put(String name, Object value) {
+        synchronized (namedValues) {
+            if (printDestroyedWarning("put()")) {
                 return null;
             }
             return namedValues.put(name, value);
@@ -353,16 +357,19 @@ public final class Scope implements Destroyable {
         }
 
         //2.
-        for (Object value : namedValues.values()) {
-            if (value == null) {
-                continue;
-            }
-            if (type.isAssignableFrom(value.getClass())) {
-                return (T) value;
+        synchronized (namedValues) {
+            for (Object value : namedValues.values()) {
+                if (value == null) {
+                    continue;
+                }
+                if (type.isAssignableFrom(value.getClass())) {
+                    return (T) value;
+                }
             }
         }
 
         //3.
+        Scope parent = this.parent;
         if (parent != null) {
             return parent.resolve(type);
         }
@@ -401,41 +408,69 @@ public final class Scope implements Destroyable {
             if (destroyed) {
                 return;
             }
-
-            //destroy all children first, we copy them here, because each child detaches itself causing concurrentmodificationexceptions
-            for (Scope child : new ArrayList<>(subScopes.values())) {
-                child.destroy();
-            }
-
+            //by definition the parent is not yet destroyed before sending events but keeping the global lock as small as possible is more worth
             destroyed = true;
-            //1.
-            //avoid GC for Android when we can
-            for (int i = 0; i < dcbBefore.size(); i++) {
-                dcbBefore.get(i).onBeforeDestroy(this);
-            }
+        }
+
+        //=====
+        //destroy all children first, we copy them here, because each child detaches itself causing concurrentmodificationexceptions and deadlocks
+        final ArrayList<Scope> tmpSubScope;
+        synchronized (subScopes) {
+            tmpSubScope = new ArrayList<>(subScopes.values());
+            subScopes.clear();
+        }
+        for (int i = 0; i < tmpSubScope.size(); i++) {
+            Scope child = tmpSubScope.get(i);
+            child.destroy();
+        }
+        tmpSubScope.clear();
+
+
+        //=====
+        //defensive copy again, to protect against weired stuff
+        final ArrayList<OnBeforeDestroyCallback> tmpOnBeforeDestroyCallbacks;
+        synchronized (dcbBefore) {
+            tmpOnBeforeDestroyCallbacks = new ArrayList<>(dcbBefore.size());
             dcbBefore.clear();
+        }
+        for (int i = 0; i < tmpOnBeforeDestroyCallbacks.size(); i++) {
+            tmpOnBeforeDestroyCallbacks.get(i).onBeforeDestroy(this);
+        }
+        tmpOnBeforeDestroyCallbacks.clear();
 
 
-            //3.
-            for (Object value : namedValues.values()) {
-                if (value instanceof Destroyable) {
-                    ((Destroyable) value).destroy();
-                }
-            }
+        //=====
+        //defensive copy again, to protect against weired stuff
+        final ArrayList<Object> tmpNamedValues;
+        synchronized (namedValues) {
+            tmpNamedValues = new ArrayList<>(namedValues.values());
             namedValues.clear();
-
-            //4.
-            if (parent != null) {
-                parent.detach(getName());
+        }
+        for (int i = 0; i < tmpNamedValues.size(); i++) {
+            Object value = tmpNamedValues.get(i);
+            if (value instanceof Destroyable) {
+                ((Destroyable) value).destroy();
             }
+        }
+        tmpNamedValues.clear();
 
-            //5.
-            //avoid GC for Android when we can
-            for (int i = 0; i < dcbAfter.size(); i++) {
-                dcbAfter.get(i).onAfterDestroy(this);
-            }
+        //=====
+        Scope parent = this.parent;
+        if (parent != null) {
+            parent.detach(getName());
+        }
+
+        //=====
+        //defensive copy again, to protect against weired stuff
+        final ArrayList<OnAfterDestroyCallback> tmpAfterDestroyCallbacks;
+        synchronized (dcbAfter) {
+            tmpAfterDestroyCallbacks = new ArrayList<>(dcbAfter);
             dcbAfter.clear();
         }
+        for (int i = 0; i < tmpAfterDestroyCallbacks.size(); i++) {
+            tmpAfterDestroyCallbacks.get(i).onAfterDestroy(this);
+        }
+        tmpAfterDestroyCallbacks.clear();
     }
 
 
@@ -443,13 +478,17 @@ public final class Scope implements Destroyable {
      * Loops over all child scopes, as long as the closure returns true
      */
     public void forEachScope(Function<Scope, Boolean> closure) {
-        synchronized (lock) {
+        //the defensive copy causes GC but allows easier code without ConcurrentModificationException and deadlocks
+        ArrayList<Scope> tmp;
+        synchronized (subScopes) {
             printDestroyedWarning("forEachScope()");
-            //the defensive copy causes GC but allows easier code without ConcurrentModificationException
-            for (Scope scope : new ArrayList<>(subScopes.values())) {
-                if (!closure.apply(scope)) {
-                    return;
-                }
+            tmp = new ArrayList<>(subScopes.values());
+        }
+        final int s = tmp.size();
+        for (int i = 0; i < s; i++) {
+            Scope scope = tmp.get(i);
+            if (!closure.apply(scope)) {
+                return;
             }
         }
     }
@@ -457,15 +496,32 @@ public final class Scope implements Destroyable {
     /**
      * Loops over all entries (non-recursive), as long as the closure returns true
      */
-    public void forEachEntry(Function<Entry<String, Object>, Boolean> closure) {
+    @Override
+    public Void forEachEntry(Function<Entry<String, Object>, Boolean> closure) {
+        ArrayList<Entry<String, Object>> tmp;
+        //the defensive copy causes GC but allows easier code without ConcurrentModificationException and deadlocks
         synchronized (lock) {
             printDestroyedWarning("forEachEntry()");
-            //the defensive copy causes GC but allows easier code without ConcurrentModificationException
-            for (Entry<String, Object> entry : new ArrayList<>(namedValues.entrySet())) {
-                if (!closure.apply(entry)) {
-                    return;
-                }
+            tmp = new ArrayList<>(namedValues.entrySet());
+        }
+        final int s = tmp.size();
+        for (int i = 0; i < s; i++) {
+            Entry<String, Object> entry = tmp.get(i);
+            if (!closure.apply(entry)) {
+                return Void.Value;
             }
         }
+        return Void.Value;
+    }
+
+    @Override
+    public Void putAll(org.homunculusframework.lang.Map<String, Object> other) {
+        other.forEachEntry(entry -> {
+            synchronized (namedValues) {
+                namedValues.put(entry.getKey(), entry.getValue());
+            }
+            return true;
+        });
+        return Void.Value;
     }
 }

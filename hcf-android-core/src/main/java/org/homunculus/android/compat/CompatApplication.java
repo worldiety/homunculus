@@ -45,7 +45,7 @@ public class CompatApplication extends Application {
             mAppScope.destroy();
         }
         mAppScope = new Scope("/", null);
-        mAppScope.putNamedValue(Android.NAME_CONTEXT, this);
+        mAppScope.put(Android.NAME_CONTEXT, this);
         ContextScope ctx = new ContextScope(mAppScope, base);
         super.attachBaseContext(ctx);
     }
@@ -76,7 +76,7 @@ public class CompatApplication extends Application {
         configuration.setObjectInjector(defaultFactory);
         configuration.setObjectDestroyer(defaultFactory);
 
-        appScope.putNamedValue(Display.NAME_DISPLAY, new Display(this));
+        appScope.put(Display.NAME_DISPLAY, new Display(this));
 
         return configuration;
     }

@@ -45,7 +45,7 @@ public final class ScopeList<T> extends AbstractList<T> {
     public ScopeList(String name, Scope scope) {
         this.key = name + "@" + System.identityHashCode(scope);
         this.scope = scope;
-        scope.putNamedValue(key, new CopyOnWriteArrayList<>());
+        scope.put(key, new CopyOnWriteArrayList<>());
     }
 
     @Override
@@ -90,7 +90,7 @@ public final class ScopeList<T> extends AbstractList<T> {
 
     @Nullable
     private List<T> getDetachedList() {
-        return scope.getNamedValue(key, List.class);
+        return scope.get(key, List.class);
     }
 
     /**

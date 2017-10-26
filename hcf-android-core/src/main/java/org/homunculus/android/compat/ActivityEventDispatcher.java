@@ -36,7 +36,6 @@ import android.view.SearchEvent;
 import android.view.View;
 
 import org.homunculusframework.scope.Scope;
-import org.homunculusframework.scope.ScopeList;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -164,10 +163,10 @@ public class ActivityEventDispatcher<T extends Activity> {
      */
     private List<ActivityEventCallback<T>> ensure(Scope scope) {
         synchronized (scope) {
-            List<ActivityEventCallback<T>> callbacks = scope.getNamedValue(NAME_CALLBACKS, List.class);
+            List<ActivityEventCallback<T>> callbacks = scope.get(NAME_CALLBACKS, List.class);
             if (callbacks == null) {
                 callbacks = new CopyOnWriteArrayList<>();
-                scope.putNamedValue(NAME_CALLBACKS, callbacks);
+                scope.put(NAME_CALLBACKS, callbacks);
             }
             return callbacks;
         }
@@ -205,7 +204,7 @@ public class ActivityEventDispatcher<T extends Activity> {
      */
     private List<ActivityEventCallback<T>> getCallbacks() {
         List<ActivityEventCallback<T>> tmp = new ArrayList<>();
-        List<ActivityEventCallback<T>> listInScope = mBaseScope.getNamedValue(NAME_CALLBACKS, List.class);
+        List<ActivityEventCallback<T>> listInScope = mBaseScope.get(NAME_CALLBACKS, List.class);
         if (listInScope != null) {
             tmp.addAll(listInScope);
         }
@@ -215,7 +214,7 @@ public class ActivityEventDispatcher<T extends Activity> {
 
     private void collectCallbacks(Scope root, List<ActivityEventCallback<T>> dst) {
         root.forEachScope(scope -> {
-            List<ActivityEventCallback<T>> listInScope = scope.getNamedValue(NAME_CALLBACKS, List.class);
+            List<ActivityEventCallback<T>> listInScope = scope.get(NAME_CALLBACKS, List.class);
             if (listInScope != null) {
                 dst.addAll(listInScope);
             }

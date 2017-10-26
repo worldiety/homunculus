@@ -33,9 +33,9 @@ import org.slf4j.LoggerFactory;
 public class AndroidScopeContext implements ScopePrepareProcessor {
     @Override
     public void process(Configuration configuration, Scope scope) {
-        Context context = scope.resolveNamedValue(Android.NAME_CONTEXT, Context.class);
+        Context context = scope.resolve(Android.NAME_CONTEXT, Context.class);
         if (context != null) {
-            scope.putNamedValue(Android.NAME_CONTEXT, new ContextScope(scope, context));
+            scope.put(Android.NAME_CONTEXT, new ContextScope(scope, context));
         } else {
             LoggerFactory.getLogger(getClass()).error("cannot provide a ContextScope, because {} does not provide any {}", scope, Android.NAME_CONTEXT);
         }

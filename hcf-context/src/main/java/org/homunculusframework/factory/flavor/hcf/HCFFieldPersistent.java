@@ -86,7 +86,7 @@ public class HCFFieldPersistent implements AnnotatedFieldProcessor {
                 Object resolvedValue = read(folder, key.name(), serializer, field.getType());
                 //check if null and not resolvable -> try to create such an instance
                 if (resolvedValue == null) {
-                    Container container = scope.resolveNamedValue(Container.NAME_CONTAINER, Container.class);
+                    Container container = scope.resolve(Container.NAME_CONTAINER, Container.class);
                     if (container != null) {
                         //await has danger of deadlocks, especially for PostConstructs in main thread (which is the default case)
                         resolvedValue = Async.await(container.createComponent(scope, field.getType())).get();

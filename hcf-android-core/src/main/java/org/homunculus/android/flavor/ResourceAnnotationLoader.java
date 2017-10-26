@@ -48,7 +48,7 @@ public class ResourceAnnotationLoader implements AnnotatedFieldProcessor {
             return;
         }
 
-        Context context = scope.resolveNamedValue("$context", Context.class);
+        Context context = scope.resolve("$context", Context.class);
         if (context == null) {
             context = scope.resolve(Context.class);
         }

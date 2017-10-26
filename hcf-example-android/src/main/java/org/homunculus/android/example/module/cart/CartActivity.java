@@ -3,14 +3,12 @@ package org.homunculus.android.example.module.cart;
 import android.app.AlertDialog.Builder;
 import android.content.Context;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import org.homunculus.android.compat.EventAppCompatActivity;
 import org.homunculus.android.core.Android;
 import org.homunculus.android.example.common.ViewWait;
 import org.homunculusframework.factory.container.Request;
 import org.homunculusframework.navigation.DefaultNavigation;
 import org.homunculusframework.navigation.Navigation;
-import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
 
 import java.lang.Thread.UncaughtExceptionHandler;
@@ -26,7 +24,7 @@ public class CartActivity extends EventAppCompatActivity implements UncaughtExce
 
 
         //get the current scope
-        getScope().putNamedValue(Android.NAME_NAVIGATION, new DefaultNavigation(getScope()));
+        getScope().put(Android.NAME_NAVIGATION, new DefaultNavigation(getScope()));
         //do some navigation, which replaces the content view itself. Note: what the target (behind the request mapping) does is undefined by intention
         Navigation nav = getScope().resolve(Navigation.class);
         nav.forward(new Request("/cart/list").put("id", 1234));

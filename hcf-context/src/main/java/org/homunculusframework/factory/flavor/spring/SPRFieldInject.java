@@ -44,14 +44,14 @@ public class SPRFieldInject implements AnnotatedFieldProcessor {
             String name = named != null ? named.value() : field.getName();
             Object resolvedValue;
             if (named != null) {
-                resolvedValue = scope.resolveNamedValue(name, field.getType());
+                resolvedValue = scope.resolve(name, field.getType());
             } else {
                 resolvedValue = scope.resolve(field.getType());
             }
 
             //check if null and not resolvable -> try to create such an instance
-            if (resolvedValue == null && !scope.hasResolvableNamedValue(name)) {
-                Container container = scope.resolveNamedValue(Container.NAME_CONTAINER, Container.class);
+            if (resolvedValue == null && !scope.hasResolvable(name)) {
+                Container container = scope.resolve(Container.NAME_CONTAINER, Container.class);
                 if (container != null) {
                     //await has danger of deadlocks, especially for PostConstructs in main thread (which is the default case)
                     resolvedValue = Async.await(container.createComponent(scope, field.getType())).get();

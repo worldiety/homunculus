@@ -175,7 +175,7 @@ public class Async {
     }
 
     private static Handler getHandler(Scope scope) {
-        Handler handler = scope.resolveNamedValue(Container.NAME_BACKGROUND_HANDLER, Handler.class);
+        Handler handler = scope.resolve(Container.NAME_BACKGROUND_HANDLER, Handler.class);
         if (handler == null) {
             //pick any handler
             handler = scope.resolve(Handler.class);

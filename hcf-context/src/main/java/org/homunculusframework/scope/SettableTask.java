@@ -55,7 +55,7 @@ public class SettableTask<T> implements Task<T> {
 
         if (scope != null) {
             this.beforeDestroyCallback = s -> cancel(true);
-            scope.putNamedValue(key, new ExecutionList());
+            scope.put(key, new ExecutionList());
             leakyExecutionList = null;
         } else {
             this.beforeDestroyCallback = null;
@@ -104,7 +104,7 @@ public class SettableTask<T> implements Task<T> {
             if (scope == null) {
                 throw new Panic();
             }
-            Handler handler = scope.resolveNamedValue(Container.NAME_MAIN_HANDLER, Handler.class);
+            Handler handler = scope.resolve(Container.NAME_MAIN_HANDLER, Handler.class);
             if (handler != null) {
                 handler.post(() -> {
                     ExecutionList list = getExecutionList();
@@ -121,7 +121,7 @@ public class SettableTask<T> implements Task<T> {
 
     @Nullable
     private ExecutionList getExecutionList() {
-        ExecutionList list = scope.getNamedValue(key, ExecutionList.class);
+        ExecutionList list = scope.get(key, ExecutionList.class);
         return list;
     }
 
@@ -146,7 +146,7 @@ public class SettableTask<T> implements Task<T> {
                         scope.removeOnBeforeDestroyCallback(beforeDestroyCallback);
                     }
                     this.result = result;
-                    Handler handler = scope.resolveNamedValue(Container.NAME_MAIN_HANDLER, Handler.class);
+                    Handler handler = scope.resolve(Container.NAME_MAIN_HANDLER, Handler.class);
                     if (handler != null) {
                         handler.post(() -> {
                             ExecutionList list = getExecutionList();

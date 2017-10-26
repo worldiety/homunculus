@@ -21,6 +21,7 @@ import javax.annotation.Nullable;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.*;
+import java.util.Map;
 import java.util.Map.Entry;
 
 /**
@@ -29,7 +30,7 @@ import java.util.Map.Entry;
  * @author Torben Schinke
  * @since 1.0
  */
-public final class Result<T> extends Ref<T> {
+public final class Result<T> extends Ref<T> implements org.homunculusframework.lang.Map<String, Object> {
 
     /**
      * A conventional tag to indicate a cancelled task
@@ -181,28 +182,46 @@ public final class Result<T> extends Ref<T> {
     }
 
     /**
+     * Puts all values into this result
+     *
+     * @param other the other map
+     * @return this instance
+     */
+    @Override
+    public Result<T> putAll(org.homunculusframework.lang.Map<String, Object> other) {
+        other.forEachEntry(entry -> {
+            tags.put(entry.getKey(), entry.getValue());
+            return true;
+        });
+        return this;
+    }
+
+
+    /**
      * Checks if this result or any parent has the requested key.
      *
-     * @param key the tag to search
+     * @param tag the tag to search
      * @return true if any this result or any parent has such
      */
-    public boolean containsKey(String key) {
-        boolean has = tags.containsKey(key);
+    public boolean has(String tag) {
+        boolean has = tags.containsKey(tag);
         Result p = parent;
         if (!has && p != null) {
-            return p.containsKey(key);
+            return p.has(tag);
         }
         return has;
     }
 
     /**
-     * See {@link #containsKey(String)}
+     * Removes the key and returns this result
      *
-     * @param tag the tag to search
-     * @return true if contained
+     * @param key the key
+     * @return the instance
      */
-    public boolean has(String tag) {
-        return containsKey(tag);
+    @Override
+    public Result<T> remove(String key) {
+        tags.remove(key);
+        return this;
     }
 
     /**
@@ -258,6 +277,16 @@ public final class Result<T> extends Ref<T> {
     }
 
 
+    @Override
+    public Result<T> forEachEntry(Function<Entry<String, Object>, Boolean> closure) {
+        for (Entry<String, Object> tag : tags.entrySet()) {
+            if (closure.apply(tag)) {
+                return this;
+            }
+        }
+        return this;
+    }
+
     /**
      * Checks if the value exists (is not null)
      *
@@ -299,7 +328,7 @@ public final class Result<T> extends Ref<T> {
      * See also {@link #TAG_CANCELLED}
      */
     public boolean isCancelled() {
-        return containsKey(TAG_CANCELLED);
+        return has(TAG_CANCELLED);
     }
 
     /**

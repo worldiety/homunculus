@@ -192,7 +192,7 @@ public class DefaultNavigation implements Navigation {
     private void applyInternal(Request request) {
         request.put(Container.NAME_CALLSTACK, DefaultFactory.getCallStack(0));
         request.execute(scope).whenDone(res -> {
-            final Container container = scope.resolveNamedValue(Container.NAME_CONTAINER, Container.class);
+            final Container container = scope.resolve(Container.NAME_CONTAINER, Container.class);
             if (container == null) {
                 LoggerFactory.getLogger(getClass()).error("no container found in scope, request discarded");
                 return;
@@ -220,7 +220,7 @@ public class DefaultNavigation implements Navigation {
         task.whenDone(component -> {
             Object newUIS = component.get();
             if (newUIS != null && component.getFailures().isEmpty()) {
-                uisScope.putNamedValue("$" + System.identityHashCode(newUIS), newUIS);
+                uisScope.put("$" + System.identityHashCode(newUIS), newUIS);
                 tearDownOldAndApplyNew(new UserInterfaceState(request, uisScope, newUIS));
             } else {
                 uisScope.destroy();
@@ -238,7 +238,7 @@ public class DefaultNavigation implements Navigation {
             currentUIS = uis;
             LoggerFactory.getLogger(getClass()).info("applied UIS {}", uis);
         } else {
-            Container container = scope.resolveNamedValue(Container.NAME_CONTAINER, Container.class);
+            Container container = scope.resolve(Container.NAME_CONTAINER, Container.class);
             if (container == null) {
                 LoggerFactory.getLogger(getClass()).error("no container found in scope, tearDownOldAndApplyNew discarded");
             } else {
@@ -260,7 +260,7 @@ public class DefaultNavigation implements Navigation {
     public static Scope createChild(Scope parent, ModelAndView modelAndView) {
         Scope scope = new Scope("inflate:" + modelAndView.getView() + "@" + requestNo.incrementAndGet(), parent);
         modelAndView.forEach(entry -> {
-            scope.putNamedValue(entry.getKey(), entry.getValue());
+            scope.put(entry.getKey(), entry.getValue());
             return true;
         });
         return scope;
@@ -268,8 +268,8 @@ public class DefaultNavigation implements Navigation {
 
     public static Scope createChild(Scope parent, Request params) {
         Scope scope = new Scope("request:" + params.getMapping() + "@" + requestNo.incrementAndGet(), parent);
-        params.forEach(entry -> {
-            scope.putNamedValue(entry.getKey(), entry.getValue());
+        params.forEachEntry(entry -> {
+            scope.put(entry.getKey(), entry.getValue());
             return true;
         });
         return scope;

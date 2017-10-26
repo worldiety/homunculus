@@ -50,7 +50,7 @@ public class EEMethodsPostConstruct implements AnnotatedMethodsProcessor {
             String handlerName = executor == null ? Container.NAME_MAIN_HANDLER : executor.value();
             int order = priority == null ? 0 : priority.value();
             if (postConstruct != null) {
-                Handler handler = scope.resolveNamedValue(handlerName, Handler.class);
+                Handler handler = scope.resolve(handlerName, Handler.class);
                 if (handler == null) {
                     LoggerFactory.getLogger(instance.getClass()).error("{} is undefined, @PostConstruct {}() ignored", handlerName, method.getName());
                     continue;
