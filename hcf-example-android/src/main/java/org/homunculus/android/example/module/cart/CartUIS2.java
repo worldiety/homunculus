@@ -1,6 +1,5 @@
 package org.homunculus.android.example.module.cart;
 
-import android.app.Activity;
 import android.content.Context;
 import android.view.View;
 import org.homunculus.android.compat.EventAppCompatActivity;
@@ -16,8 +15,8 @@ import org.homunculusframework.scope.Scope;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
-@Widget("/cart/uis/list")
-public class CartUIS extends CartView {
+@Widget("/cart/uis/list2")
+public class CartUIS2 extends CartView {
 
     @Inject
     private EventAppCompatActivity mActivity;
@@ -28,7 +27,7 @@ public class CartUIS extends CartView {
     @Inject
     private Scope scope;
 
-    public CartUIS(Context context) {
+    public CartUIS2(Context context) {
         super(context);
     }
 
@@ -36,23 +35,13 @@ public class CartUIS extends CartView {
     @PostConstruct()
     @Priority(10)//TODO this looks weired -> super methods with the same order should have higher priority
     private void setViewInActivity() {
-//        mActivity.setContentView(this);
 
         View content = ToolbarBuilder.define()
                 .setTitle(Str.str(R.string.app_name))
                 .setTitleTextColor(R.color.colorAccent)
                 .setToolbarColor(R.color.colorPrimary)
                 .setShowNavigationIcons(true)
-                .setMenuId(R.menu.testmenu)
-                .addMenuItemListener(R.id.entry1, menuItem -> {
-                    mNav.forward(new Request("/cart/uis/list"));
-                    return true;
-                })
-                .addMenuItemListener(R.id.entry2, menuItem -> true)
-                .addMenuItemListener(R.id.entry3, menuItem -> {
-                    mNav.forward(new Request("/cart/uis/list2"));
-                    return true;
-                })
+                //without menu
                 .create(scope, mActivity, this, new SideMenuView(getContext(), mNav));
         mActivity.setContentView(content);
     }

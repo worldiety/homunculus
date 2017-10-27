@@ -146,16 +146,16 @@ public class ToolbarBuilder {
         mLeftDrawer = leftDrawer;
         mRightDrawer = rightDrawer;
         // Initialize menu
-        initMenu(activity);
+        initMenu(scope, activity);
         // Initialize toolbar
         ToolbarHolder toolbar = initToolbar(activity);
         // Initialize navigation drawer
         return initDrawerLayout(activity, toolbar);
     }
 
-    private void initMenu(final EventAppCompatActivity activity) {
+    private void initMenu(Scope scope, final EventAppCompatActivity activity) {
 
-        activity.getEventDispatcher().register(new AbsActivityEventCallback<EventAppCompatActivity>() {
+        activity.getEventDispatcher().register(scope, new AbsActivityEventCallback<EventAppCompatActivity>() {
 
             private boolean mIsInflated = false;
 
@@ -200,7 +200,7 @@ public class ToolbarBuilder {
                     }
                     return true;
                 }
-                return mMenuId != null;
+                return false;
             }
 
             @Override
@@ -221,11 +221,14 @@ public class ToolbarBuilder {
         toolbar.setMinimumHeight(barSize);
         toolbar.setId(Widget.generateViewId());
 
-        if (mToolbarColor != null)
+        if (mToolbarColor != null) {
             toolbar.setBackgroundColor(ContextCompat.getColor(activity, mToolbarColor));
+        }
 
-        if (mTitleTextColor != null)
+        if (mTitleTextColor != null){
             toolbar.setTitleTextColor(ContextCompat.getColor(activity, mTitleTextColor));
+        }
+
 
         activity.setSupportActionBar(toolbar);
         ActionBar ab = activity.getSupportActionBar();

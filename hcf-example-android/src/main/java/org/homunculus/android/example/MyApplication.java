@@ -5,10 +5,7 @@ import org.flywaydb.core.api.android.ContextHolder;
 import org.homunculus.android.compat.CompatApplication;
 import org.homunculus.android.compat.UnbreakableCrashHandler;
 import org.homunculus.android.example.module.benchmark.Register;
-import org.homunculus.android.example.module.cart.CartController;
-import org.homunculus.android.example.module.cart.CartControllerConnection;
-import org.homunculus.android.example.module.cart.CartUIS;
-import org.homunculus.android.example.module.cart.CartView;
+import org.homunculus.android.example.module.cart.*;
 import org.homunculus.android.example.module.company.CompanyController;
 import org.homunculusframework.factory.container.Configuration;
 import org.homunculusframework.factory.container.Container;
@@ -38,6 +35,7 @@ public class MyApplication extends CompatApplication {
         cfg.add(CartView.class);
         cfg.add(CartUIS.class);
         cfg.add(CompanyController.class);
+        cfg.add(CartUIS2.class);
 
         //try performance on real device
         Register.register(cfg);

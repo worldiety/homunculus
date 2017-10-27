@@ -213,6 +213,10 @@ public class DefaultNavigation implements Navigation {
             } else {
                 if (obj == null) {
                     LoggerFactory.getLogger(getClass()).error("invocation returned 'null' component, not useful for navigation: {} -> {}", request.getMapping(), obj);
+                    //remove the request silently from the stack, otherwise the behavior is weired, because one can go back "nothing"
+                    if (request == getTop()) {
+                        pop();
+                    }
                 } else {
                     LoggerFactory.getLogger(getClass()).error("expected a 'component' or 'ModelAndView' but received '{}'", obj);
                 }
