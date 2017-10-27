@@ -197,6 +197,14 @@ public final class Request implements org.homunculusframework.lang.Map<String, O
             Result<Object> res = Result.create();
             Handler backgroundThread = scope.resolve(Container.NAME_REQUEST_HANDLER, Handler.class);
             StackTraceElement[] callstack = DefaultFactory.getCallStack(3);
+            if (true) {
+                StackTraceElement elem = callstack[0];
+                String cname = elem.getClassName();
+                String method = elem.getMethodName();
+                String fname = elem.getFileName();
+                int no = elem.getLineNumber();
+                LoggerFactory.getLogger(getClass()).info("'{}' -> {}.{}({}:{})", getMapping(), cname, method, fname, no);
+            }
             Runnable job = () -> {
                 try {
                     Object result;
@@ -204,6 +212,7 @@ public final class Request implements org.homunculusframework.lang.Map<String, O
                         case CONTROLLER_ENDPOINT:
                             result = container.invoke(scope, this);
                             res.set(result);
+                            task.set(res);
                             break;
                         case WIDGET:
                             Scope widgetScope = DefaultNavigation.createChild(scope, this);
@@ -214,6 +223,7 @@ public final class Request implements org.homunculusframework.lang.Map<String, O
                                     LoggerFactory.getLogger(getClass()).error("failed to create {}", this.getMapping(), t);
                                 }
                                 res.set(component);
+                                task.set(res);
                             });
                             break;
                         case UNDEFINED:
@@ -227,7 +237,6 @@ public final class Request implements org.homunculusframework.lang.Map<String, O
                 } catch (Exception e) {
                     LoggerFactory.getLogger(getClass()).error("failed to execute Request '{}':", this.getMapping(), e);
                     res.setThrowable(e);
-                } finally {
                     task.set(res);
                 }
             };

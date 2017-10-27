@@ -211,7 +211,11 @@ public class DefaultNavigation implements Navigation {
                 task.set((Component) obj);
                 attachComponentTask(request, uisScope, task);
             } else {
-                LoggerFactory.getLogger(getClass()).error("invocation success, but result not useful to navigate (use ModelAndView): {} -> {}", request.getMapping(), obj);
+                if (obj == null) {
+                    LoggerFactory.getLogger(getClass()).error("invocation returned 'null' component, not useful for navigation: {} -> {}", request.getMapping(), obj);
+                } else {
+                    LoggerFactory.getLogger(getClass()).error("expected a 'component' or 'ModelAndView' but received '{}'", obj);
+                }
             }
         });
     }
