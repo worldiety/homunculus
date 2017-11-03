@@ -1,9 +1,14 @@
+{% include_relative _sidebar.md %}
+
+
 # homunculus
 
 The homunculus framework proposes solutions and receipts for building large Android applications.
 Homunculus makes it easy to create production-grade applications and services with absolute minimum hassle. It takes an opinionated view of the Android platform so that new and existing users can quickly get the job done respecting quality requirements.
 
 See the [Quick start](quickstart.md) for more details.
+
+
 
 
 ## Usage

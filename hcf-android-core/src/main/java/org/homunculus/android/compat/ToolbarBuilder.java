@@ -27,6 +27,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.*;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+
 import org.homunculus.android.compat.ActivityEventDispatcher.AbsActivityEventCallback;
 import org.homunculus.android.core.R;
 import org.homunculusframework.lang.Panic;
@@ -35,6 +36,7 @@ import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -317,6 +319,17 @@ public class ToolbarBuilder {
 
         holder.mToolbar = toolbar;
         holder.mChild = mContentView;
+
+
+        if (mToolbarTitleTextAppearance != null) {
+            Context ctx = mToolbarTitleTextAppearanceContext != null ? mToolbarSubTitleTextAppearanceContext : activity;
+            toolbar.setTitleTextAppearance(ctx, mToolbarTitleTextAppearance);
+        }
+
+        if (mToolbarSubTitleTextAppearance != null) {
+            Context ctx = mToolbarSubTitleTextAppearanceContext != null ? mToolbarSubTitleTextAppearanceContext : activity;
+            toolbar.setTitleTextAppearance(ctx, mToolbarSubTitleTextAppearance);
+        }
         return holder;
     }
 
