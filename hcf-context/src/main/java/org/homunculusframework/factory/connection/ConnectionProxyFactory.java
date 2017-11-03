@@ -28,6 +28,7 @@ import org.homunculusframework.lang.Result;
 import org.homunculusframework.scope.Scope;
 import org.homunculusframework.scope.SettableTask;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -102,25 +103,29 @@ public class ConnectionProxyFactory<T> {
     private static class ConnectionMethod {
         private final Object instance;
         private boolean notImplemented;
+        @Nullable
         private final Method instanceTarget;
         //used to detect and flag crossing concurrent invocations -> only the last call is not flagged as outdated
         private final AtomicInteger callGeneration;
         private final boolean interruptible;
 
-        public ConnectionMethod(Object instance, Method instanceTarget, boolean notImplemented) {
+        public ConnectionMethod(Object instance, @Nullable Method instanceTarget, boolean notImplemented) {
             this.instance = instance;
             this.notImplemented = notImplemented;
             this.instanceTarget = instanceTarget;
             this.callGeneration = new AtomicInteger();
-            this.interruptible = instanceTarget.getAnnotation(ThreadInterruptible.class) != null;
+            if (instanceTarget == null) {
+                this.interruptible = false;
+            } else {
+                this.interruptible = instanceTarget.getAnnotation(ThreadInterruptible.class) != null;
+            }
         }
 
         Task<Result<?>> invoke(Scope lifeTime, Method ifaceMethod, Handler handler, Object[] args) {
-            if (notImplemented) {
+            if (notImplemented || instanceTarget == null) {
                 SettableTask<Result<?>> task = SettableTask.create(lifeTime, ifaceMethod.getName() + "@" + mCounter.incrementAndGet());
                 String sig = Reflection.getName(instance.getClass()) + "." + ifaceMethod.getName();
                 RuntimeException e = new RuntimeException("connection signature invalid: " + sig);
-                //TODO offset varies between android platform, e.g. S3 needs 6 but PixelXL needs 7
                 e.setStackTrace(DefaultFactory.getCallStack(4)); //create a short stack trace, directly pointing to the callee
                 task.set(Result.
                         create().

@@ -17,6 +17,7 @@ package org.homunculus.android.compat;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.support.annotation.StyleRes;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.DrawerLayout.LayoutParams;
@@ -31,6 +32,7 @@ import org.homunculus.android.core.R;
 import org.homunculusframework.lang.Panic;
 import org.homunculusframework.scope.OnBeforeDestroyCallback;
 import org.homunculusframework.scope.Scope;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -102,7 +104,13 @@ public class ToolbarBuilder {
     private ContentViewHolder mDrawerLayout;
 
     private ToolbarContentConfiguratorListener toolbarContentConfiguratorListener;
+    private int generationId;
 
+    private Context mToolbarTitleTextAppearanceContext;
+    private Integer mToolbarTitleTextAppearance;
+
+    private Context mToolbarSubTitleTextAppearanceContext;
+    private Integer mToolbarSubTitleTextAppearance;
 
     private static final AtomicInteger sNextGeneratedId = new AtomicInteger(1);
 
@@ -135,6 +143,7 @@ public class ToolbarBuilder {
      */
     public <ContentView extends View, LeftDrawer extends View, RightDrawer extends View> ContentViewHolder<ToolbarHolder<ContentView>, LeftDrawer, RightDrawer> create(@Nullable Scope scope, EventAppCompatActivity activity, ContentView contentView, @Nullable LeftDrawer leftDrawer, @Nullable RightDrawer rightDrawer) {
 
+        generationId = sNextGeneratedId.incrementAndGet();
         if (scope != null) {
             scope.addOnBeforeDestroyCallback(obj -> {
                 mItems.clear();
@@ -153,14 +162,25 @@ public class ToolbarBuilder {
         return initDrawerLayout(activity, toolbar);
     }
 
+    private boolean isInvalidMenu() {
+        return generationId != sNextGeneratedId.get();
+    }
+
+    private void logInvalidMenu() {
+        LoggerFactory.getLogger(getClass()).warn("Toolbar is already invalid");
+    }
+
     private void initMenu(Scope scope, final EventAppCompatActivity activity) {
 
         activity.getEventDispatcher().register(scope, new AbsActivityEventCallback<EventAppCompatActivity>() {
 
-            private boolean mIsInflated = false;
 
             @Override
             public void onActionModeStarted(ActionMode mode) {
+                if (isInvalidMenu()) {
+                    logInvalidMenu();
+                    return;
+                }
                 super.onActionModeStarted(mode);
                 // Lock drawer while action mode is active
                 if (mDrawerLayout != null) {
@@ -170,6 +190,10 @@ public class ToolbarBuilder {
 
             @Override
             public void onActionModeFinished(ActionMode mode) {
+                if (isInvalidMenu()) {
+                    logInvalidMenu();
+                    return;
+                }
                 super.onActionModeFinished(mode);
                 // Unlock drawer when action mode is finished
                 if (mDrawerLayout != null) {
@@ -179,32 +203,41 @@ public class ToolbarBuilder {
 
             @Override
             public boolean onActivityCreateOptionsMenu(EventAppCompatActivity activity, Menu menu) {
+                if (isInvalidMenu()) {
+                    logInvalidMenu();
+                    return false;
+                }
                 return invalidateOptionsMenu(menu);
             }
 
             @Override
             public boolean onActivityPrepareOptionsMenu(EventAppCompatActivity activity, Menu menu) {
+                if (isInvalidMenu()) {
+                    logInvalidMenu();
+                    return false;
+                }
                 return invalidateOptionsMenu(menu);
             }
 
             private boolean invalidateOptionsMenu(Menu menu) {
-                if (!mIsInflated) {
-                    if (mMenuId != null) {
-                        activity.getMenuInflater().inflate(mMenuId, menu);
-                    } else {
-                        menu.clear();
-                    }
-                    mIsInflated = true;
-                    if (ToolbarBuilder.this.toolbarContentConfiguratorListener != null) {
-                        ToolbarBuilder.this.toolbarContentConfiguratorListener.onMenuCreated(menu);
-                    }
-                    return true;
+                menu.clear();
+                if (mMenuId != null) {
+                    activity.getMenuInflater().inflate(mMenuId, menu);
                 }
-                return false;
+
+                if (ToolbarBuilder.this.toolbarContentConfiguratorListener != null) {
+                    ToolbarBuilder.this.toolbarContentConfiguratorListener.onMenuCreated(menu);
+                }
+
+                return true;
             }
 
             @Override
             public boolean onActivityOptionsItemSelected(EventAppCompatActivity activity, MenuItem item) {
+                if (isInvalidMenu()) {
+                    logInvalidMenu();
+                    return false;
+                }
                 MenuItemClickListener itemListener = mItems.get(item.getItemId());
                 if (itemListener != null) {
                     itemListener.onMenuItemSelected(item);
@@ -213,6 +246,28 @@ public class ToolbarBuilder {
             }
         });
         activity.supportInvalidateOptionsMenu();
+    }
+
+    /**
+     * See also {@link Toolbar#setTitleTextAppearance(Context, int)}
+     *
+     * @param context the context to derive the appearance
+     * @param resId   the text appearance resource
+     */
+    public void setTitleTextAppearance(Context context, @StyleRes int resId) {
+        mToolbarTitleTextAppearanceContext = context;
+        mToolbarTitleTextAppearance = resId;
+    }
+
+    /**
+     * See also {@link Toolbar#setSubtitleTextAppearance(Context, int)}
+     *
+     * @param context the context to derive the appearance
+     * @param resId   the text appearance resource
+     */
+    public void setSubTitleTextAppearance(Context context, @StyleRes int resId) {
+        mToolbarSubTitleTextAppearanceContext = context;
+        mToolbarSubTitleTextAppearance = resId;
     }
 
     private ToolbarHolder initToolbar(EventAppCompatActivity activity) {
@@ -225,7 +280,7 @@ public class ToolbarBuilder {
             toolbar.setBackgroundColor(ContextCompat.getColor(activity, mToolbarColor));
         }
 
-        if (mTitleTextColor != null){
+        if (mTitleTextColor != null) {
             toolbar.setTitleTextColor(ContextCompat.getColor(activity, mTitleTextColor));
         }
 

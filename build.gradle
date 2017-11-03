@@ -1,27 +1,26 @@
 allprojects {
     repositories {
         jcenter()
-        maven {
-            url 'https://maven.google.com'
-        }
+        google()
     }
 
     tasks.withType(Javadoc) {
         options.addStringOption('Xdoclint:none', '-quiet')
     }
 
-    version = '0.0.26'
+    version = '0.0.29'
 }
 
 buildscript {
     repositories {
         jcenter()
         mavenCentral()
+        google()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.3.3'
-        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3"
-        classpath "com.github.dcendents:android-maven-gradle-plugin:1.5"
+        classpath 'com.android.tools.build:gradle:3.0.0'
+        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.0"
+        classpath "com.github.dcendents:android-maven-gradle-plugin:2.0"
     }
 }
 
@@ -48,7 +47,7 @@ configure(allprojects) { project ->
         }
 
         dependencies {
-            compile 'com.google.code.findbugs:jsr305:2.0.1'
+            compile 'com.google.code.findbugs:jsr305:3.0.2'
             compile 'org.slf4j:slf4j-api:1.7.25'
         }
 
