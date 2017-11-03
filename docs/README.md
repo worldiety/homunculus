@@ -28,6 +28,7 @@ Homunculus makes it easy to create production-grade applications and services wi
 ```
 
 3. Create your own application class
+
 ```java
 import org.homunculus.android.compat.CompatApplication;
 import org.homunculusframework.factory.container.Configuration;
@@ -53,6 +54,7 @@ public class MyApplication extends CompatApplication {
 ```
 
 Don't forget to annotate it in your AndroidManifest.xml:
+
 ```xml
 <application
             android:name=".MyApplication"
@@ -61,6 +63,7 @@ Don't forget to annotate it in your AndroidManifest.xml:
 ```
 
 4. Create your Activity
+
 ```java
 import org.homunculus.android.compat.EventAppCompatActivity;
 import org.homunculusframework.navigation.DefaultNavigation;
