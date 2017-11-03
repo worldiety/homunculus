@@ -6,8 +6,8 @@ Homunculus makes it easy to create production-grade applications and services wi
 
 ## Usage
 
-1. Setup your Android project as usual
-2. Add the following to your build.gradle (app module)
+ 1. Setup your Android project as usual
+ 2. Add the following to your build.gradle (app module)
 
 ```groovy
     //hcf for android, also includes the core and context artifacts
@@ -27,7 +27,7 @@ Homunculus makes it easy to create production-grade applications and services wi
     
 ```
 
-3. Create your own application class
+ 3. Create your own application class
 
 ```java
 import org.homunculus.android.compat.CompatApplication;
@@ -62,7 +62,7 @@ Don't forget to annotate it in your AndroidManifest.xml:
 </application>            
 ```
 
-4. Create your Activity
+ 4. Create your Activity
 
 ```java
 import org.homunculus.android.compat.EventAppCompatActivity;
@@ -82,7 +82,7 @@ public class CartActivity extends EventAppCompatActivity{
         Navigation navigation = new DefaultNavigation(getScope());
         getScope().put(Android.NAME_NAVIGATION, navigation);
 
-		//forward to the first UIS
+        //forward to the first UIS
         navigation.forward(new Request(MyUIS.UID));
         
     }
