@@ -89,13 +89,7 @@ public class CartActivity extends EventAppCompatActivity{
     
     @Override
     public void onBackPressed() {
-        Navigation navigation = getScope().resolve(Navigation.class);
-        if (navigation != null) {
-            if (!navigation.backward()) {
-                super.onBackPressed();
-            }
-        } else {
-            LoggerFactory.getLogger(getClass()).error("no navigation available");
+        if (!onDispatchNavigationBackPressed()) {
             super.onBackPressed();
         }
     }

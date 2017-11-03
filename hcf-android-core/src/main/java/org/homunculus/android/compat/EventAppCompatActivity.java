@@ -29,8 +29,10 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.*;
 import android.view.ActionMode.Callback;
+
 import org.homunculus.android.core.Android;
 import org.homunculusframework.lang.Panic;
+import org.homunculusframework.navigation.Navigation;
 import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
 
@@ -109,7 +111,6 @@ public class EventAppCompatActivity extends AppCompatActivity {
         mEverCreated = true;
         mScope.put(Android.NAME_ACTIVITY_EVENT_DISPATCHER, mEventDispatcher);
     }
-
 
 
     public ActivityEventDispatcher<EventAppCompatActivity> getEventDispatcher() {
@@ -487,6 +488,25 @@ public class EventAppCompatActivity extends AppCompatActivity {
         }
     }
 
+
+    /**
+     * Assumes a {@link Navigation} instance and goes backwards on it.
+     *
+     * @return true if the navigation is about going backwards, false otherwise (either because the stack is empty or there is no navigation at all)
+     */
+    protected boolean onDispatchNavigationBackPressed() {
+        Navigation navigation = getScope().resolve(Navigation.class);
+        if (navigation != null) {
+            if (!navigation.backward()) {
+                return false;
+            } else {
+                return true;
+            }
+        } else {
+            LoggerFactory.getLogger(getClass()).error("no navigation available");
+            return false;
+        }
+    }
 
     @Override
     public void onBackPressed() {

@@ -3,6 +3,7 @@ package org.homunculus.android.example.module.cart;
 import android.app.AlertDialog.Builder;
 import android.content.Context;
 import android.os.Bundle;
+
 import org.homunculus.android.compat.EventAppCompatActivity;
 import org.homunculus.android.core.Android;
 import org.homunculus.android.example.common.ViewWait;
@@ -30,20 +31,10 @@ public class CartActivity extends EventAppCompatActivity implements UncaughtExce
         nav.forward(new Request("/cart/list").put("id", 1234));
     }
 
-    @Override
-    protected void attachBaseContext(Context newBase) {
-        super.attachBaseContext(newBase);
-    }
 
     @Override
     public void onBackPressed() {
-        Navigation navigation = getScope().resolve(Navigation.class);
-        if (navigation != null) {
-            if (!navigation.backward()) {
-                super.onBackPressed();
-            }
-        } else {
-            LoggerFactory.getLogger(getClass()).error("no navigation available");
+        if (!onDispatchNavigationBackPressed()) {
             super.onBackPressed();
         }
     }
