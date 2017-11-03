@@ -1,6 +1,3 @@
-{% include_relative _sidebar.md %}
-
-
 # homunculus
 
 The homunculus framework proposes solutions and receipts for building large Android applications.
