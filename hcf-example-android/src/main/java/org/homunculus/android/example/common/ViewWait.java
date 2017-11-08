@@ -3,7 +3,8 @@ package org.homunculus.android.example.common;
 import android.content.Context;
 import android.widget.FrameLayout;
 import android.widget.ProgressBar;
-import org.homunculus.android.compat.Display;
+
+import org.homunculus.android.component.Display;
 
 public class ViewWait extends FrameLayout {
     public ViewWait(Context context) {

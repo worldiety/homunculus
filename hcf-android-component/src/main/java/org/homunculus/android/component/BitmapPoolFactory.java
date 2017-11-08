@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.homunculus.android.compat;
+package org.homunculus.android.component;
 
 import android.annotation.TargetApi;
 import android.graphics.Bitmap;
@@ -22,10 +22,12 @@ import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.Handler;
 import android.os.Looper;
+
 import org.homunculusframework.lang.Panic;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
@@ -69,9 +71,17 @@ public class BitmapPoolFactory {
      * is never shrunk, so be careful what you read, e.g. a fullhd frame will take more than 8 MiB. However to
      * lower the pressure to the stupid Android GC we sacrifice throughput by synchronizing globally, so NEVER
      * call this method from the UI thread.
+     * <p>
+     * The format is:
+     * <pre>
+     *     bool available   1 byte
+     *     int width        4 byte
+     *     int height       4 byte
+     *     int type         1 byte, [2 = ARGB_8888]
+     * </pre>
      *
-     * @param in
-     * @return
+     * @param in the source
+     * @return the instance or null if not available
      * @throws IOException
      */
     @Nullable
@@ -82,7 +92,11 @@ public class BitmapPoolFactory {
         }
         int width = in.readInt();
         int height = in.readInt();
-        int bytes = in.readInt();
+        int type = in.readUnsignedByte();
+        if (type != Config.ARGB_8888.ordinal()) {
+            throw new Panic("format not implemented " + type);
+        }
+        int bytes = width * height * 4;
         Bitmap bmp = getDefaultPool().borrowBitmap(width, height, Config.ARGB_8888);
         synchronized (BitmapPoolFactory.class) {
             if (sTmp.capacity() < bytes) {
@@ -99,11 +113,11 @@ public class BitmapPoolFactory {
     /**
      * The reverse function of {@link #readPixel(DataInput)}
      *
-     * @param src
-     * @param dst
+     * @param src the bitmap
+     * @param dst the sink
      * @throws IOException
      */
-    public static void writePixel(Bitmap src, DataOutput dst) throws IOException {
+    public static void writePixel(@Nullable Bitmap src, DataOutput dst) throws IOException {
         if (src != null && src.getConfig() != Config.ARGB_8888) {
             throw new Panic("only bitmaps of the type ARGB_8888 are supported");
         }
@@ -114,7 +128,7 @@ public class BitmapPoolFactory {
         dst.writeInt(src.getWidth());
         dst.writeInt(src.getHeight());
         int bytes = src.getWidth() * src.getHeight() * 4;
-        dst.writeInt(bytes);
+        dst.writeByte(src.getConfig().ordinal());
         synchronized (BitmapPoolFactory.class) {
             if (sTmp.capacity() < bytes) {
                 sTmp = ByteBuffer.allocate(bytes);

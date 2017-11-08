@@ -17,18 +17,8 @@ package org.homunculus.android.core;
 
 
 import android.content.Context;
-import org.homunculus.android.compat.ContextScope;
-import org.homunculus.android.flavor.AndroidFlavor;
-import org.homunculusframework.factory.component.DefaultFactory;
-import org.homunculusframework.factory.container.Configuration;
-import org.homunculusframework.factory.flavor.ee.EEFlavor;
-import org.homunculusframework.factory.flavor.hcf.HomunculusFlavor;
-import org.homunculusframework.factory.flavor.spring.SpringFlavor;
-import org.homunculusframework.lang.Panic;
-import org.homunculusframework.navigation.Navigation;
-import org.homunculusframework.scope.Scope;
 
-import java.io.File;
+import org.homunculusframework.navigation.Navigation;
 
 /**
  * A simple bootstrap helper class to setup HCF in an android environment. To make the usage of HC components simpler
@@ -49,7 +39,7 @@ public class Android {
     public final static String NAME_CONTEXT = "$context";
 
     /**
-     * The name for {@link org.homunculus.android.compat.ActivityEventDispatcher}
+     * The name for {@link ActivityEventDispatcher}
      */
     public final static String NAME_ACTIVITY_EVENT_DISPATCHER = "$eventDispatcher";
 

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.homunculus.android.compat;
+package org.homunculus.android.component;
 
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
@@ -40,7 +40,7 @@ public interface BitmapPool {
     /**
      * returns a bitmap back into the pool
      *
-     * @param bmp
+     * @param bmp the bitmap
      */
     void returnBitmap(@Nullable Bitmap bmp);
 

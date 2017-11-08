@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.homunculus.android.compat;
+package org.homunculus.android.component;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.StyleRes;
@@ -23,12 +24,15 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.DrawerLayout.LayoutParams;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.*;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
-import org.homunculus.android.compat.ActivityEventDispatcher.AbsActivityEventCallback;
+import org.homunculus.android.core.ActivityEventDispatcher;
+import org.homunculus.android.core.ActivityEventDispatcher.AbsActivityEventCallback;
+import org.homunculus.android.core.ActivityEventOwner;
 import org.homunculus.android.core.R;
 import org.homunculusframework.lang.Panic;
 import org.homunculusframework.scope.OnBeforeDestroyCallback;
@@ -124,26 +128,26 @@ public class ToolbarBuilder {
     }
 
     /**
-     * See {@link #create(Scope, EventAppCompatActivity, View, View, View)}
+     * See {@link #create(Scope, AppCompatActivity, ActivityEventOwner, View, View, View)}
      */
-    public <ContentView extends View, LeftDrawer extends View, RightDrawer extends View> ContentViewHolder<ToolbarHolder<ContentView>, LeftDrawer, RightDrawer> create(@Nullable Scope scope, EventAppCompatActivity activity, ContentView contentView) {
-        return create(scope, activity, contentView, null, null);
+    public <ContentView extends View, LeftDrawer extends View, RightDrawer extends View> ContentViewHolder<ToolbarHolder<ContentView>, LeftDrawer, RightDrawer> create(@Nullable Scope scope, AppCompatActivity activity, ActivityEventOwner owner, ContentView contentView) {
+        return create(scope, activity, owner, contentView, null, null);
     }
 
     /**
-     * See {@link #create(Scope, EventAppCompatActivity, View, View, View)}
+     * See {@link #create(Scope, AppCompatActivity, ActivityEventOwner, View, View, View)}
      */
-    public <ContentView extends View, LeftDrawer extends View, RightDrawer extends View> ContentViewHolder<ToolbarHolder<ContentView>, LeftDrawer, RightDrawer> create(@Nullable Scope scope, EventAppCompatActivity activity, ContentView contentView, @Nullable LeftDrawer leftDrawer) {
-        return create(scope, activity, contentView, leftDrawer, null);
+    public <ContentView extends View, LeftDrawer extends View, RightDrawer extends View> ContentViewHolder<ToolbarHolder<ContentView>, LeftDrawer, RightDrawer> create(@Nullable Scope scope, AppCompatActivity activity, ActivityEventOwner owner, ContentView contentView, @Nullable LeftDrawer leftDrawer) {
+        return create(scope, activity, owner, contentView, leftDrawer, null);
     }
 
     /**
      * Creates the toolbar and binds optionally the life cycle of it (like registered callbacks)
-     * to the scope of the given context. See also {@link ContextScope}. Elements are cleared using
+     * to the scope of the given context. See also {@link org.homunculus.android.core.ContextScope}. Elements are cleared using
      * {@link Scope#addOnBeforeDestroyCallback(OnBeforeDestroyCallback)}
      * <p>
      */
-    public <ContentView extends View, LeftDrawer extends View, RightDrawer extends View> ContentViewHolder<ToolbarHolder<ContentView>, LeftDrawer, RightDrawer> create(@Nullable Scope scope, EventAppCompatActivity activity, ContentView contentView, @Nullable LeftDrawer leftDrawer, @Nullable RightDrawer rightDrawer) {
+    public <ContentView extends View, LeftDrawer extends View, RightDrawer extends View> ContentViewHolder<ToolbarHolder<ContentView>, LeftDrawer, RightDrawer> create(@Nullable Scope scope, AppCompatActivity activity, ActivityEventOwner owner, ContentView contentView, @Nullable LeftDrawer leftDrawer, @Nullable RightDrawer rightDrawer) {
 
         generationId = sNextGeneratedId.incrementAndGet();
         if (scope != null) {
@@ -157,7 +161,7 @@ public class ToolbarBuilder {
         mLeftDrawer = leftDrawer;
         mRightDrawer = rightDrawer;
         // Initialize menu
-        initMenu(scope, activity);
+        initMenu(scope, activity, owner.getEventDispatcher());
         // Initialize toolbar
         ToolbarHolder toolbar = initToolbar(activity);
         // Initialize navigation drawer
@@ -172,9 +176,9 @@ public class ToolbarBuilder {
         LoggerFactory.getLogger(getClass()).warn("Toolbar is already invalid");
     }
 
-    private void initMenu(Scope scope, final EventAppCompatActivity activity) {
+    private void initMenu(Scope scope, AppCompatActivity activity, final ActivityEventDispatcher dispatcher) {
 
-        activity.getEventDispatcher().register(scope, new AbsActivityEventCallback<EventAppCompatActivity>() {
+        dispatcher.register(scope, new AbsActivityEventCallback<Activity>() {
 
 
             @Override
@@ -204,7 +208,7 @@ public class ToolbarBuilder {
             }
 
             @Override
-            public boolean onActivityCreateOptionsMenu(EventAppCompatActivity activity, Menu menu) {
+            public boolean onActivityCreateOptionsMenu(Activity activity, Menu menu) {
                 if (isInvalidMenu()) {
                     logInvalidMenu();
                     return false;
@@ -213,7 +217,7 @@ public class ToolbarBuilder {
             }
 
             @Override
-            public boolean onActivityPrepareOptionsMenu(EventAppCompatActivity activity, Menu menu) {
+            public boolean onActivityPrepareOptionsMenu(Activity activity, Menu menu) {
                 if (isInvalidMenu()) {
                     logInvalidMenu();
                     return false;
@@ -235,7 +239,7 @@ public class ToolbarBuilder {
             }
 
             @Override
-            public boolean onActivityOptionsItemSelected(EventAppCompatActivity activity, MenuItem item) {
+            public boolean onActivityOptionsItemSelected(Activity activity, MenuItem item) {
                 if (isInvalidMenu()) {
                     logInvalidMenu();
                     return false;
@@ -272,7 +276,7 @@ public class ToolbarBuilder {
         mToolbarSubTitleTextAppearance = resId;
     }
 
-    private ToolbarHolder initToolbar(EventAppCompatActivity activity) {
+    private ToolbarHolder initToolbar(AppCompatActivity activity) {
         Toolbar toolbar = new Toolbar(activity);
         int barSize = (int) activity.getResources().getDimension(R.dimen.toolbarbuilder_barheight);
         toolbar.setMinimumHeight(barSize);
@@ -334,7 +338,7 @@ public class ToolbarBuilder {
     }
 
 
-    private ContentViewHolder<ToolbarHolder<?>, ?, ?> initDrawerLayout(EventAppCompatActivity activity, ToolbarHolder<View> contentLayout) {
+    private ContentViewHolder<ToolbarHolder<?>, ?, ?> initDrawerLayout(AppCompatActivity activity, ToolbarHolder<View> contentLayout) {
         if (mUpAction != null) {
             contentLayout.getToolbar().setNavigationOnClickListener(v -> mUpAction.run());
         }

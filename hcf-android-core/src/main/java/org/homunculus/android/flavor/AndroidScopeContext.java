@@ -16,7 +16,7 @@
 package org.homunculus.android.flavor;
 
 import android.content.Context;
-import org.homunculus.android.compat.ContextScope;
+import org.homunculus.android.core.ContextScope;
 import org.homunculus.android.core.Android;
 import org.homunculusframework.factory.container.Configuration;
 import org.homunculusframework.factory.container.ScopePrepareProcessor;
@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Provides a custom wrapper for any context into the given scope, wrapping the actual scope, so that
- * {@link org.homunculus.android.compat.ContextScope#getScope(Context)} returns the according scope.
+ * {@link ContextScope#getScope(Context)} returns the according scope.
  *
  * @author Torben Schinke
  * @since 1.0

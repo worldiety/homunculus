@@ -75,11 +75,12 @@ public interface AnnotatedComponentProcessor {
 
     enum ComponentType {
         /**
-         * Widgets can be either a simple view or an entire UIS. Because there is no exact definition and in reality
-         * this may differ between use cases, we do not distinguish them. An UIS can be annotated for documentation
-         * purpose using {@link UserInterfaceState}. A widget is typically never created in the root scope.
+         * Beans are just pojos but can be also a simple view or an entire UIS.
+         * Because there is no exact definition and in reality this may differ between use cases, we do not distinguish
+         * them. An UIS can be annotated for documentation purpose using {@link UserInterfaceState}.
+         * A widget is typically never created in the root scope.
          */
-        WIDGET,
+        BEAN,
 
         /**
          * A controller ever exists of a single instance per container and is usually created in the root scope.

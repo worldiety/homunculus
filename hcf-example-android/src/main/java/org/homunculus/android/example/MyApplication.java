@@ -3,7 +3,7 @@ package org.homunculus.android.example;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.android.ContextHolder;
 import org.homunculus.android.compat.CompatApplication;
-import org.homunculus.android.compat.UnbreakableCrashHandler;
+import org.homunculus.android.component.UnbreakableCrashHandler;
 import org.homunculus.android.example.module.benchmark.Register;
 import org.homunculus.android.example.module.cart.*;
 import org.homunculus.android.example.module.company.CompanyController;
@@ -14,6 +14,7 @@ import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
+
 import java.io.File;
 
 public class MyApplication extends CompatApplication {
@@ -38,7 +39,7 @@ public class MyApplication extends CompatApplication {
         cfg.add(CartUIS2.class);
 
         //try performance on real device
-        Register.register(cfg);
+//        Register.register(cfg);
         LoggerFactory.getLogger(getClass()).info("configuration time {}ms", System.currentTimeMillis() - start);
 
         //setup the entity manager

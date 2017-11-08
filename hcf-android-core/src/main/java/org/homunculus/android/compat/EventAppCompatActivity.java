@@ -24,13 +24,17 @@ import android.graphics.Canvas;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.PersistableBundle;
+import android.os.Process;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.*;
 import android.view.ActionMode.Callback;
 
+import org.homunculus.android.core.ActivityEventDispatcher;
+import org.homunculus.android.core.ActivityEventOwner;
 import org.homunculus.android.core.Android;
+import org.homunculus.android.core.ContextScope;
 import org.homunculusframework.lang.Panic;
 import org.homunculusframework.navigation.Navigation;
 import org.homunculusframework.scope.Scope;
@@ -44,11 +48,25 @@ import org.slf4j.LoggerFactory;
  * @author Torben Schinke
  * @since 1.0
  */
-public class EventAppCompatActivity extends AppCompatActivity {
+public class EventAppCompatActivity extends AppCompatActivity implements ActivityEventOwner {
     private ActivityEventDispatcher<EventAppCompatActivity> mEventDispatcher;
     private boolean mEverCreated;
     private Scope mScope;
     private View mContentView;
+
+
+    /**
+     * Brute forces the termination of the current process. There is no guarantee that finalizers or {@link Runtime#addShutdownHook(Thread)}
+     * are processed.
+     */
+    public void finishApplication() {
+        System.runFinalizersOnExit(true);
+        try {
+            Process.killProcess(Process.myPid());
+        } finally {
+            System.exit(0);
+        }
+    }
 
     @Override
     protected void attachBaseContext(Context base) {
@@ -113,6 +131,7 @@ public class EventAppCompatActivity extends AppCompatActivity {
     }
 
 
+    @Override
     public ActivityEventDispatcher<EventAppCompatActivity> getEventDispatcher() {
         return mEventDispatcher;
     }

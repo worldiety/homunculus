@@ -20,15 +20,13 @@ import org.homunculusframework.factory.ObjectDestroyer;
 import org.homunculusframework.factory.ObjectInjector;
 import org.homunculusframework.factory.connection.Connection;
 import org.homunculusframework.factory.container.AnnotatedComponentProcessor.AnnotatedComponent;
-import org.homunculusframework.factory.flavor.hcf.Widget;
 import org.homunculusframework.factory.component.DefaultFactory;
 import org.homunculusframework.lang.Panic;
 import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
-import javax.inject.Named;
-import javax.inject.Singleton;
+
 import java.util.*;
 
 /**
@@ -42,7 +40,7 @@ public class Configuration {
     /**
      * Widget id -> widget class
      */
-    private final Map<String, Class<?>> widgets;
+    private final Map<String, Class<?>> beans;
     private final Map<String, Class<?>> immutableWidgets;
 
 
@@ -57,7 +55,7 @@ public class Configuration {
     private final List<Class<Connection>> controllerConnections;
 
     /**
-     * Only used for error tracking, in a configuration all id's should be unique, even they don't share a common mindset (e.g. widgets and controllers)
+     * Only used for error tracking, in a configuration all id's should be unique, even they don't share a common mindset (e.g. beans and controllers)
      */
     private final Map<String, Class<?>> definedIds;
 
@@ -80,8 +78,8 @@ public class Configuration {
     private final ArrayList<ScopePrepareProcessor> scopePrepareProcessors;
 
     public Configuration(Scope scope) {
-        this.widgets = new HashMap<>();
-        this.immutableWidgets = Collections.unmodifiableMap(widgets);
+        this.beans = new HashMap<>();
+        this.immutableWidgets = Collections.unmodifiableMap(beans);
         this.controllers = new ArrayList<>();
         this.definedIds = new HashMap<>();
         this.rootScope = scope;
@@ -187,17 +185,17 @@ public class Configuration {
                     continue;
                 }
                 switch (component.getType()) {
-                    case WIDGET:
+                    case BEAN:
                         Class<?> other = definedIds.get(component.getName());
                         if (other != clazz && other != null) {
                             LoggerFactory.getLogger(getClass()).error("{} must be unique: both {} and {} share the same id", component.getName(), clazz, other);
                             return false;
                         }
 
-                        widgets.put(component.getName(), clazz);
+                        beans.put(component.getName(), clazz);
                         definedIds.put(component.getName(), clazz);
                         LoggerFactory.getLogger(getClass()).info("added @Widget {}", clazz);
-                        return true;
+                        continue;//go on and ask other processors, e.g. a controller is also always a bean
                     case CONTROLLER:
                         other = definedIds.get(component.getName());
                         if (other != clazz && other != null) {
@@ -206,12 +204,13 @@ public class Configuration {
                         }
                         definedIds.put(component.getName(), clazz);
                         controllers.add(component);
+                        beans.put(component.getName(), clazz);
                         LoggerFactory.getLogger(getClass()).info("added @Controller {}", clazz);
-                        return true;
+                        continue;
                     case CONTROLLER_CONNECTION:
                         controllerConnections.add((Class<Connection>) clazz);
                         LoggerFactory.getLogger(getClass()).info("added @Connection {}", clazz);
-                        return true;
+                        return true;//cancel early, this one cannot be a bean
                     default:
                         throw new Panic();
                 }
@@ -233,9 +232,9 @@ public class Configuration {
     }
 
     /**
-     * Returns the widget classes registered by {@link #add(Class)}
+     * Returns the bean classes registered by {@link #add(Class)}
      */
-    public Map<String, Class<?>> getWidgets() {
+    public Map<String, Class<?>> getBeans() {
         return immutableWidgets;
     }
 

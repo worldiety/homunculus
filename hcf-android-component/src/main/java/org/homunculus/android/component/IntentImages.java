@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.homunculus.android.compat;
+package org.homunculus.android.component;
 
 import android.app.Activity;
 import android.content.ClipData;
@@ -26,8 +26,9 @@ import android.os.Environment;
 import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.support.v4.content.FileProvider;
-import org.homunculus.android.compat.ActivityEventDispatcher.AbsActivityEventCallback;
-import org.homunculus.android.compat.ActivityEventDispatcher.ActivityEventCallback;
+import org.homunculus.android.core.ActivityEventDispatcher;
+import org.homunculus.android.core.ActivityEventDispatcher.AbsActivityEventCallback;
+import org.homunculus.android.core.ActivityEventDispatcher.ActivityEventCallback;
 import org.homunculusframework.concurrent.Async;
 import org.homunculusframework.concurrent.Task;
 import org.homunculusframework.lang.Destroyable;

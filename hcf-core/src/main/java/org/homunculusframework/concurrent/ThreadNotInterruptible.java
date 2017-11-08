@@ -18,10 +18,11 @@ package org.homunculusframework.concurrent;
 import java.lang.annotation.*;
 
 /**
- * Marks a method to be safe to use with {@link Thread#interrupt()} which cannot be assumed in general without
- * violating invariants, e.g. NIO based I/O is not safe to use with interrupts because channels are closed automatically
+ * Marks a method to be NOT safe to use with {@link Thread#interrupt()}. Background: not all interrupts are safe but
+ * violate invariants, e.g. NIO based I/O is not safe to use with interrupts because channels are closed automatically
  * and throw {@link java.nio.channels.ClosedByInterruptException} which is usually not what the caller expects (e.g.
- * when working with a database using NIO and interrupting a query, resulting in a closed db, is not the expected result)
+ * when working with a database using NIO and interrupting a query, resulting in a closed db, is not the expected result).
+ * A developer can mark a controller's endpoint method to avoid interruptions from tasks.
  *
  * @author Torben Schinke
  * @since 1.0
@@ -29,5 +30,5 @@ import java.lang.annotation.*;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface ThreadInterruptible {
+public @interface ThreadNotInterruptible {
 }

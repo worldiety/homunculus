@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.homunculus.android.compat;
+package org.homunculus.android.component;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
-import org.homunculus.android.compat.ActivityEventDispatcher.AbsActivityEventCallback;
+
+import org.homunculus.android.core.ActivityEventDispatcher;
+import org.homunculus.android.core.ActivityEventDispatcher.AbsActivityEventCallback;
+import org.homunculus.android.core.ContextScope;
 import org.homunculusframework.concurrent.Task;
 import org.homunculusframework.lang.Destroyable;
 import org.homunculusframework.lang.Result;

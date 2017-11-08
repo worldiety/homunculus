@@ -4,10 +4,11 @@ import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
+
 import org.homunculus.android.compat.EventAppCompatActivity;
-import org.homunculus.android.compat.ToolbarBuilder;
-import org.homunculus.android.compat.ToolbarBuilder.ContentViewHolder;
-import org.homunculus.android.compat.ToolbarBuilder.ToolbarHolder;
+import org.homunculus.android.component.ToolbarBuilder;
+import org.homunculus.android.component.ToolbarBuilder.ContentViewHolder;
+import org.homunculus.android.component.ToolbarBuilder.ToolbarHolder;
 
 public class ToolbarActivity extends EventAppCompatActivity {
 
@@ -22,7 +23,7 @@ public class ToolbarActivity extends EventAppCompatActivity {
     private static ContentViewHolder<ToolbarHolder<MyContentView>, MyLeftDrawer, MyRightDrawer> applyState(EventAppCompatActivity context) {
         return ToolbarBuilder.
                 define().
-                create(null, context, new MyContentView(context), new MyLeftDrawer(context), new MyRightDrawer(context));
+                create(null, context, context, new MyContentView(context), new MyLeftDrawer(context), new MyRightDrawer(context));
     }
 
     private static class MyContentView extends View {

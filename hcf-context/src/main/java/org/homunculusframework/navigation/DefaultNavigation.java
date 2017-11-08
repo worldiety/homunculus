@@ -26,6 +26,7 @@ import org.homunculusframework.scope.SettableTask;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -250,7 +251,7 @@ public class DefaultNavigation implements Navigation {
             if (container == null) {
                 LoggerFactory.getLogger(getClass()).error("no container found in scope, tearDownOldAndApplyNew discarded");
             } else {
-                container.destroyComponent(oldUIS.scope, oldUIS.widget, true).whenDone(component -> {
+                container.destroyComponent(oldUIS.scope, oldUIS.bean, true).whenDone(component -> {
                     if (!component.getFailures().isEmpty()) {
                         LoggerFactory.getLogger(getClass()).error("problems destroying UIS: {}", component.get());
                         for (Throwable t : component.getFailures()) {
@@ -289,19 +290,19 @@ public class DefaultNavigation implements Navigation {
      */
     public final static class UserInterfaceState {
         private final Scope scope;
-        private final Object widget;
+        private final Object bean;
         private final Request request;
 
-        UserInterfaceState(Request request, Scope scope, Object widget) {
+        UserInterfaceState(Request request, Scope scope, Object bean) {
             this.request = request;
             this.scope = scope;
-            this.widget = widget;
+            this.bean = bean;
         }
 
         @Override
         public String toString() {
-            if (widget != null) {
-                return Reflection.getName(widget.getClass());
+            if (bean != null) {
+                return Reflection.getName(bean.getClass());
             } else {
                 return "uis(null)";
             }
@@ -317,14 +318,14 @@ public class DefaultNavigation implements Navigation {
         }
 
         /**
-         * Returns the instantiated widget class which may be anything, even a simple pojo.
+         * Returns the instantiated bean class which may be anything, even a simple pojo.
          * Usually a UIS applies itself to the screen or window with a  {@link javax.annotation.PostConstruct}
-         * and is annotated itself with {@link org.homunculusframework.factory.flavor.hcf.Widget}.
+         * and is annotated itself with {@link javax.inject.Named}.
          *
-         * @return the widget
+         * @return the bean
          */
-        public Object getWidget() {
-            return widget;
+        public Object getBean() {
+            return bean;
         }
 
         /**

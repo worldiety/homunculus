@@ -18,6 +18,7 @@ package org.homunculus.android.compat;
 import android.app.Application;
 import android.content.Context;
 import org.homunculus.android.core.Android;
+import org.homunculus.android.core.ContextScope;
 import org.homunculus.android.flavor.AndroidFlavor;
 import org.homunculusframework.factory.component.DefaultFactory;
 import org.homunculusframework.factory.container.Configuration;
@@ -76,7 +77,6 @@ public class CompatApplication extends Application {
         configuration.setObjectInjector(defaultFactory);
         configuration.setObjectDestroyer(defaultFactory);
 
-        appScope.put(Display.NAME_DISPLAY, new Display(this));
 
         return configuration;
     }

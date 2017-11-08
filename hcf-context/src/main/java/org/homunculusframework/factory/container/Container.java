@@ -22,7 +22,6 @@ import org.homunculusframework.factory.connection.Connection;
 import org.homunculusframework.factory.connection.ConnectionProxyFactory;
 import org.homunculusframework.factory.container.AnnotatedComponentProcessor.AnnotatedComponent;
 import org.homunculusframework.factory.flavor.hcf.Execute;
-import org.homunculusframework.factory.flavor.hcf.Widget;
 import org.homunculusframework.lang.Panic;
 import org.homunculusframework.lang.Reflection;
 import org.homunculusframework.scope.Scope;
@@ -32,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import javax.inject.Named;
+
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -202,7 +202,7 @@ public final class Container {
         if (controllerEndpoints.containsKey(request.getMapping())) {
             return RequestType.CONTROLLER_ENDPOINT;
         }
-        if (configuration.getWidgets().containsKey(request.getMapping())) {
+        if (configuration.getBeans().containsKey(request.getMapping())) {
             return RequestType.WIDGET;
         }
         return RequestType.UNDEFINED;
@@ -231,7 +231,7 @@ public final class Container {
      */
     public Task<Component<?>> createWidget(Scope scope, String widgetId) {
         widgetId = normalize(widgetId);
-        Class widget = configuration.getWidgets().get(widgetId);
+        Class widget = configuration.getBeans().get(widgetId);
         if (widget == null) {
             List<Throwable> throwables = new ArrayList<>();
             throwables.add(new RuntimeException("@Widget not defined: '" + widgetId + "'. You need to add it to the configuration first."));
@@ -245,7 +245,11 @@ public final class Container {
     /**
      * Runs all {@link ScopePrepareProcessor}s to prepare the given scope. This may be quite expensive and could involve creating
      * a lot of proxy instance etc.
+     * <p>
+     *
+     * @deprecated this is not a good idea, because the solution to create all(!!!) proxy instances here is slow and unnecessary -> @inject + create should resolve and create that only if actually required
      */
+    @Deprecated
     public void prepareScope(Scope scope) {
         final int s = getConfiguration().getScopePrepareProcessors().size();
         for (int i = 0; i < s; i++) {

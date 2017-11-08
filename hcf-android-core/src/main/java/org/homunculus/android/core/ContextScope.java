@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.homunculus.android.compat;
+package org.homunculus.android.core;
 
 import android.app.Activity;
 import android.arch.lifecycle.Lifecycle.Event;
@@ -22,7 +22,7 @@ import android.arch.lifecycle.LifecycleOwner;
 import android.arch.lifecycle.OnLifecycleEvent;
 import android.content.Context;
 import android.content.ContextWrapper;
-import org.homunculus.android.core.Android;
+
 import org.homunculusframework.scope.Scope;
 
 import javax.annotation.Nullable;

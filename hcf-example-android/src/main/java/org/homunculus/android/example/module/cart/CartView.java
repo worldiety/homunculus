@@ -7,12 +7,12 @@ import android.graphics.drawable.Drawable;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import org.homunculus.android.compat.Permissions;
+
+import org.homunculus.android.component.Permissions;
 import org.homunculus.android.example.module.company.CompanyController;
 import org.homunculus.android.flavor.Resource;
 import org.homunculus.android.example.R;
 import org.homunculusframework.factory.flavor.hcf.Persistent;
-import org.homunculusframework.factory.flavor.hcf.Widget;
 import org.homunculusframework.factory.container.Request;
 import org.homunculusframework.navigation.Navigation;
 import org.slf4j.LoggerFactory;
@@ -27,7 +27,7 @@ import java.util.UUID;
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 
-@Widget("/cart/view/list")
+@Named("/cart/view/list")
 public class CartView extends LinearLayout {
 
     @Inject

@@ -18,7 +18,6 @@ package org.homunculusframework.factory.container;
 import org.homunculusframework.concurrent.Task;
 import org.homunculusframework.factory.component.DefaultFactory;
 import org.homunculusframework.factory.flavor.hcf.Persistent;
-import org.homunculusframework.factory.flavor.hcf.Widget;
 import org.homunculusframework.lang.Function;
 import org.homunculusframework.lang.Panic;
 import org.homunculusframework.lang.Result;
@@ -29,6 +28,7 @@ import org.homunculusframework.scope.SettableTask;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
@@ -36,7 +36,7 @@ import java.util.TreeMap;
 /**
  * Represents the request to a resource. Usually this should refer to an
  * annotated backend controller containing a method annotated with a request mapping
- * but it may also refer to another {@link Widget} (or UIS) directly.
+ * but it may also refer to another {@link javax.inject.Named} (or UIS) directly.
  * Even platform specific resource may be possible and depends on the actual configuration. At the end
  * this mechanism should provide as much freedom as possible.
  * <p>

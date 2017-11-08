@@ -15,7 +15,6 @@
  */
 package org.homunculusframework.navigation;
 
-import org.homunculusframework.factory.flavor.hcf.Widget;
 import org.homunculusframework.lang.Function;
 
 import java.util.Map;
@@ -61,7 +60,7 @@ public final class ModelAndView {
     }
 
     /**
-     * Returns the {@link Widget#value()} to resolve.
+     * Returns the {@link javax.inject.Named#value()} to resolve.
      */
     public String getView() {
         return view;

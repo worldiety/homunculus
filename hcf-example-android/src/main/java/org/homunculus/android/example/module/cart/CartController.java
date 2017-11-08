@@ -1,6 +1,6 @@
 package org.homunculus.android.example.module.cart;
 
-import org.homunculusframework.concurrent.ThreadInterruptible;
+import org.homunculusframework.concurrent.ThreadNotInterruptible;
 import org.homunculusframework.factory.connection.Connection;
 import org.homunculusframework.factory.flavor.hcf.Execute;
 import org.homunculusframework.factory.container.Container;
@@ -51,7 +51,7 @@ public class CartController {
      * Requesting backend methods directly is possible as well, recommend is to use the {@link Connection} pattern
      * as seen in {@link CartControllerConnection}
      */
-    @ThreadInterruptible
+    @ThreadNotInterruptible
     public CartModel getPoJoCart(int cartId) throws InterruptedException {
         //do some expensive I/O work
         Thread.sleep(2000);

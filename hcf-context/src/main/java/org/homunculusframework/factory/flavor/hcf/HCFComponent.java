@@ -15,29 +15,26 @@
  */
 package org.homunculusframework.factory.flavor.hcf;
 
-import org.homunculusframework.factory.connection.Connection;
 import org.homunculusframework.factory.container.AnnotatedComponentProcessor;
-import org.homunculusframework.factory.flavor.hcf.Widget;
 import org.homunculusframework.scope.Scope;
 
 import javax.annotation.Nullable;
 import javax.inject.Named;
-import javax.inject.Singleton;
 
 /**
- * Supports {@link Widget} and returns {@link ComponentType#WIDGET}
+ * Supports {@link Named} and returns {@link ComponentType#BEAN}
  *
  * @author Torben Schinke
  * @since 1.0
  */
-public class HCFComponentWidget implements AnnotatedComponentProcessor {
+public class HCFComponent implements AnnotatedComponentProcessor {
     @Nullable
     @Override
     public <T> AnnotatedComponent<T> process(Scope scope, Class<T> clazz) {
-        Widget widget = clazz.getAnnotation(Widget.class);
+        Named widget = clazz.getAnnotation(Named.class);
         if (widget != null) {
             String name = widget.value();
-            return new AnnotatedComponent(clazz, name, ComponentType.WIDGET);
+            return new AnnotatedComponent(clazz, name, ComponentType.BEAN);
         }
         return null;
     }

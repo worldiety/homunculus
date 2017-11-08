@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.homunculus.android.compat;
+package org.homunculus.android.component;
 
 import android.Manifest.permission;
 import android.app.Activity;
@@ -26,8 +26,11 @@ import android.location.LocationManager;
 import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import org.homunculus.android.compat.ActivityEventDispatcher.AbsActivityEventCallback;
-import org.homunculus.android.compat.ActivityEventDispatcher.ActivityEventCallback;
+
+import org.homunculus.android.core.ActivityEventDispatcher;
+import org.homunculus.android.core.ActivityEventDispatcher.AbsActivityEventCallback;
+import org.homunculus.android.core.ActivityEventDispatcher.ActivityEventCallback;
+import org.homunculus.android.core.ContextScope;
 import org.homunculusframework.concurrent.Task;
 import org.homunculusframework.lang.Destroyable;
 import org.homunculusframework.lang.Result;
@@ -35,10 +38,11 @@ import org.homunculusframework.scope.Scope;
 import org.homunculusframework.scope.SettableTask;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.annotation.Nullable;
 
 
 /**
@@ -307,7 +311,8 @@ public class Permissions implements Destroyable {
         AccessCoarseLocation(permission.ACCESS_COARSE_LOCATION),
         ReadExternalStorage("android.permission.READ_EXTERNAL_STORAGE"),
         WriteExternalStorage(permission.WRITE_EXTERNAL_STORAGE),
-        Camera(permission.CAMERA),;
+        Camera(permission.CAMERA),
+        ReadPhoneState("android.permission.READ_PHONE_STATE"),;
 
         private final String mPermissionId;
 

@@ -18,15 +18,11 @@ package org.homunculusframework.factory.flavor.spring;
 import org.homunculusframework.factory.container.AnnotatedComponentProcessor;
 import org.homunculusframework.scope.Scope;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Controller;
-import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
-import javax.inject.Named;
-import javax.inject.Singleton;
 
 /**
- * Supports {@link Component} and returns {@link ComponentType#WIDGET}
+ * Supports {@link Component} and returns {@link ComponentType#BEAN}
  *
  * @author Torben Schinke
  * @since 1.0
@@ -37,7 +33,7 @@ public class SPRComponentWidget implements AnnotatedComponentProcessor {
     public <T> AnnotatedComponent<T> process(Scope scope, Class<T> clazz) {
         Component widget = clazz.getAnnotation(Component.class);
         if (widget != null) {
-            return new AnnotatedComponent(clazz, widget.value(), ComponentType.WIDGET);
+            return new AnnotatedComponent(clazz, widget.value(), ComponentType.BEAN);
         }
         return null;
     }

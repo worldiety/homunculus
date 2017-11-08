@@ -13,18 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.homunculus.android.compat;
+package org.homunculus.android.component;
 
 import android.app.Activity;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.widget.FrameLayout;
+
+import org.homunculus.android.core.ActivityEventOwner;
+import org.homunculus.android.core.ContextScope;
 import org.homunculusframework.lang.Function;
 import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+
 import java.lang.Thread.UncaughtExceptionHandler;
 
 /**
@@ -139,9 +143,9 @@ public class UnbreakableCrashHandler {
                 activity.setContentView(tmp);
 
                 //fix around weired redraw/buffer/vsync problem, see also https://source.android.com/devices/graphics/implement-vsync
-                if (activity instanceof EventAppCompatActivity) {
-                    EventAppCompatActivity eventApp = (EventAppCompatActivity) activity;
-                    new Permissions(root, eventApp.getEventDispatcher()).requestFeatureReadExternal().whenDone(res -> {
+                if (activity instanceof ActivityEventOwner) {
+                    ActivityEventOwner owner = (ActivityEventOwner) activity;
+                    new Permissions(root, owner.getEventDispatcher()).requestFeatureReadExternal().whenDone(res -> {
                         tmp.forceLayout();
                         tmp.invalidate();
                         tmp.requestLayout();

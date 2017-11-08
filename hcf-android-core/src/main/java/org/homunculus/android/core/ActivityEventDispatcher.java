@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.homunculus.android.compat;
+package org.homunculus.android.core;
 
 import android.app.Activity;
 import android.content.Context;
@@ -24,7 +24,6 @@ import android.graphics.Canvas;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.PersistableBundle;
-import android.os.Process;
 import android.support.annotation.Nullable;
 import android.view.ActionMode;
 import android.view.ActionMode.Callback;
@@ -35,6 +34,7 @@ import android.view.MotionEvent;
 import android.view.SearchEvent;
 import android.view.View;
 
+import org.homunculus.android.compat.EventAppCompatActivity;
 import org.homunculusframework.scope.Scope;
 
 import java.util.ArrayList;
@@ -44,9 +44,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 
 /**
- * Used together with {@link EventAppCompatActivity} to provide life cycle callbacks to any one who needs it.
+ * Used to create component driven development which requires integration with the lifecycle and functions of activities.
+ * A default implementation comes with {@link EventAppCompatActivity}.
  * Internally the base scope (given by constructor) and all it's children scopes are searched and notified (if they
- * had ever a registration). Scopes are optional at all.
+ * had ever a registration). Scopes are optional at all, so that this
  *
  * @author Torben Schinke
  * @since 1.0
@@ -60,6 +61,12 @@ public class ActivityEventDispatcher<T extends Activity> {
     private Bundle mSavedInstanceStateAtOnCreate;
     private final Scope mBaseScope;
 
+    /**
+     * Creates an activity dispatcher with the given base scope. The base scope is used as a fallback.
+     *
+     * @param baseScope the default scope, which is used by methods when a null scope is given
+     * @param activity  the
+     */
     public ActivityEventDispatcher(Scope baseScope, T activity) {
         mStatus = ActivityStatus.Launching;
         mActivity = activity;
@@ -68,18 +75,13 @@ public class ActivityEventDispatcher<T extends Activity> {
         mBaseScope = baseScope;
     }
 
-
     /**
-     * Brute forces the termination of the current process. There is no guarantee that finalizers or {@link Runtime#addShutdownHook(Thread)}
-     * are processed.
+     * Creates a dispatcher instance without any outer scope, by creating it's own scope instance
+     *
+     * @param activity the activity
      */
-    public void finishApplication() {
-        System.runFinalizersOnExit(true);
-        try {
-            Process.killProcess(Process.myPid());
-        } finally {
-            System.exit(0);
-        }
+    public ActivityEventDispatcher(T activity) {
+        this(null, activity);
     }
 
 
@@ -108,7 +110,7 @@ public class ActivityEventDispatcher<T extends Activity> {
      * Registers a new callback with all activity events in the current top scope. Buffered events are directly called, when necessary. Use only from the main thread, otherwise
      * the result is not defined (e.g. multiple or lost buffered events).
      *
-     * @param callback
+     * @param callback the callback
      */
     public void register(ActivityEventCallback<T> callback) {
         register(mActivity, callback);
@@ -162,6 +164,9 @@ public class ActivityEventDispatcher<T extends Activity> {
      * @return
      */
     private List<ActivityEventCallback<T>> ensure(Scope scope) {
+        if (scope == null) {
+            return new ArrayList<>();
+        }
         synchronized (scope) {
             List<ActivityEventCallback<T>> callbacks = scope.get(NAME_CALLBACKS, List.class);
             if (callbacks == null) {
@@ -179,6 +184,9 @@ public class ActivityEventDispatcher<T extends Activity> {
     public boolean unregister(@Nullable Scope scope, ActivityEventCallback<T> callback) {
         if (scope == null) {
             scope = mBaseScope;
+        }
+        if (scope == null) {
+            return false;
         }
         List<ActivityEventCallback<T>> callbacks = ensure(scope);
         return callbacks.remove(callback);
@@ -213,6 +221,9 @@ public class ActivityEventDispatcher<T extends Activity> {
     }
 
     private void collectCallbacks(Scope root, List<ActivityEventCallback<T>> dst) {
+        if (root == null) {
+            return;
+        }
         root.forEachScope(scope -> {
             List<ActivityEventCallback<T>> listInScope = scope.get(NAME_CALLBACKS, List.class);
             if (listInScope != null) {
@@ -480,7 +491,6 @@ public class ActivityEventDispatcher<T extends Activity> {
         }
     }
 
-    //TODO extend events to be complete with Activities
     public interface ActivityEventCallback<T extends Activity> {
         /**
          * May be called after registering, even if the activity has been resumed already before registering.

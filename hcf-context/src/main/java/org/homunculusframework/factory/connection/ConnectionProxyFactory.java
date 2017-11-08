@@ -16,7 +16,7 @@
 package org.homunculusframework.factory.connection;
 
 import org.homunculusframework.concurrent.Task;
-import org.homunculusframework.concurrent.ThreadInterruptible;
+import org.homunculusframework.concurrent.ThreadNotInterruptible;
 import org.homunculusframework.factory.component.DefaultFactory;
 import org.homunculusframework.factory.container.Container;
 import org.homunculusframework.factory.container.Handler;
@@ -117,7 +117,7 @@ public class ConnectionProxyFactory<T> {
             if (instanceTarget == null) {
                 this.interruptible = false;
             } else {
-                this.interruptible = instanceTarget.getAnnotation(ThreadInterruptible.class) != null;
+                this.interruptible = instanceTarget.getAnnotation(ThreadNotInterruptible.class) == null;
             }
         }
 

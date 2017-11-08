@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.homunculus.android.compat;
+package org.homunculus.android.component;
 
 import android.app.Activity;
 import android.view.inputmethod.InputMethodManager;
+
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 
@@ -38,7 +40,11 @@ public class InputManager {
     public static void hideSoftInput(@Nullable Activity act) {
         if (act != null && act.getCurrentFocus() != null) {
             InputMethodManager inputMethodManager = (InputMethodManager) act.getSystemService(Activity.INPUT_METHOD_SERVICE);
-            inputMethodManager.hideSoftInputFromWindow(act.getCurrentFocus().getWindowToken(), 0);
+            if (inputMethodManager != null) {
+                inputMethodManager.hideSoftInputFromWindow(act.getCurrentFocus().getWindowToken(), 0);
+            } else {
+                LoggerFactory.getLogger(InputManager.class).error("INPUT_METHOD_SERVICE not available");
+            }
         }
     }
 }
