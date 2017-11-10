@@ -18,6 +18,7 @@ package org.homunculusframework.navigation;
 import org.homunculusframework.factory.container.Request;
 
 import javax.annotation.Nullable;
+
 import java.util.List;
 
 /**
@@ -35,6 +36,13 @@ import java.util.List;
  * @since 1.0
  */
 public interface Navigation {
+
+    /**
+     * Resets the stack, applies the request and afterwards the request is the sole entry on the stack
+     *
+     * @param request the request
+     */
+    void reset(Request request);
 
     /**
      * Goes forward the navigation (whatever that means)

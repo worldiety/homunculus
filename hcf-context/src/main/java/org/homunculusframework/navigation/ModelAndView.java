@@ -15,6 +15,7 @@
  */
 package org.homunculusframework.navigation;
 
+import org.homunculusframework.factory.container.Mapping;
 import org.homunculusframework.lang.Function;
 
 import java.util.Map;
@@ -28,11 +29,21 @@ import java.util.TreeMap;
  * @since 1.0
  */
 public final class ModelAndView {
-    private final String view;
+    private final Mapping mapping;
     private final Map<String, Object> model;
 
+    /**
+     * Creates a model and view
+     *
+     * @param view
+     */
     public ModelAndView(String view) {
-        this.view = view;
+        this.mapping = Mapping.fromName(view);
+        this.model = new TreeMap<>();
+    }
+
+    public ModelAndView(Class<?> view) {
+        this.mapping = Mapping.fromClass(view);
         this.model = new TreeMap<>();
     }
 
@@ -60,9 +71,9 @@ public final class ModelAndView {
     }
 
     /**
-     * Returns the {@link javax.inject.Named#value()} to resolve.
+     * Returns the view mapping to resolve
      */
-    public String getView() {
-        return view;
+    public Mapping getView() {
+        return mapping;
     }
 }

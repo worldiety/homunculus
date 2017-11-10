@@ -54,9 +54,15 @@ import java.util.TreeMap;
  * @since 1.0
  */
 public final class Request implements org.homunculusframework.lang.Map<String, Object> {
-    private final String mapping;
+    private final Mapping mapping;
     private final Map<String, Object> requestParams;
 
+    /**
+     * Creates a request addressing either a beans method (identified by a named controller) and identified by
+     * a
+     *
+     * @param mapping
+     */
     public Request(String mapping) {
         if (mapping.length() == 0) {
             throw new Panic("empty request is not defined");
@@ -70,10 +76,18 @@ public final class Request implements org.homunculusframework.lang.Map<String, O
             if (mapping.charAt(mapping.length() - 1) != '/') {
                 normalized.append('/');
             }
-            this.mapping = normalized.toString();
+            this.mapping = Mapping.fromName(normalized.toString());
         } else {
-            this.mapping = mapping;
+            this.mapping = Mapping.fromName(mapping);
         }
+        this.requestParams = new TreeMap<>();
+    }
+
+    public Request(Class<?> type) {
+        if (type == null) {
+            throw new Panic("empty request is not allowed");
+        }
+        this.mapping = Mapping.fromClass(type);
         this.requestParams = new TreeMap<>();
     }
 
@@ -81,7 +95,7 @@ public final class Request implements org.homunculusframework.lang.Map<String, O
     /**
      * Returns the requested controller mapping in various stereotypes.
      */
-    public String getMapping() {
+    public Mapping getMapping() {
         return mapping;
     }
 
@@ -187,13 +201,13 @@ public final class Request implements org.homunculusframework.lang.Map<String, O
         Container container = scope.resolve(Container.NAME_CONTAINER, Container.class);
         if (container == null) {
             LoggerFactory.getLogger(getClass()).error("execution not possible: {} missing ({})", Container.class, mapping);
-            SettableTask<Result<Object>> task = SettableTask.create(scope, mapping);
+            SettableTask<Result<Object>> task = SettableTask.create(scope, mapping.toString());
             Result<Object> res = Result.create();
             res.put("error", "missing container");
             task.set(res);
             return task;
         } else {
-            SettableTask<Result<Object>> task = SettableTask.create(scope, mapping);
+            SettableTask<Result<Object>> task = SettableTask.create(scope, mapping.toString());
             Result<Object> res = Result.create();
             Handler backgroundThread = scope.resolve(Container.NAME_REQUEST_HANDLER, Handler.class);
             StackTraceElement[] callstack = DefaultFactory.getCallStack(3);
@@ -214,10 +228,20 @@ public final class Request implements org.homunculusframework.lang.Map<String, O
                             res.set(result);
                             task.set(res);
                             break;
-                        case WIDGET:
+                        case BEAN:
                             Scope widgetScope = DefaultNavigation.createChild(scope, this);
                             container.prepareScope(widgetScope);
-                            Task<Component<?>> widgetTask = container.createWidget(widgetScope, this.getMapping());
+                            Task<Component<?>> widgetTask;
+                            switch (mapping.getMappingType()) {
+                                case NAME:
+                                    widgetTask = container.createBean(widgetScope, mapping.getName());
+                                    break;
+                                case CLASS:
+                                    widgetTask = container.createBean(widgetScope, mapping.getType());
+                                    break;
+                                default:
+                                    throw new Panic();
+                            }
                             widgetTask.whenDone(component -> {
                                 for (Throwable t : component.getFailures()) {
                                     LoggerFactory.getLogger(getClass()).error("failed to create {}", this.getMapping(), t);

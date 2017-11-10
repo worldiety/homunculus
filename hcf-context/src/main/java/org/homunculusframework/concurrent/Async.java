@@ -41,6 +41,68 @@ public class Async {
     }
 
     /**
+     * See {@link #inThread(Scope, Function, boolean)}
+     */
+    public static <T> Task<Result<T>> inThread(Function<RequestContext, Result<T>> closure) {
+        return inThread(null, closure, true);
+
+    }
+
+    /**
+     * See {@link #inThread(Scope, Function, boolean)}
+     */
+    public static <T> Task<Result<T>> inThread(Scope scope, Function<RequestContext, Result<T>> closure) {
+        return inThread(scope, closure, true);
+
+    }
+
+    /**
+     * Just spawns a new thread
+     *
+     * @param closure      the closure to execute
+     * @param mayInterrupt interruptible
+     * @param <T>          the return type
+     * @return the task
+     */
+    public static <T> Task<Result<T>> inThread(Scope scope, Function<RequestContext, Result<T>> closure, boolean mayInterrupt) {
+        SettableTask<Result<T>> task = SettableTask.create(scope, closure.toString());
+        Thread thread = new Thread(closure.toString()) {
+            @Override
+            public void run() {
+                MyRequestContext ctx = new MyRequestContext(task);
+
+                if (mayInterrupt) {
+                    ctx.thread = this;
+                    task.addOnCancelledListener(mayInterruptIfRunning -> ctx.thread.interrupt());
+                }
+                Result<T> res;
+
+                try {
+                    if (ctx.isCancelled()) {
+                        res = Result.create();
+                        res.put(Result.TAG_CANCELLED);
+                    } else {
+                        res = closure.apply(ctx);
+                        if (res == null) {
+                            res = Result.create();
+                        }
+                    }
+                } catch (Throwable t) {
+                    res = Result.create();
+                    res.setThrowable(t);
+                    if (ctx.isCancelled()) {
+                        res.put(Result.TAG_CANCELLED);
+                    }
+                }
+                task.set(res);
+            }
+        };
+        thread.start();
+        return task;
+
+    }
+
+    /**
      * Creates a task within the given scope. Destroying the scope may result in cancelling the actual task.
      * The handler used to execute is resolved from the scope using
      * {@link Container#NAME_BACKGROUND_HANDLER}. You should never configure the main thread and interrupt it, to

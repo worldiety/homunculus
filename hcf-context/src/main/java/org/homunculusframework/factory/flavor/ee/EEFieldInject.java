@@ -23,6 +23,7 @@ import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Named;
+
 import java.lang.reflect.Field;
 
 /**
@@ -38,16 +39,15 @@ public class EEFieldInject implements AnnotatedFieldProcessor {
     public void process(Scope scope, Object instance, Field field) {
         javax.inject.Inject autowired = field.getAnnotation(javax.inject.Inject.class);
         Named named = field.getAnnotation(Named.class);
-        String name = named != null ? named.value() : field.getName();
         if (autowired != null) {
             Object resolvedValue;
             if (named != null) {
-                resolvedValue = scope.resolve(name, field.getType());
+                resolvedValue = scope.resolve(named.value(), field.getType());
             } else {
                 resolvedValue = scope.resolve(field.getType());
             }
             //check if null and not resolvable -> try to create such an instance
-            if (resolvedValue == null && !scope.hasResolvable(name)) {
+            if (resolvedValue == null && named == null) {
                 Container container = scope.resolve(Container.NAME_CONTAINER, Container.class);
                 if (container != null) {
                     //await has danger of deadlocks, especially for PostConstructs in main thread (which is the default case)

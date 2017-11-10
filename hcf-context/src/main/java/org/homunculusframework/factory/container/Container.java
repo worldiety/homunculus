@@ -21,6 +21,7 @@ import org.homunculusframework.factory.ObjectInjector;
 import org.homunculusframework.factory.connection.Connection;
 import org.homunculusframework.factory.connection.ConnectionProxyFactory;
 import org.homunculusframework.factory.container.AnnotatedComponentProcessor.AnnotatedComponent;
+import org.homunculusframework.factory.container.Mapping.MappingType;
 import org.homunculusframework.factory.flavor.hcf.Execute;
 import org.homunculusframework.lang.Panic;
 import org.homunculusframework.lang.Reflection;
@@ -203,7 +204,10 @@ public final class Container {
             return RequestType.CONTROLLER_ENDPOINT;
         }
         if (configuration.getBeans().containsKey(request.getMapping())) {
-            return RequestType.WIDGET;
+            return RequestType.BEAN;
+        }
+        if (request.getMapping().getMappingType() == MappingType.CLASS) {
+            return RequestType.BEAN;
         }
         return RequestType.UNDEFINED;
     }
@@ -223,23 +227,47 @@ public final class Container {
     }
 
     /**
-     * Creates a widget entirely , which is either
+     * Creates a bean entirely , which is either
      * <ul>
-     * <li>Something registered with {@link Widget}</li>
+     * <li>Something registered with {@link Named} which represents</li>
      * <li>An Android view, like: @layout/activity_main (if the platform is android and correctly configured)</li>
      * </ul>
+     *
+     * @param name  the name of a bean (must be configured before) e.g. as declared by {@link Named}
+     * @param scope the scope to use to define the lifetime of the bean and to resolve dependencies
      */
-    public Task<Component<?>> createWidget(Scope scope, String widgetId) {
-        widgetId = normalize(widgetId);
-        Class widget = configuration.getBeans().get(widgetId);
-        if (widget == null) {
+    public Task<Component<?>> createBean(Scope scope, String name) {
+        name = normalize(name);
+        Class bean = configuration.getBeans().get(name);
+        if (bean == null) {
             List<Throwable> throwables = new ArrayList<>();
-            throwables.add(new RuntimeException("@Widget not defined: '" + widgetId + "'. You need to add it to the configuration first."));
-            SettableTask<Component<?>> task = SettableTask.create(scope, "createWidget#" + widgetId);
+            throwables.add(new RuntimeException("Not defined: '" + name + "'. You need to add it to the configuration first (e.g. with @Named using the EEFlavor)"));
+            SettableTask<Component<?>> task = SettableTask.create(scope, "createBean#" + name);
             task.set(new Component<>(scope, null, throwables));
             return task;
         }
-        return createComponent(scope, widget);
+        return createComponent(scope, bean);
+    }
+
+    /**
+     * Creates a bean entirely , which is either
+     * <ul>
+     * <li>Something registered with {@link Named} which represents</li>
+     * <li>An Android view, like: @layout/activity_main (if the platform is android and correctly configured)</li>
+     * </ul>
+     *
+     * @param bean  the concrete (unconfigured) type
+     * @param scope the scope to use to define the lifetime of the bean and to resolve dependencies
+     */
+    public Task<Component<?>> createBean(Scope scope, Class<?> bean) {
+        if (bean == null) {
+            List<Throwable> throwables = new ArrayList<>();
+            throwables.add(new RuntimeException("null bean class is not allowed"));
+            SettableTask<Component<?>> task = SettableTask.create(scope, "createBean#null");
+            task.set(new Component<>(scope, null, throwables));
+            return task;
+        }
+        return createComponent(scope, (Class) bean);
     }
 
     /**
@@ -353,7 +381,7 @@ public final class Container {
         /**
          * Denotes a widget, which may be also a UIS (==applies itself to the screen)
          */
-        WIDGET,
+        BEAN,
         /**
          * the mapping is not configured
          */

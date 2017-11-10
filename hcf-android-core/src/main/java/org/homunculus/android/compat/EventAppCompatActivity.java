@@ -41,7 +41,7 @@ import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
 
 /**
- * An activity which helps to write lifecycle aware components. This is long awaited wish on the Android Activity
+ * An activity which helps to write lifecycle and scope aware components. This is long awaited wish on the Android Activity
  * which has not been fulfilled yet. However Google starts to think into the same direction
  * and at least provides the architecture API, see also https://developer.android.com/topic/libraries/architecture/lifecycle.html.
  *

@@ -1,0 +1,13 @@
+<resources>
+    <string name="toolbarbuilder_open_drawer_content_desc_res">hcf-android-core</string>
+    <string name="toolbarbuilder_close_drawer_content_desc_res">hcf-android-core</string>
+
+    <string name="hcf_action_send">Senden</string>
+    <string name="hcf_action_back">Zurück</string>
+    <string name="hcf_uncaughtexception_message">Beim Anzeigen ist ein Fehler aufgetreten. Versuchen Sie es bitte erneut.</string>
+    <string name="hcf_uncaughtexception_submitted">Vielen Dank für die Übermittlung des Fehlers. Ihre Nummer für den Kundensupport ist: %s.</string>
+    <string name="hcf_uncaughtexception_submission_failed">Es war nicht möglich den Fehler zu übermitteln. Bitte prüfen Sie Ihre Internetverbindung oder versuchen Sie es später erneut.</string>
+
+    <string name="hcf_action_ok">Ok</string>
+    <string name="hcf_splash_title">willkommen</string>
+</resources>

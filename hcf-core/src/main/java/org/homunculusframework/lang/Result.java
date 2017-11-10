@@ -18,6 +18,7 @@ package org.homunculusframework.lang;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.*;
@@ -76,6 +77,7 @@ public final class Result<T> extends Ref<T> implements org.homunculusframework.l
         if (t != null) {
             res.put(TAG_MESSAGE, t.getMessage());
             res.put(t.getClass().getName());
+            res.setThrowable(t);
         }
         return res;
     }

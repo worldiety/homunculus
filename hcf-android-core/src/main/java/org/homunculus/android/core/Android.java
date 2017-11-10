@@ -43,6 +43,16 @@ public class Android {
      */
     public final static String NAME_ACTIVITY_EVENT_DISPATCHER = "$eventDispatcher";
 
+    /**
+     * The name for {@link android.os.Handler} on the main thread
+     */
+    public final static String NAME_MAIN_HANDLER = "$mainLooper";
+
+
+    /**
+     * The name for {@link android.view.LayoutInflater}
+     */
+    public final static String NAME_LAYOUT_INFLATER = "$layoutInflater";
 
     private Android() {
     }

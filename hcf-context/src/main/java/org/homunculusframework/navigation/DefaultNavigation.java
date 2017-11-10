@@ -20,6 +20,7 @@ import org.homunculusframework.factory.component.DefaultFactory;
 import org.homunculusframework.factory.container.Component;
 import org.homunculusframework.factory.container.Container;
 import org.homunculusframework.factory.container.Request;
+import org.homunculusframework.lang.Panic;
 import org.homunculusframework.lang.Reflection;
 import org.homunculusframework.scope.Scope;
 import org.homunculusframework.scope.SettableTask;
@@ -45,6 +46,7 @@ public class DefaultNavigation implements Navigation {
     private static final AtomicInteger requestNo = new AtomicInteger();
 
     private final List<Request> stack;
+    private boolean crashOnFail = true;
 
     public DefaultNavigation(Scope scope) {
         this.scope = scope;
@@ -62,6 +64,15 @@ public class DefaultNavigation implements Navigation {
     @Nullable
     public UserInterfaceState getUserInterfaceState() {
         return currentUIS;
+    }
+
+    @Override
+    public void reset(Request request) {
+        synchronized (stack) {
+            stack.clear();
+            stack.add(request);
+        }
+        applyInternal(request);
     }
 
     @Override
@@ -204,7 +215,18 @@ public class DefaultNavigation implements Navigation {
                 ModelAndView mav = (ModelAndView) obj;
                 Scope uisScope = createChild(scope, mav);
                 container.prepareScope(uisScope);
-                Task<Component<?>> task = container.createWidget(uisScope, mav.getView());
+                Task<Component<?>> task;
+                switch (mav.getView().getMappingType()) {
+                    case CLASS:
+                        task = container.createBean(uisScope, mav.getView().getType());
+                        break;
+                    case NAME:
+                        task = container.createBean(uisScope, mav.getView().getName());
+                        break;
+                    default:
+                        throw new Panic();
+                }
+
                 attachComponentTask(request, uisScope, task);
             } else if (obj instanceof Component) {
                 Scope uisScope = ((Component) obj).getScope();
@@ -234,8 +256,15 @@ public class DefaultNavigation implements Navigation {
             } else {
                 uisScope.destroy();
                 LoggerFactory.getLogger(getClass()).error("denied applying UIS: {}", newUIS);
-                for (Throwable t : component.getFailures()) {
-                    LoggerFactory.getLogger(getClass()).error("created failed", t);
+
+                if (!component.getFailures().isEmpty()) {
+                    if (crashOnFail) {
+                        throw new RuntimeException("failed to create bean", component.getFailures().get(0));
+                    } else {
+                        for (Throwable t : component.getFailures()) {
+                            LoggerFactory.getLogger(getClass()).error("created failed", t);
+                        }
+                    }
                 }
             }
         });
@@ -254,8 +283,13 @@ public class DefaultNavigation implements Navigation {
                 container.destroyComponent(oldUIS.scope, oldUIS.bean, true).whenDone(component -> {
                     if (!component.getFailures().isEmpty()) {
                         LoggerFactory.getLogger(getClass()).error("problems destroying UIS: {}", component.get());
-                        for (Throwable t : component.getFailures()) {
-                            LoggerFactory.getLogger(getClass()).error("created failed", t);
+
+                        if (crashOnFail) {
+                            throw new RuntimeException("failed to destroy bean", component.getFailures().get(0));
+                        } else {
+                            for (Throwable t : component.getFailures()) {
+                                LoggerFactory.getLogger(getClass()).error("destroy failed", t);
+                            }
                         }
                     }
                     LoggerFactory.getLogger(getClass()).info("applied UIS {}", uis);

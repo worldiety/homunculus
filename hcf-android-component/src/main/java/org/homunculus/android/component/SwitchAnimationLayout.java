@@ -51,9 +51,19 @@ public class SwitchAnimationLayout extends FrameLayout {
 
     public enum DefaultAnimation implements AnimationProvider {
         /**
+         * No animation at all
+         */
+        REPLACE {
+            @Override
+            public void applyAnimation(ViewGroup parent, @Nullable View oldView, @Nullable View newView) {
+
+            }
+        },
+
+        /**
          * A right to left slide animation, assuming the parents dimension
          */
-        FORWARD {
+        SLIDE_LEFT {
             @Override
             public void applyAnimation(ViewGroup parent, @Nullable View oldView, @Nullable View newView) {
                 if (oldView != null) {
@@ -69,7 +79,7 @@ public class SwitchAnimationLayout extends FrameLayout {
         /**
          * A left to right slide animation, assuming the parents dimension
          */
-        BACKWARD {
+        SLIDE_RIGHT {
             @Override
             public void applyAnimation(ViewGroup parent, @Nullable View oldView, @Nullable View newView) {
                 if (oldView != null) {

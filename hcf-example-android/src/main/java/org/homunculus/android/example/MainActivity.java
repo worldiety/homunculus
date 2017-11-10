@@ -4,7 +4,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.Button;
+import android.widget.LinearLayout;
+
 import org.homunculus.android.example.module.cart.CartActivity;
+import org.homunculus.android.example.module.flow.FlowActivity;
 import org.homunculus.android.example.module.toolbar.ToolbarActivity;
 import org.homunculusframework.scope.Scope;
 
@@ -14,13 +17,30 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Scope scope = new Scope("hallo", null);
-        Button btn = new Button(this);
-        btn.setOnClickListener(v -> {
-            System.out.println("hallo welt");
+
+        LinearLayout layout = new LinearLayout(this);
+        setContentView(layout);
+
+        Button btnCart = new Button(this);
+        btnCart.setText("cart");
+        btnCart.setOnClickListener(v -> {
             startActivity(new Intent(this, CartActivity.class));
-//            startActivity(new Intent(this, ToolbarActivity.class));
         });
-        setContentView(btn);
+        layout.addView(btnCart);
+
+        Button btnToolbar = new Button(this);
+        btnToolbar.setText("toolbar");
+        btnToolbar.setOnClickListener(v -> {
+            startActivity(new Intent(this, ToolbarActivity.class));
+        });
+        layout.addView(btnToolbar);
+
+        Button btnFlow = new Button(this);
+        btnFlow.setText("flow");
+        btnFlow.setOnClickListener(v -> {
+            startActivity(new Intent(this, FlowActivity.class));
+        });
+        layout.addView(btnFlow);
+
     }
 }

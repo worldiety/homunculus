@@ -22,6 +22,7 @@ import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
 import org.homunculusframework.factory.container.AnnotatedFieldProcessor;
 import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
@@ -57,17 +58,25 @@ public class ResourceAnnotationLoader implements AnnotatedFieldProcessor {
             return;
         }
 
+        int resId = 0;
+        if (resource.value() != 0) {
+            resId = resource.value();
+        } else {
+            String pckName = resource.defPackage().isEmpty() ? context.getPackageName() : resource.defPackage();
+            resId = context.getResources().getIdentifier(resource.defName(), resource.defType(), pckName);
+        }
+
         try {
             field.setAccessible(true);
             if (field.getType() == String.class) {
-                field.set(instance, context.getResources().getString(resource.value()));
+                field.set(instance, context.getResources().getString(resId));
             } else if (field.getType() == Bitmap.class) {
                 field.set(instance, BitmapFactory.decodeResource(context.getResources(), resource.value()));
             } else if (field.getType() == Drawable.class) {
-                field.set(instance, context.getResources().getDrawable(resource.value()));
+                field.set(instance, context.getResources().getDrawable(resId));
             } else if (field.getType() == View.class) {
                 LayoutInflater layoutInflater = LayoutInflater.from(context);
-                View view = layoutInflater.inflate(resource.value(), (ViewGroup) null, false);
+                View view = layoutInflater.inflate(resId, (ViewGroup) null, false);
                 field.set(instance, view);
             } else {
                 LoggerFactory.getLogger(instance.getClass()).error("unsupported resource {}.{}", instance.getClass().getSimpleName(), field.getName());

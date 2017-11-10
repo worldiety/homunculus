@@ -3,7 +3,10 @@ package org.homunculus.android.example;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.android.ContextHolder;
 import org.homunculus.android.compat.CompatApplication;
+import org.homunculus.android.component.HomunculusApplication;
 import org.homunculus.android.component.UnbreakableCrashHandler;
+import org.homunculus.android.component.module.uncaughtexception.ReporterSupportiety;
+import org.homunculus.android.component.module.uncaughtexception.Supportiety.ApplicationDetails;
 import org.homunculus.android.example.module.benchmark.Register;
 import org.homunculus.android.example.module.cart.*;
 import org.homunculus.android.example.module.company.CompanyController;
@@ -17,18 +20,13 @@ import javax.persistence.EntityManager;
 
 import java.io.File;
 
-public class MyApplication extends CompatApplication {
-
-    private Scope mAppScope;
+public class MyApplication extends HomunculusApplication {
 
 
     @Override
-    public void onCreate() {
-        super.onCreate();
-
+    protected void onConfigure(Configuration cfg) {
         //configure HCF for Android
         long start = System.currentTimeMillis();
-        Configuration cfg = createConfiguration();
 
         //add each module (== controllers + views), order is unimportant
         cfg.add(CartController.class);
@@ -45,11 +43,7 @@ public class MyApplication extends CompatApplication {
         //setup the entity manager
         setupDB(cfg.getRootScope());
 
-        //setup and start the HCF container
-        Container container = new Container(cfg);
-        container.start();
-
-        /*
+         /*
          * Performance metrics of 100 controllers with 5 injection fields and 5 exported methods (17. October 2017):
          *   PixelXL:   333ms | 340ms | 345ms  (Android 8)
          *   S3:        650ms | 693ms | 1400ms (Android 4.4.4, Custom Rom)
@@ -58,10 +52,14 @@ public class MyApplication extends CompatApplication {
          *   XperiaXZ   263ms | 253ms | 566ms  (Android 7.1.1)
          *   Dell V8    626ms | 721ms | 589ms  (Android 4.4.2)
          */
-
-        new UnbreakableCrashHandler().install(this);
     }
 
+    @Override
+    protected void provide(Scope scope) {
+        super.provide(scope);
+        ApplicationDetails crashDetails = new ApplicationDetails("de.cewe.myphotos", BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE);
+        scope.put("reporter", new ReporterSupportiety("https://supportiety.worldiety.com/api/", "de.cewe.cmp", "4tq4rbEnZLNktqag8NfQ", crashDetails));
+    }
 
     /**
      * load db, migrate db and provide the JPA entity manager API into the given scope

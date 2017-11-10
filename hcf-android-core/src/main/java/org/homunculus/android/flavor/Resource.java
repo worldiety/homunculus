@@ -15,9 +15,15 @@
  */
 package org.homunculus.android.flavor;
 
+import android.support.annotation.IdRes;
+
 import org.homunculusframework.factory.flavor.hcf.Execute;
 
-import java.lang.annotation.*;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * An Android resource annotation refers to basically any kind of resource which tries to automatically inflate/load/decode
@@ -29,6 +35,7 @@ import java.lang.annotation.*;
  * <li>R.drawable for bitmap fields</li>
  * <li>R.string for Strings</li>
  * <li>R.layout for Views (see also {@link Execute} to influence the inflation thread)</li>
+ * <li>def* triple declaration to use {@link android.content.res.Resources#getIdentifier(String, String, String)} if no final integer resource is available (e.g. in libraries)</li>
  * </ul>
  *
  * @author Torben Schinke
@@ -42,5 +49,21 @@ public @interface Resource {
     /**
      * The android resource id
      */
-    int value();
+    @IdRes
+    int value() default 0;
+
+    /**
+     * the type name, e.g. "drawable", see {@link android.content.res.Resources#getIdentifier(String, String, String)}
+     */
+    String defType() default "";
+
+    /**
+     * the resource name, e.g. "my_bitmap", see {@link android.content.res.Resources#getIdentifier(String, String, String)}
+     */
+    String defName() default "";
+
+    /**
+     * the package name, e.g. "com.myapp", see {@link android.content.res.Resources#getIdentifier(String, String, String)}
+     */
+    String defPackage() default "";
 }
