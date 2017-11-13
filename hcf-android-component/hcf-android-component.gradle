@@ -93,6 +93,7 @@ bintray {
         version {
             name = project.version
         }
+
     }
 }
 

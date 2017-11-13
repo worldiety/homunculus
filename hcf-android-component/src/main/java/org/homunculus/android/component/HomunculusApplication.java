@@ -25,8 +25,8 @@ public abstract class HomunculusApplication extends CompatApplication {
         MaterialFont.init(this);
 
         Configuration cfg = createConfiguration();
-        provide(cfg.getRootScope());
         onConfigure(cfg);
+        onProvide(cfg.getRootScope());
 
 
         //setup and start the HCF container
@@ -37,11 +37,11 @@ public abstract class HomunculusApplication extends CompatApplication {
     }
 
     /**
-     * Called to provide additional instances for injection
+     * Called to onProvide additional instances for injection
      *
      * @param scope the root scope
      */
-    protected void provide(Scope scope) {
+    protected void onProvide(Scope scope) {
         scope.put(Android.NAME_MAIN_HANDLER, new Handler(Looper.getMainLooper()));
     }
 

@@ -200,15 +200,21 @@ public final class Container {
     }
 
     public RequestType getRequestType(Request request) {
-        if (controllerEndpoints.containsKey(request.getMapping())) {
-            return RequestType.CONTROLLER_ENDPOINT;
+        switch (request.getMapping().getMappingType()) {
+            case NAME:
+                if (controllerEndpoints.containsKey(request.getMapping().getName())) {
+                    return RequestType.CONTROLLER_ENDPOINT;
+                }
+                if (configuration.getBeans().containsKey(request.getMapping().getName())) {
+                    return RequestType.BEAN;
+                }
+                break;
+            case CLASS:
+                return RequestType.BEAN;
+            default:
+                throw new Panic();
         }
-        if (configuration.getBeans().containsKey(request.getMapping())) {
-            return RequestType.BEAN;
-        }
-        if (request.getMapping().getMappingType() == MappingType.CLASS) {
-            return RequestType.BEAN;
-        }
+
         return RequestType.UNDEFINED;
     }
 
@@ -218,7 +224,10 @@ public final class Container {
      * @throws ExecutionException
      */
     public Object invoke(Scope scope, Request request) throws ExecutionException {
-        ControllerEndpoint endpoint = controllerEndpoints.get(request.getMapping());
+        if (request.getMapping().getMappingType() != MappingType.NAME) {
+            throw new Panic("unsupported request-mapping-type: " + request.getMapping().getMappingType());
+        }
+        ControllerEndpoint endpoint = controllerEndpoints.get(request.getMapping().getName());
         if (endpoint == null) {
             throw new ExecutionException("@RequestMapping '" + request.getMapping() + "' is not defined in the current Configuration", null);
         } else {

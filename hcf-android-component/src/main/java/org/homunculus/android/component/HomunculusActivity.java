@@ -44,7 +44,7 @@ public abstract class HomunculusActivity extends EventAppCompatActivity implemen
     }
 
     /**
-     * Intentionally separated from onCreate calls to provide a better developer experience for customization purposes
+     * Intentionally separated from onCreate calls to onProvide a better developer experience for customization purposes
      * e.g. for overriding
      */
     protected void init() {
@@ -63,6 +63,13 @@ public abstract class HomunculusActivity extends EventAppCompatActivity implemen
      */
     public NavigationBuilder getNavigation() {
         return getScope().resolve(Android.NAME_NAVIGATION, NavigationBuilder.class);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (!onDispatchNavigationBackPressed()) {
+            super.onBackPressed();
+        }
     }
 
     /**

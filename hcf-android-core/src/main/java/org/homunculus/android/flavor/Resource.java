@@ -49,7 +49,6 @@ public @interface Resource {
     /**
      * The android resource id
      */
-    @IdRes
     int value() default 0;
 
     /**

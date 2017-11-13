@@ -54,15 +54,9 @@ public class MyApplication extends HomunculusApplication {
          */
     }
 
-    @Override
-    protected void provide(Scope scope) {
-        super.provide(scope);
-        ApplicationDetails crashDetails = new ApplicationDetails("de.cewe.myphotos", BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE);
-        scope.put("reporter", new ReporterSupportiety("https://supportiety.worldiety.com/api/", "de.cewe.cmp", "4tq4rbEnZLNktqag8NfQ", crashDetails));
-    }
 
     /**
-     * load db, migrate db and provide the JPA entity manager API into the given scope
+     * load db, migrate db and onProvide the JPA entity manager API into the given scope
      */
     private void setupDB(Scope scope) {
         File fname = new File(getFilesDir(), "mydb");
