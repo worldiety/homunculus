@@ -326,7 +326,7 @@ public class ToolbarBuilder {
 
 
         if (mToolbarTitleTextAppearance != null) {
-            Context ctx = mToolbarTitleTextAppearanceContext != null ? mToolbarSubTitleTextAppearanceContext : activity;
+            Context ctx = mToolbarTitleTextAppearanceContext != null ? mToolbarTitleTextAppearanceContext : activity;
             toolbar.setTitleTextAppearance(ctx, mToolbarTitleTextAppearance);
         }
 

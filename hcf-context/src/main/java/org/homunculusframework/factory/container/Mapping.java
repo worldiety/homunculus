@@ -15,7 +15,6 @@
  */
 package org.homunculusframework.factory.container;
 
-import org.homunculusframework.lang.Panic;
 import org.homunculusframework.lang.Reflection;
 
 import javax.annotation.Nullable;
@@ -57,20 +56,6 @@ public class Mapping {
         return new Mapping(null, type);
     }
 
-//    /**
-//     * Resolves the bean through the container and/or it's configuration.
-//     *
-//     * @param container the container
-//     * @return the resolved type or null if not resolvable (e.g. if not configured)
-//     */
-//    @Nullable
-//    public Class<?> resolve(Container container) {
-//        if (type != null) {
-//            return type;
-//        }
-//        return container.getConfiguration().getBeans().get(name);
-//    }
-
 
     /**
      * The type
@@ -107,6 +92,24 @@ public class Mapping {
         } else {
             return Reflection.getName(type);
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Mapping mapping = (Mapping) o;
+
+        if (name != null ? !name.equals(mapping.name) : mapping.name != null) return false;
+        return type != null ? type.equals(mapping.type) : mapping.type == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = name != null ? name.hashCode() : 0;
+        result = 31 * result + (type != null ? type.hashCode() : 0);
+        return result;
     }
 
     public enum MappingType {

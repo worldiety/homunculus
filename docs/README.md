@@ -3,12 +3,17 @@
 The homunculus framework proposes solutions and receipts for building large Android applications.
 Homunculus makes it easy to create production-grade applications and services with absolute minimum hassle. It takes an opinionated view of the Android platform so that new and existing users can quickly get the job done respecting quality requirements.
 
-##Latest Version
-[ ![Download](https://api.bintray.com/packages/worldiety/homunculus/hcf-android-component/images/download.svg) ](https://bintray.com/worldiety/homunculus/hcf-android-component/_latestVersion)
-[ ![Download](https://api.bintray.com/packages/worldiety/homunculus/hcf-android-core/images/download.svg) ](https://bintray.com/worldiety/homunculus/hcf-android-core/_latestVersion)
-[ ![Download](https://api.bintray.com/packages/worldiety/homunculus/hcf-api-spring/images/download.svg) ](https://bintray.com/worldiety/homunculus/hcf-api-spring/_latestVersion)
-[ ![Download](https://api.bintray.com/packages/worldiety/homunculus/hcf-context/images/download.svg) ](https://bintray.com/worldiety/homunculus/hcf-context/_latestVersion)
-[ ![Download](https://api.bintray.com/packages/worldiety/homunculus/hcf-core/images/download.svg) ](https://bintray.com/worldiety/homunculus/hcf-core/_latestVersion)
+##Latest versions
+
+org.homunculusframework:hcf-core:[ ![Download](https://api.bintray.com/packages/worldiety/homunculus/hcf-core/images/download.svg) ](https://bintray.com/worldiety/homunculus/hcf-core/_latestVersion)
+
+org.homunculusframework:hcf-context:[ ![Download](https://api.bintray.com/packages/worldiety/homunculus/hcf-context/images/download.svg) ](https://bintray.com/worldiety/homunculus/hcf-context/_latestVersion)
+
+org.homunculusframework:hcf-android-component:[ ![Download](https://api.bintray.com/packages/worldiety/homunculus/hcf-android-component/images/download.svg) ](https://bintray.com/worldiety/homunculus/hcf-android-component/_latestVersion)
+
+org.homunculusframework:hcf-android-core:[ ![Download](https://api.bintray.com/packages/worldiety/homunculus/hcf-android-core/images/download.svg) ](https://bintray.com/worldiety/homunculus/hcf-android-core/_latestVersion)
+
+org.homunculusframework:hcf-api-spring:[ ![Download](https://api.bintray.com/packages/worldiety/homunculus/hcf-api-spring/images/download.svg) ](https://bintray.com/worldiety/homunculus/hcf-api-spring/_latestVersion)
 
 ## Usage
 
