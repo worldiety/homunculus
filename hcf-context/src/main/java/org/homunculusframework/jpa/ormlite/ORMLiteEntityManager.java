@@ -19,15 +19,20 @@ import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.support.ConnectionSource;
+import com.j256.ormlite.support.DatabaseConnection;
+
 import org.homunculusframework.lang.Panic;
 
 import javax.persistence.*;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.metamodel.Metamodel;
+
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Savepoint;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
@@ -54,7 +59,7 @@ import java.util.Map;
  */
 public class ORMLiteEntityManager implements EntityManager {
 
-    private final ConnectionSource connectionSource;
+    private final JdbcConnectionSource connectionSource;
     private final Map<Class, Dao> managers;
     private final Object lock = new Object();
     private final String jdbcUrl;
@@ -80,6 +85,53 @@ public class ORMLiteEntityManager implements EntityManager {
             throw new Panic(e);
         }
     }
+
+    /**
+     * Returns the backing connection source.
+     *
+     * @return the source
+     */
+    public JdbcConnectionSource getConnectionSource() {
+        return connectionSource;
+    }
+
+    /**
+     * See {@link DatabaseConnection#setSavePoint(String)}
+     */
+    public Savepoint setSavePoint(Class<?> type, String name) {
+        try {
+            String tableName = getDao(type);
+            return getConnectionSource().getReadWriteConnection(tableName).setSavePoint(name);
+        } catch (SQLException e) {
+            throw new Panic(e);
+        }
+    }
+
+    /**
+     * See {@link DatabaseConnection#commit(Savepoint)}
+     */
+    public void commit(Class<?> type, Savepoint savepoint) {
+        try {
+            String tableName = getDao(type);
+            getConnectionSource().getReadWriteConnection(tableName).commit(savepoint);
+        } catch (SQLException e) {
+            throw new Panic(e);
+        }
+    }
+
+
+    /**
+     * See {@link DatabaseConnection#rollback(Savepoint)}
+     */
+    public void rollback(Class<?> type, Savepoint savepoint) {
+        try {
+            String tableName = getDao(type);
+            getConnectionSource().getReadWriteConnection(tableName).rollback(savepoint);
+        } catch (SQLException e) {
+            throw new Panic(e);
+        }
+    }
+
 
     public <D extends Dao<T, ?>, T> D getDao(Class<T> type) {
         synchronized (lock) {

@@ -34,7 +34,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * This default navigation implements a simple stack based navigation approach and resolves
- * everything from a given {@link Scope} and a declared {@link Container}
+ * everything from a given {@link Scope} and a declared {@link Container}. It automatically dispatches
+ * calls to {@link #backward()} automatically to {@link UserInterfaceState#getBean()} first (if that
+ * implements {@link BackActionConsumer}.
  *
  * @author Torben Schinke
  * @since 1.0
@@ -66,6 +68,15 @@ public class DefaultNavigation implements Navigation {
         return currentUIS;
     }
 
+    /**
+     * The scope in which this navigation lives.
+     *
+     * @return the scope
+     */
+    protected Scope getScope() {
+        return scope;
+    }
+
     @Override
     public void reset(Request request) {
         synchronized (stack) {
@@ -86,6 +97,12 @@ public class DefaultNavigation implements Navigation {
     @Override
     public boolean backward() {
         synchronized (stack) {
+            UserInterfaceState uis = currentUIS;
+            if (uis != null && uis.getBean() instanceof BackActionConsumer) {
+                if (((BackActionConsumer) uis.getBean()).backward()) {
+                    return true;
+                }
+            }
             if (stack.isEmpty()) {
                 return false;
             }

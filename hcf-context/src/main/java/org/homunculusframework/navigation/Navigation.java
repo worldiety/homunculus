@@ -35,7 +35,7 @@ import java.util.List;
  * @author Torben Schinke
  * @since 1.0
  */
-public interface Navigation {
+public interface Navigation extends BackActionConsumer {
 
     /**
      * Resets the stack, applies the request and afterwards the request is the sole entry on the stack
@@ -50,9 +50,10 @@ public interface Navigation {
     void forward(Request request);
 
     /**
-     * Goes backwards the navigation (whatever that means). Returns true, if that was possible. The return value does not
-     * indicate that the navigation already succeeded. The current request is discarded and the prior request is issued again.
+     * See also {@link BackActionConsumer#backward()}.
+     * The current request is discarded and the prior request is issued again.
      */
+    @Override
     boolean backward();
 
     /**

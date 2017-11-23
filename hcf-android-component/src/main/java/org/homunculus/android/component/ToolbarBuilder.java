@@ -33,8 +33,10 @@ import android.widget.RelativeLayout;
 import org.homunculus.android.core.ActivityEventDispatcher;
 import org.homunculus.android.core.ActivityEventDispatcher.AbsActivityEventCallback;
 import org.homunculus.android.core.ActivityEventOwner;
+import org.homunculus.android.core.ContextScope;
 import org.homunculus.android.core.R;
 import org.homunculusframework.lang.Panic;
+import org.homunculusframework.navigation.BackActionConsumer;
 import org.homunculusframework.scope.OnBeforeDestroyCallback;
 import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
@@ -118,7 +120,9 @@ public class ToolbarBuilder {
     private Context mToolbarSubTitleTextAppearanceContext;
     private Integer mToolbarSubTitleTextAppearance;
 
-    private static final AtomicInteger sNextGeneratedId = new AtomicInteger(1);
+    //an activity scope shared generation id
+    private final static String NGID = "toolbarBuilderGenerationId";
+    private AtomicInteger nextGeneratedId;
 
     private ToolbarBuilder() {
     }
@@ -148,8 +152,22 @@ public class ToolbarBuilder {
      * <p>
      */
     public <ContentView extends View, LeftDrawer extends View, RightDrawer extends View> ContentViewHolder<ToolbarHolder<ContentView>, LeftDrawer, RightDrawer> create(@Nullable Scope scope, AppCompatActivity activity, ActivityEventOwner owner, ContentView contentView, @Nullable LeftDrawer leftDrawer, @Nullable RightDrawer rightDrawer) {
-
-        generationId = sNextGeneratedId.incrementAndGet();
+        //only one active and valid toolbar builder is allowed per activity, so simply store the generation id in activity's scope. We use synchronized here in case of someone fiddles around with multiple inflater threads
+        synchronized (ToolbarBuilder.class) {
+            Scope activityScope = ContextScope.getScope(activity);
+            if (activityScope == null) {
+                //fallback
+                nextGeneratedId = new AtomicInteger();
+            } else {
+                if (activityScope.has(NGID, AtomicInteger.class)) {
+                    nextGeneratedId = activityScope.get(NGID, AtomicInteger.class);
+                } else {
+                    nextGeneratedId = new AtomicInteger();
+                    activityScope.put(NGID, nextGeneratedId);
+                }
+            }
+        }
+        generationId = nextGeneratedId.incrementAndGet();
         if (scope != null) {
             scope.addOnBeforeDestroyCallback(obj -> {
                 mItems.clear();
@@ -169,7 +187,7 @@ public class ToolbarBuilder {
     }
 
     private boolean isInvalidMenu() {
-        return generationId != sNextGeneratedId.get();
+        return generationId != nextGeneratedId.get();
     }
 
     private void logInvalidMenu() {
@@ -260,9 +278,10 @@ public class ToolbarBuilder {
      * @param context the context to derive the appearance
      * @param resId   the text appearance resource
      */
-    public void setTitleTextAppearance(Context context, @StyleRes int resId) {
+    public ToolbarBuilder setTitleTextAppearance(Context context, @StyleRes int resId) {
         mToolbarTitleTextAppearanceContext = context;
         mToolbarTitleTextAppearance = resId;
+        return this;
     }
 
     /**
@@ -271,9 +290,10 @@ public class ToolbarBuilder {
      * @param context the context to derive the appearance
      * @param resId   the text appearance resource
      */
-    public void setSubTitleTextAppearance(Context context, @StyleRes int resId) {
+    public ToolbarBuilder setSubTitleTextAppearance(Context context, @StyleRes int resId) {
         mToolbarSubTitleTextAppearanceContext = context;
         mToolbarSubTitleTextAppearance = resId;
+        return this;
     }
 
     private ToolbarHolder initToolbar(AppCompatActivity activity) {
@@ -531,7 +551,7 @@ public class ToolbarBuilder {
         }
     }
 
-    public class ContentViewHolder<ContentView extends View, LeftDrawer extends View, RightDrawer extends View> extends DrawerLayout {
+    public class ContentViewHolder<ContentView extends View, LeftDrawer extends View, RightDrawer extends View> extends DrawerLayout implements BackActionConsumer {
 
         private ContentView mContentView;
 
@@ -577,6 +597,33 @@ public class ToolbarBuilder {
             if (mRightDrawer != null) {
                 openDrawer(mRightDrawer);
             }
+        }
+
+        public boolean isRightDrawerOpen() {
+            if (mRightDrawer == null) {
+                return false;
+            }
+            return mDrawerLayout.isDrawerOpen(mRightDrawer);
+        }
+
+        public boolean isLeftDrawerOpen() {
+            if (mLeftDrawer == null) {
+                return false;
+            }
+            return mDrawerLayout.isDrawerOpen(mLeftDrawer);
+        }
+
+        @Override
+        public boolean backward() {
+            if (isLeftDrawerOpen()) {
+                closeLeftDrawer();
+                return true;
+            }
+            if (isRightDrawerOpen()) {
+                closeRightDrawer();
+                return true;
+            }
+            return false;
         }
     }
 

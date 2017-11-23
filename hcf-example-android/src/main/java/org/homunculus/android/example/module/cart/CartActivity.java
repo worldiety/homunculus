@@ -5,6 +5,7 @@ import android.content.Context;
 import android.os.Bundle;
 
 import org.homunculus.android.compat.EventAppCompatActivity;
+import org.homunculus.android.component.HomunculusActivity;
 import org.homunculus.android.core.Android;
 import org.homunculus.android.example.common.ViewWait;
 import org.homunculusframework.factory.container.Request;
@@ -14,7 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.Thread.UncaughtExceptionHandler;
 
-public class CartActivity extends EventAppCompatActivity implements UncaughtExceptionHandler {
+public class CartActivity extends HomunculusActivity implements UncaughtExceptionHandler {
 
 
     @Override
@@ -22,22 +23,13 @@ public class CartActivity extends EventAppCompatActivity implements UncaughtExce
         super.onCreate(savedInstanceState);
         //show a progress spinner while waiting for the asynchronous result
         setContentView(new ViewWait(this));
-
-
-        //get the current scope
-        getScope().put(Android.NAME_NAVIGATION, new DefaultNavigation(getScope()));
-        //do some navigation, which replaces the content view itself. Note: what the target (behind the request mapping) does is undefined by intention
-        Navigation nav = getScope().resolve(Navigation.class);
-        nav.forward(new Request("/cart/list").put("id", 1234));
     }
-
 
     @Override
-    public void onBackPressed() {
-        if (!onDispatchNavigationBackPressed()) {
-            super.onBackPressed();
-        }
+    protected Request create() {
+        return new Request("/cart/list").put("id", 1234);
     }
+
 
     @Override
     public void uncaughtException(Thread thread, Throwable throwable) {

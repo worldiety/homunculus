@@ -15,16 +15,21 @@
  */
 package org.homunculus.android.component;
 
+import org.homunculus.android.compat.EventAppCompatActivity;
 import org.homunculus.android.component.SwitchAnimationLayout.AnimationProvider;
 import org.homunculus.android.component.SwitchAnimationLayout.DefaultAnimation;
 import org.homunculusframework.factory.container.Request;
 import org.homunculusframework.lang.Panic;
+import org.homunculusframework.navigation.BackActionConsumer;
 import org.homunculusframework.navigation.DefaultNavigation;
 import org.homunculusframework.navigation.Navigation;
 import org.homunculusframework.scope.Scope;
 
 /**
- * A default implementation of {@link NavigationBuilder}
+ * A default implementation of {@link NavigationBuilder} with Android flavor. {@link #backward()}
+ * has a special behavior, in which it asks the content view of a potential {@link EventAppCompatActivity}
+ * for a {@link BackActionConsumer#backward()} action before delegating to {@link DefaultNavigation#backward()}
+ * which in turn asks the {@link UserInterfaceState#getBean()} the same before popping the actual stack.
  *
  * @author Torben Schinke
  * @since 1.0
@@ -42,6 +47,12 @@ public class DefaultAndroidNavigation extends DefaultNavigation implements Navig
 
     @Override
     public boolean backward() {
+        EventAppCompatActivity activity = getScope().resolve(EventAppCompatActivity.class);
+        if (activity != null && activity.getContentView() instanceof BackActionConsumer) {
+            if (((BackActionConsumer) activity.getContentView()).backward()) {
+                return true;
+            }
+        }
         return super.backward();
     }
 

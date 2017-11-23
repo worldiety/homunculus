@@ -23,6 +23,7 @@ import android.arch.lifecycle.OnLifecycleEvent;
 import android.content.Context;
 import android.content.ContextWrapper;
 
+import org.homunculus.android.compat.CompatApplication;
 import org.homunculusframework.scope.Scope;
 
 import javax.annotation.Nullable;
@@ -59,6 +60,9 @@ public class ContextScope extends ContextWrapper {
         while (context instanceof ContextWrapper) {
             if (context instanceof ContextScope) {
                 return ((ContextScope) context).getScope();
+            }
+            if (context instanceof CompatApplication) {
+                return ((CompatApplication) context).getScope();
             }
             context = ((ContextWrapper) context).getBaseContext();
         }

@@ -3,7 +3,7 @@
 The homunculus framework proposes solutions and receipts for building large Android applications.
 Homunculus makes it easy to create production-grade applications and services with absolute minimum hassle. It takes an opinionated view of the Android platform so that new and existing users can quickly get the job done respecting quality requirements.
 
-##Latest versions
+## Latest versions
 
 org.homunculusframework:hcf-core:[ ![Download](https://api.bintray.com/packages/worldiety/homunculus/hcf-core/images/download.svg) ](https://bintray.com/worldiety/homunculus/hcf-core/_latestVersion)
 
@@ -22,13 +22,13 @@ org.homunculusframework:hcf-api-spring:[ ![Download](https://api.bintray.com/pac
 
 ```groovy
     //hcf for android, also includes the core and context artifacts
-    compile 'org.homunculusframework:hcf-android-core:0.0.29'
+    compile 'org.homunculusframework:hcf-android-core:0.0.x'
     
     //advanced and optional hcf components for android
-    compile 'org.homunculusframework:hcf-android-component:0.0.29'
+    compile 'org.homunculusframework:hcf-android-component:0.0.x'
     
     //hcf spring annotation support, required by android-core by default
-    compile 'org.homunculusframework:hcf-api-spring:0.0.29'
+    compile 'org.homunculusframework:hcf-api-spring:0.0.x'
     
      //this is for @inject or @named, required by android-core by default
     compile 'javax.inject:javax.inject:1'

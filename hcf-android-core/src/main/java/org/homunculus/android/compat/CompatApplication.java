@@ -17,6 +17,7 @@ package org.homunculus.android.compat;
 
 import android.app.Application;
 import android.content.Context;
+
 import org.homunculus.android.core.Android;
 import org.homunculus.android.core.ContextScope;
 import org.homunculus.android.flavor.AndroidFlavor;
@@ -31,7 +32,9 @@ import org.homunculusframework.scope.Scope;
 import java.io.File;
 
 /**
- * Just provides an application with a {@link ContextScope} by overloading {@link android.content.ContextWrapper#attachBaseContext(Context)}
+ * Just provides an application with some helper methods. It does NOT
+ * provide a {@link ContextScope} by overloading {@link android.content.ContextWrapper#attachBaseContext(Context)} as
+ * suggested by the Android API Bug because of https://issuetracker.google.com/issues/37081588.
  *
  * @author Torben Schinke
  * @since 1.0
@@ -47,8 +50,9 @@ public class CompatApplication extends Application {
         }
         mAppScope = new Scope("/", null);
         mAppScope.put(Android.NAME_CONTEXT, this);
-        ContextScope ctx = new ContextScope(mAppScope, base);
-        super.attachBaseContext(ctx);
+
+        //we cannot attach a ContextWrapper here, because of Bug https://issuetracker.google.com/issues/37081588
+        super.attachBaseContext(base);
     }
 
     /**
@@ -64,7 +68,6 @@ public class CompatApplication extends Application {
         }
         Configuration configuration = new Configuration(appScope);
 
-        File dir = new File(this.getFilesDir(), "hcf");
 
         new AndroidFlavor(this).apply(configuration);
         new HomunculusFlavor(new File(getFilesDir(), "persistent")).apply(configuration);
@@ -82,7 +85,8 @@ public class CompatApplication extends Application {
     }
 
     /**
-     * Returns the application scope
+     * Returns the application scope. An application does not provide a {@link ContextScope} because
+     * of the fatal issue https://issuetracker.google.com/issues/37081588
      */
     public Scope getScope() {
         return mAppScope;
