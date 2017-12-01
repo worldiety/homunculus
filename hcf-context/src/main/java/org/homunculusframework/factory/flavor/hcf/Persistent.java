@@ -27,6 +27,9 @@ import java.lang.annotation.*;
  * the scope which was used to create the instance. The concrete capabilities depends on the
  * configured {@link ObjectCreator}.
  * See also {@link HCFFieldPersistent}.
+ * <p>
+ * If you annotate a generic {@link org.homunculusframework.lang.Reference} the setter will perform a manual
+ * synchronous save. Due to the contract, exceptions are mapped either as runtime exceptions or are ignored.
  *
  * @author Torben Schinke
  * @since 1.0

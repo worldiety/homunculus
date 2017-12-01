@@ -14,6 +14,7 @@ import org.homunculus.android.flavor.Resource;
 import org.homunculus.android.example.R;
 import org.homunculusframework.factory.flavor.hcf.Persistent;
 import org.homunculusframework.factory.container.Request;
+import org.homunculusframework.lang.Reference;
 import org.homunculusframework.navigation.Navigation;
 import org.slf4j.LoggerFactory;
 
@@ -55,6 +56,9 @@ public class CartView extends LinearLayout {
     @Persistent
     private SomeSettings settings;
 
+    @Persistent
+    private Reference<SomeSettings> settings2;
+
     @Inject
     private Permissions permissions;
 
@@ -66,6 +70,8 @@ public class CartView extends LinearLayout {
     private void init() {
         LoggerFactory.getLogger(getClass()).info("{}", settings);
         settings.value = UUID.randomUUID().toString();
+
+        LoggerFactory.getLogger(getClass()).info("{}", settings2.get());
 
         removeAllViews();
         if (mCart == null) {

@@ -21,14 +21,19 @@ import org.homunculusframework.factory.component.DefaultFactory;
 import org.homunculusframework.factory.container.Container;
 import org.homunculusframework.factory.serializer.Serializer;
 import org.homunculusframework.lang.Panic;
+import org.homunculusframework.lang.Reference;
 import org.homunculusframework.lang.Reflection;
 import org.homunculusframework.scope.OnAfterDestroyCallback;
 import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+
 import java.io.*;
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.lang.reflect.WildcardType;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -60,49 +65,97 @@ public class HCFFieldPersistent implements AnnotatedFieldProcessor {
     public void process(Scope scope, Object instance, Field field) {
         Persistent key = field.getAnnotation(Persistent.class);
         if (key != null) {
-            field.setAccessible(true);
-            Serializer serializer = serializers.get(key.serializer());
-            if (serializer == null) {
-                LoggerFactory.getLogger(instance.getClass()).error("the serializer is unkown: " + key.serializer());
-                return;
-            }
+
             //we will save the entity if the scope gets destroyed
             scope.addOnAfterDestroyCallback(new OnAfterDestroyCallback() {
                 @Override
                 public void onAfterDestroy(Scope scope) {
-                    try {
-                        Object value = field.get(instance);
-                        save(folder, key.name(), serializer, field.getType(), value);
-                    } catch (IllegalAccessException e) {
-                        throw new Panic(e);
-                    } catch (IOException e) {
-                        LoggerFactory.getLogger(getClass()).warn("failed to save", e);
-                    }
+                    save(key, instance, field);
                 }
             });
 
 
-            try {
-                Object resolvedValue = read(folder, key.name(), serializer, field.getType());
-                //check if null and not resolvable -> try to create such an instance
-                if (resolvedValue == null) {
-                    Container container = scope.resolve(Container.NAME_CONTAINER, Container.class);
-                    if (container != null) {
-                        //await has danger of deadlocks, especially for PostConstructs in main thread (which is the default case)
-                        resolvedValue = Async.await(container.createComponent(scope, field.getType())).get();
-                    }
-                }
-
-                field.set(instance, resolvedValue);
-                LoggerFactory.getLogger(instance.getClass()).info("{}.{} = {}", instance.getClass().getSimpleName(), field.getName(), DefaultFactory.stripToString(resolvedValue));
-            } catch (IllegalAccessException | IOException e) {
-                LoggerFactory.getLogger(instance.getClass()).error("failed to deserialize: {}.{} -> {}", instance.getClass().getSimpleName(), field.getName(), e);
-            }
+            load(scope, key, instance, field);
         }
     }
 
+    public void save(Persistent annotation, Object parent, Field field) {
+        try {
+            field.setAccessible(true);
+            Serializer serializer = serializers.get(annotation.serializer());
+            if (serializer == null) {
+                LoggerFactory.getLogger(parent.getClass()).error("the serializer is unkown: " + annotation.serializer());
+                return;
+            }
+            Object value = field.get(parent);
+            //save the referenced object instead
+            if (value instanceof PersistentReference) {
+                value = ((PersistentReference) value).get();
+            }
+            write(folder, annotation.name(), serializer, field.getType(), value);
+        } catch (IllegalAccessException e) {
+            throw new Panic(e);
+        } catch (IOException e) {
+            LoggerFactory.getLogger(getClass()).warn("failed to save", e);
+        }
+    }
 
-    public static void save(File targetDir, String name, Serializer serializer, Class<?> type, Object obj) throws IOException {
+    public void load(Scope scope, Persistent annotation, Object parent, Field field) {
+        try {
+            field.setAccessible(true);
+            Serializer serializer = serializers.get(annotation.serializer());
+            if (serializer == null) {
+                LoggerFactory.getLogger(parent.getClass()).error("the serializer is unkown: " + annotation.serializer());
+                return;
+            }
+
+            Class<?> typeToResolve = field.getType();
+            boolean isReference = false;
+            //check if we have a nested special case with reference - to support manual save -, so that we have the correct type
+            if (field.getType() == Reference.class || field.getType() == PersistentReference.class) { //no assignable here, otherwise we would create a lot of constructur issues
+                isReference = true;
+                typeToResolve = getBestClassFromType(field.getGenericType());
+            }
+
+
+            Object resolvedValue = read(folder, annotation.name(), serializer, typeToResolve);
+            //check if null and not resolvable -> try to create such an instance
+            if (resolvedValue == null) {
+                Container container = scope.resolve(Container.NAME_CONTAINER, Container.class);
+                if (container != null) {
+                    //await has danger of deadlocks, especially for PostConstructs in main thread (which is the default case)
+                    resolvedValue = Async.await(container.createComponent(scope, typeToResolve)).get();
+                }
+            }
+
+            if (isReference) {
+                PersistentReference ref = new PersistentReference(this, scope, annotation, parent, field);
+                ref.set(resolvedValue);
+                field.set(parent, ref);
+            } else {
+                field.set(parent, resolvedValue);
+            }
+            LoggerFactory.getLogger(parent.getClass()).info("{}.{} = {}", parent.getClass().getSimpleName(), field.getName(), DefaultFactory.stripToString(resolvedValue));
+        } catch (IllegalAccessException | IOException e) {
+            LoggerFactory.getLogger(parent.getClass()).error("failed to deserialize: {}.{} -> {}", parent.getClass().getSimpleName(), field.getName(), e);
+        }
+    }
+
+    private static Class<?> getBestClassFromType(Type type) {
+        if (type instanceof ParameterizedType) {
+            Type[] types = ((ParameterizedType) type).getActualTypeArguments();
+            if (types != null && types.length > 0) {
+                return (Class) types[0];
+            }
+        }
+        if (type instanceof WildcardType) {
+            return (Class) ((WildcardType) type).getUpperBounds()[0];
+        }
+        throw new Panic("not supported type: " + type);
+    }
+
+
+    public static void write(File targetDir, String name, Serializer serializer, Class<?> type, Object obj) throws IOException {
         File dstFile = new File(targetDir, Reflection.getName(type) + "_" + name + "." + serializer.getId());
         if (obj == null) {
             if (!dstFile.delete()) {
@@ -158,6 +211,78 @@ public class HCFFieldPersistent implements AnnotatedFieldProcessor {
             return (T) res;
         } finally {
             fin.close();
+        }
+    }
+
+    public final static class PersistentReference<T> implements Reference<T> {
+
+        private T value;
+        private final Persistent annotation;
+        private final HCFFieldPersistent persistent;
+        private final Object parent;
+        private final Field field;
+        private final Scope scope;
+
+        PersistentReference(HCFFieldPersistent persistent, Scope scope, Persistent annotation, Object parent, Field field) {
+            this.annotation = annotation;
+            this.persistent = persistent;
+            this.parent = parent;
+            this.field = field;
+            this.scope = scope;
+            field.setAccessible(true);
+        }
+
+        @Override
+        public T get() {
+            //for the barrier -> java memory model
+            synchronized (this) {
+                return value;
+            }
+        }
+
+        @Override
+        public void set(T value) {
+            synchronized (this) {
+                try {
+                    this.value = value;
+                    field.set(parent, this);
+                } catch (IllegalAccessException e) {
+                    throw new Panic(e);
+                }
+                save();
+            }
+        }
+
+        /**
+         * Explicitly tries to load the persisted value into this reference instance.
+         * If not possible the value will be null. See also {@link #read(File, String, Serializer, Class)}
+         */
+        public void load() {
+            synchronized (this) {
+                persistent.load(scope, annotation, parent, field);
+            }
+        }
+
+        /**
+         * Explicitly tries to save the current value of this reference, ignoring failures.
+         * See also {@link #write(File, String, Serializer, Class, Object)}
+         */
+        public void save() {
+            synchronized (this) {
+                persistent.save(annotation, parent, field);
+            }
+        }
+
+        @Override
+        public String toString() {
+            synchronized (this) {
+                if (value == null) {
+                    return null;
+                } else {
+                    return value.toString();
+                }
+            }
+
         }
     }
 }

@@ -100,7 +100,7 @@ public class ORMLiteEntityManager implements EntityManager {
      */
     public Savepoint setSavePoint(Class<?> type, String name) {
         try {
-            String tableName = getDao(type);
+            String tableName = getDao(type).getTableName();
             return getConnectionSource().getReadWriteConnection(tableName).setSavePoint(name);
         } catch (SQLException e) {
             throw new Panic(e);
@@ -112,7 +112,7 @@ public class ORMLiteEntityManager implements EntityManager {
      */
     public void commit(Class<?> type, Savepoint savepoint) {
         try {
-            String tableName = getDao(type);
+            String tableName = getDao(type).getTableName();
             getConnectionSource().getReadWriteConnection(tableName).commit(savepoint);
         } catch (SQLException e) {
             throw new Panic(e);
@@ -125,7 +125,7 @@ public class ORMLiteEntityManager implements EntityManager {
      */
     public void rollback(Class<?> type, Savepoint savepoint) {
         try {
-            String tableName = getDao(type);
+            String tableName = getDao(type).getTableName();
             getConnectionSource().getReadWriteConnection(tableName).rollback(savepoint);
         } catch (SQLException e) {
             throw new Panic(e);
