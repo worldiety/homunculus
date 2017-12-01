@@ -17,19 +17,20 @@ package org.homunculus.android.component;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.widget.FrameLayout;
 
-import org.homunculus.android.core.ActivityEventOwner;
 import org.homunculus.android.core.ContextScope;
 import org.homunculusframework.lang.Function;
 import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
-
 import java.lang.Thread.UncaughtExceptionHandler;
+
+import javax.annotation.Nullable;
 
 /**
  * This crash handler tries to un-break your android handler by reviving the looper (and potentionally applying a little hack).
@@ -141,16 +142,17 @@ public class UnbreakableCrashHandler {
                 //clear any broken view
                 FrameLayout tmp = new FrameLayout(activity);
                 activity.setContentView(tmp);
+                LoggerFactory.getLogger(getClass()).warn("reset content view with empty view");
 
                 //fix around weired redraw/buffer/vsync problem, see also https://source.android.com/devices/graphics/implement-vsync
-                if (activity instanceof ActivityEventOwner) {
-                    ActivityEventOwner owner = (ActivityEventOwner) activity;
-                    new Permissions(root, owner.getEventDispatcher()).requestFeatureReadExternal().whenDone(res -> {
-                        tmp.forceLayout();
-                        tmp.invalidate();
-                        tmp.requestLayout();
-                    });
+
+                //now it get awkward: we need to resync some lost events for drawing: force a onPause and onResume cycle to fix it
+                try {
+                    activity.startActivity(new Intent(activity, RecoverActivity.class));
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
+
             }
             return true;
         });
@@ -173,4 +175,13 @@ public class UnbreakableCrashHandler {
         });
     }
 
+
+    public static class RecoverActivity extends Activity {
+        @Override
+        protected void onCreate(@android.support.annotation.Nullable Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            getWindow().getDecorView().setBackgroundResource(android.R.color.transparent);
+            finish();
+        }
+    }
 }

@@ -6,9 +6,7 @@ import android.graphics.Color;
 import android.widget.Button;
 import android.widget.LinearLayout;
 
-
 import org.homunculus.android.component.NavigationBuilder;
-import org.homunculus.android.example.R;
 import org.homunculusframework.lang.Panic;
 
 import javax.annotation.PostConstruct;
@@ -19,7 +17,7 @@ import javax.inject.Named;
  * Created by Torben Schinke on 07.11.17.
  */
 @Named("/testa")
-public class UISA extends LinearLayout {
+public class UISB extends LinearLayout {
 
     @Inject
     private NavigationBuilder navigation;
@@ -27,22 +25,24 @@ public class UISA extends LinearLayout {
     @Inject
     private Activity activity;
 
-    public UISA(Context context) {
+    public UISB(Context context) {
         super(context);
     }
 
     @PostConstruct
     private void apply() {
         //throw new RuntimeException("test");
-        setBackgroundColor(Color.RED);
+        setBackgroundColor(Color.BLACK);
         activity.setContentView(this);
 
-        Button btnToB = new Button(getContext());
-        btnToB.setText("to B");
-        btnToB.setOnClickListener(view -> {
-            navigation.forward(UISB.class).start();
-        });
-        addView(btnToB);
+        Button brokenView = new Button(getContext()) {
+            @Override
+            protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+                throw new Panic("die hard");
+            }
+        };
+
+        addView(brokenView);
 
     }
 
