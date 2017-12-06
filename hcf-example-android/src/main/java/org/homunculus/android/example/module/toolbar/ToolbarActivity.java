@@ -6,9 +6,13 @@ import android.os.Bundle;
 import android.view.View;
 
 import org.homunculus.android.compat.EventAppCompatActivity;
+import org.homunculus.android.component.Str;
 import org.homunculus.android.component.ToolbarBuilder;
 import org.homunculus.android.component.ToolbarBuilder.ContentViewHolder;
 import org.homunculus.android.component.ToolbarBuilder.ToolbarHolder;
+import org.homunculus.android.example.R;
+
+import static org.homunculus.android.component.Str.str;
 
 public class ToolbarActivity extends EventAppCompatActivity {
 
@@ -23,6 +27,9 @@ public class ToolbarActivity extends EventAppCompatActivity {
     private static ContentViewHolder<ToolbarHolder<MyContentView>, MyLeftDrawer, MyRightDrawer> applyState(EventAppCompatActivity context) {
         return ToolbarBuilder.
                 define().
+                setTitle(str(R.string.app_name)).
+                setLogo(org.homunculus.android.component.R.drawable.ic_launcher).
+                setMenuId(R.menu.testmenu).
                 create(null, context, context, new MyContentView(context), new MyLeftDrawer(context), new MyRightDrawer(context));
     }
 

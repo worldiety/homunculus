@@ -16,8 +16,12 @@
 package org.homunculus.android.component;
 
 import android.os.Build.VERSION;
+import android.view.View;
+import android.view.ViewGroup;
 
 import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.annotation.Nullable;
 
 /**
  * Provides some missing compatibility bits for views.
@@ -52,5 +56,24 @@ public class Widget {
                 }
             }
         }
+    }
+
+    /**
+     * A helper method which allows a typesafe access to a child of a view group.
+     *
+     * @param parent the parent to search for
+     * @param type   the type of child
+     * @param <V>    the type
+     * @return the view or null
+     */
+    @Nullable
+    public static <V extends View> V getChild(ViewGroup parent, Class<V> type) {
+        for (int i = 0; i < parent.getChildCount(); i++) {
+            View v = parent.getChildAt(i);
+            if (v != null && type.isAssignableFrom(v.getClass())) {
+                return (V) v;
+            }
+        }
+        return null;
     }
 }

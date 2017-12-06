@@ -26,10 +26,15 @@ import java.lang.annotation.*;
  * Marks a field or getter method to save the declared model "before" exiting
  * the scope which was used to create the instance. The concrete capabilities depends on the
  * configured {@link ObjectCreator}.
- * See also {@link HCFFieldPersistent}.
+ * See also {@link HCFFieldPersistent}. It is guaranteed that if nothing can be deserialized, the actual
+ * value is null (however a reference is never null).
  * <p>
  * If you annotate a generic {@link org.homunculusframework.lang.Reference} the setter will perform a manual
  * synchronous save. Due to the contract, exceptions are mapped either as runtime exceptions or are ignored.
+ * It is guaranteed that the Reference instance is never null. Also keep in mind never to replace it with a custom
+ * instance of a reference.
+ * <p>
+ * Consider to use a name, especially when used with primitives.
  *
  * @author Torben Schinke
  * @since 1.0

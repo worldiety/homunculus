@@ -88,11 +88,13 @@ public class HCFFieldPersistent implements AnnotatedFieldProcessor {
                 return;
             }
             Object value = field.get(parent);
+            Class<?> type = field.getType();
             //save the referenced object instead
             if (value instanceof PersistentReference) {
                 value = ((PersistentReference) value).get();
+                type = getBestClassFromType(field.getGenericType());
             }
-            write(folder, annotation.name(), serializer, field.getType(), value);
+            write(folder, annotation.name(), serializer, type, value);
         } catch (IllegalAccessException e) {
             throw new Panic(e);
         } catch (IOException e) {
@@ -130,7 +132,7 @@ public class HCFFieldPersistent implements AnnotatedFieldProcessor {
 
             if (isReference) {
                 PersistentReference ref = new PersistentReference(this, scope, annotation, parent, field);
-                ref.set(resolvedValue);
+                ref.set(resolvedValue, false);
                 field.set(parent, ref);
             } else {
                 field.set(parent, resolvedValue);
@@ -242,14 +244,21 @@ public class HCFFieldPersistent implements AnnotatedFieldProcessor {
 
         @Override
         public void set(T value) {
+            set(value, true);
+        }
+
+        /**
+         * Sets the value
+         *
+         * @param value the new value
+         * @param save  if true, saves the value
+         */
+        public void set(T value, boolean save) {
             synchronized (this) {
-                try {
-                    this.value = value;
-                    field.set(parent, this);
-                } catch (IllegalAccessException e) {
-                    throw new Panic(e);
+                this.value = value;
+                if (save) {
+                    save();
                 }
-                save();
             }
         }
 

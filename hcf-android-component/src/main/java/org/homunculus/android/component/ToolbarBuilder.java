@@ -18,6 +18,9 @@ package org.homunculus.android.component;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.support.annotation.ColorInt;
+import android.support.annotation.ColorRes;
+import android.support.annotation.DrawableRes;
 import android.support.annotation.StyleRes;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -34,7 +37,6 @@ import org.homunculus.android.core.ActivityEventDispatcher;
 import org.homunculus.android.core.ActivityEventDispatcher.AbsActivityEventCallback;
 import org.homunculus.android.core.ActivityEventOwner;
 import org.homunculus.android.core.ContextScope;
-import org.homunculus.android.core.R;
 import org.homunculusframework.lang.Panic;
 import org.homunculusframework.navigation.BackActionConsumer;
 import org.homunculusframework.scope.OnBeforeDestroyCallback;
@@ -123,6 +125,9 @@ public class ToolbarBuilder {
     //an activity scope shared generation id
     private final static String NGID = "toolbarBuilderGenerationId";
     private AtomicInteger nextGeneratedId;
+
+    private Drawable toolbarLogoAsDrawable;
+    private Integer toolbarLogoAsResource;
 
     private ToolbarBuilder() {
     }
@@ -401,17 +406,48 @@ public class ToolbarBuilder {
             toggle.syncState();
         }
 
+        if (toolbarLogoAsResource != null) {
+            contentLayout.getToolbar().setLogo(toolbarLogoAsResource);
+        } else if (toolbarLogoAsDrawable != null) {
+            contentLayout.getToolbar().setLogo(toolbarLogoAsDrawable);
+        }
+
+
         return mDrawerLayout;
+    }
+
+    /**
+     * Sets the toolbar logo.
+     *
+     * @param drawable the drawable
+     * @return the builder
+     */
+    public ToolbarBuilder setLogo(Drawable drawable) {
+        toolbarLogoAsDrawable = drawable;
+        toolbarLogoAsResource = null;
+        return this;
+    }
+
+    /**
+     * Sets the toolbar logo.
+     *
+     * @param drawable the drawable
+     * @return the builder
+     */
+    public ToolbarBuilder setLogo(@DrawableRes int drawable) {
+        toolbarLogoAsDrawable = null;
+        toolbarLogoAsResource = drawable;
+        return this;
     }
 
 
     /**
      * Set the toolbar background color
      *
-     * @param toolbarColor
-     * @return
+     * @param toolbarColor the color value
+     * @return the builder
      */
-    public ToolbarBuilder setToolbarColor(Integer toolbarColor) {
+    public ToolbarBuilder setToolbarColor(@ColorRes Integer toolbarColor) {
         mToolbarColor = toolbarColor;
         return this;
     }
@@ -419,9 +455,9 @@ public class ToolbarBuilder {
     /**
      * Sets the text color of the title, if present.
      *
-     * @param textColor The new text color in 0xAARRGGBB formaterVideoDuration
+     * @param textColor The new text color
      */
-    public ToolbarBuilder setTitleTextColor(Integer textColor) {
+    public ToolbarBuilder setTitleTextColor(@ColorRes Integer textColor) {
         mTitleTextColor = textColor;
         return this;
     }
