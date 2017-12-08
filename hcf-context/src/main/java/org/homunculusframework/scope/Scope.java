@@ -430,7 +430,7 @@ public final class Scope implements Destroyable, org.homunculusframework.lang.Ma
         //defensive copy again, to protect against weired stuff
         final ArrayList<OnBeforeDestroyCallback> tmpOnBeforeDestroyCallbacks;
         synchronized (dcbBefore) {
-            tmpOnBeforeDestroyCallbacks = new ArrayList<>(dcbBefore.size());
+            tmpOnBeforeDestroyCallbacks = new ArrayList<>(dcbBefore);
             dcbBefore.clear();
         }
         for (int i = 0; i < tmpOnBeforeDestroyCallbacks.size(); i++) {

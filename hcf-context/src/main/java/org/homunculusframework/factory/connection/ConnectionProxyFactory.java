@@ -15,6 +15,7 @@
  */
 package org.homunculusframework.factory.connection;
 
+import org.homunculusframework.concurrent.CancelPending;
 import org.homunculusframework.concurrent.Task;
 import org.homunculusframework.concurrent.ThreadNotInterruptible;
 import org.homunculusframework.factory.component.DefaultFactory;
@@ -29,6 +30,7 @@ import org.homunculusframework.scope.Scope;
 import org.homunculusframework.scope.SettableTask;
 
 import javax.annotation.Nullable;
+
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -83,7 +85,7 @@ public class ConnectionProxyFactory<T> {
      * Returns the actual connection, which is implemented using the proxy mechanism. Creates new instances when required
      */
     public Connection<T> borrowConnection(Scope scope) {
-        MyInvocationHandler handler = proxies.peek();
+        MyInvocationHandler handler = proxies.poll();
         if (handler == null) {
             handler = new MyInvocationHandler(controllerInstance, asyncContract);
         }
@@ -97,6 +99,9 @@ public class ConnectionProxyFactory<T> {
     public void returnConnection(Connection<T> connection) {
         MyInvocationHandler handler = (MyInvocationHandler) Proxy.getInvocationHandler(connection);
         handler.currentScope = null;
+        for (ConnectionMethod method : handler.methods.values()) {
+            method.pendingTask = null;
+        }
         proxies.add(handler);
     }
 
@@ -108,6 +113,9 @@ public class ConnectionProxyFactory<T> {
         //used to detect and flag crossing concurrent invocations -> only the last call is not flagged as outdated
         private final AtomicInteger callGeneration;
         private final boolean interruptible;
+        private final boolean cancelPending;
+        private final boolean cancelPendingWithInterrupt;
+        private SettableTask<?> pendingTask;
 
         public ConnectionMethod(Object instance, @Nullable Method instanceTarget, boolean notImplemented) {
             this.instance = instance;
@@ -116,8 +124,18 @@ public class ConnectionProxyFactory<T> {
             this.callGeneration = new AtomicInteger();
             if (instanceTarget == null) {
                 this.interruptible = false;
+                this.cancelPending = false;
+                this.cancelPendingWithInterrupt = false;
             } else {
                 this.interruptible = instanceTarget.getAnnotation(ThreadNotInterruptible.class) == null;
+                CancelPending cancelPending = instanceTarget.getAnnotation(CancelPending.class);
+                if (cancelPending != null) {
+                    this.cancelPending = true;
+                    this.cancelPendingWithInterrupt = cancelPending.mayInterruptIfRunning();
+                } else {
+                    this.cancelPending = false;
+                    this.cancelPendingWithInterrupt = false;
+                }
             }
         }
 
@@ -134,11 +152,25 @@ public class ConnectionProxyFactory<T> {
                 );
                 return task;
             }
+
+
             final int myGeneration = callGeneration.incrementAndGet();
             //capture the synchronous trace
             StackTraceElement[] trace = DefaultFactory.getCallStack(4);
             SettableTask<Result<?>> task = SettableTask.create(lifeTime, instanceTarget.getName() + "@" + mCounter.incrementAndGet());
             ProxyRequestContext ctx = new ProxyRequestContext(task);
+
+            //cancel pending, if required, before starting to work
+            if (cancelPending) {
+                synchronized (this) {
+                    if (pendingTask != null) {
+                        pendingTask.cancel(cancelPendingWithInterrupt);
+                    }
+                    pendingTask = task;
+                }
+            }
+
+            //continue handling job
             Ref<Thread> ref = new Ref<>();
             handler.post(() -> {
                 ref.set(Thread.currentThread());
@@ -195,6 +227,7 @@ public class ConnectionProxyFactory<T> {
                     task.set(r);
                 }
             });
+
             return task;
         }
     }
@@ -205,6 +238,7 @@ public class ConnectionProxyFactory<T> {
         private final Map<Method, ConnectionMethod> methods;
         private final Object actualProxy;
         //this is changed for each borrow/return cycle
+        @Nullable
         private volatile Scope currentScope;
 
         MyInvocationHandler(Object instance, Class proxyType) {
@@ -249,9 +283,18 @@ public class ConnectionProxyFactory<T> {
                 }
                 throw new Panic();
             }
-            Handler handler = currentScope.resolve(Container.NAME_REQUEST_HANDLER, Handler.class);
-            Task<Result<?>> task = connectionMethod.invoke(currentScope, method, handler, args);
-            return task;
+            Scope hardRef = currentScope;
+            if (hardRef != null) {
+                Handler handler = hardRef.resolve(Container.NAME_BACKGROUND_HANDLER, Handler.class);
+                Task<Result<?>> task = connectionMethod.invoke(currentScope, method, handler, args);
+                return task;
+            } else {
+                SettableTask<Result<?>> task = SettableTask.create(connectionMethod.instanceTarget + "@" + mCounter.incrementAndGet());
+                Result r = new Result();
+                r.put(Result.TAG_CANCELLED);
+                task.set(r);
+                return task;
+            }
         }
     }
 

@@ -67,7 +67,7 @@ public final class Container {
 
     /**
      * Denotes a {@link Handler} used to post into some background thread(s) of an application, which is NEVER the UI thread.
-     * Used e.g. for {@link PostConstruct}
+     * Used e.g. for {@link PostConstruct} or by {@link Task} proxied by a {@link Connection} method.
      */
     public final static String NAME_BACKGROUND_HANDLER = "$backgroundHandler";
 

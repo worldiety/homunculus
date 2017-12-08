@@ -56,6 +56,7 @@ public class SettableTask<T> implements Task<T> {
         if (scope != null) {
             this.beforeDestroyCallback = s -> cancel(true);
             scope.put(key, new ExecutionList());
+            scope.addOnBeforeDestroyCallback(beforeDestroyCallback);
             leakyExecutionList = null;
         } else {
             this.beforeDestroyCallback = null;

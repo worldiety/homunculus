@@ -54,6 +54,11 @@ public class Android {
      */
     public final static String NAME_LAYOUT_INFLATER = "$layoutInflater";
 
+    /**
+     * The name for {@link android.app.FragmentManager}
+     */
+    public final static String NAME_FRAGMENT_MANAGER = "$fragmentManager";
+
     private Android() {
     }
 

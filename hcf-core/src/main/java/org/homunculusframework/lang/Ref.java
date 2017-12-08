@@ -46,4 +46,13 @@ public class Ref<T> implements Reference<T> {
     public void set(T value) {
         this.value = value;
     }
+
+    @Override
+    public String toString() {
+        if (value == null) {
+            return "null";
+        } else {
+            return value.toString();
+        }
+    }
 }

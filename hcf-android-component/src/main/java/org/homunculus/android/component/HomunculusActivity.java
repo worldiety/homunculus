@@ -51,6 +51,7 @@ public abstract class HomunculusActivity extends EventAppCompatActivity implemen
         DefaultNavigation nav = new DefaultAndroidNavigation(getScope());
         getScope().put(Android.NAME_NAVIGATION, nav);
         getScope().put(Android.NAME_LAYOUT_INFLATER, getSystemService(Context.LAYOUT_INFLATER_SERVICE));
+        getScope().put(Android.NAME_FRAGMENT_MANAGER, getFragmentManager());
         nav.forward(create());
     }
 

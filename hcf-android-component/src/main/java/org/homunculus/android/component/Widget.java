@@ -15,9 +15,15 @@
  */
 package org.homunculus.android.component;
 
+import android.app.Activity;
+import android.content.Context;
+import android.graphics.Rect;
 import android.os.Build.VERSION;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -75,5 +81,28 @@ public class Widget {
             }
         }
         return null;
+    }
+
+    /**
+     * Closes the keyboard when required, if the motion event does not point to a text field
+     *
+     * @param activity the activity
+     * @param event    the event
+     */
+    public static void closeKeyboardWhenRequired(Activity activity, MotionEvent event) {
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            View v = activity.getCurrentFocus();
+            if (v instanceof EditText) {
+                Rect outRect = new Rect();
+                v.getGlobalVisibleRect(outRect);
+                if (!outRect.contains((int) event.getRawX(), (int) event.getRawY())) {
+                    v.clearFocus();
+                    InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+                    if (imm != null) {
+                        imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+                    }
+                }
+            }
+        }
     }
 }
