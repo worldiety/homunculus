@@ -15,6 +15,7 @@
  */
 package org.homunculus.android.component;
 
+import android.Manifest.permission;
 import android.app.Activity;
 import android.content.ClipData;
 import android.content.Intent;
@@ -26,6 +27,8 @@ import android.os.Environment;
 import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.support.v4.content.FileProvider;
+
+import org.homunculus.android.component.Permissions.PermissionResponse;
 import org.homunculus.android.core.ActivityEventDispatcher;
 import org.homunculus.android.core.ActivityEventDispatcher.AbsActivityEventCallback;
 import org.homunculus.android.core.ActivityEventDispatcher.ActivityEventCallback;
@@ -136,8 +139,8 @@ public class IntentImages implements Destroyable {
     public Task<Result<File>> pickCameraPhoto(String authority) {
         SettableTask<Result<File>> resFile = SettableTask.create("IntentImages.pickCameraPhoto");
 
-        mPermissions.requestFeatureCamera().whenDone(r -> {
-            if (r.exists()) {
+        mPermissions.handlePermission(permission.CAMERA).whenDone(r -> {
+            if (r.isDenied()) {
                 Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                 // Ensure that there's a camera activity to handle the intent
                 if (takePictureIntent.resolveActivity(mPermissions.getActivity().getPackageManager()) != null) {
@@ -175,7 +178,7 @@ public class IntentImages implements Destroyable {
                     resFile.set(Result.<File>create().put("intent.camera.misssing"));
                 }
             } else {
-                resFile.set(Result.nullValue(r));
+                resFile.set(Result.nullValue(r.asResult()));
             }
         });
 
@@ -202,8 +205,8 @@ public class IntentImages implements Destroyable {
 
     private Task<Result<List<Uri>>> pickUris(Intent queryIntent) {
         SettableTask<Result<List<Uri>>> resFile = SettableTask.create(mScope, "IntentImages.pickUris");
-        mPermissions.requestFeatureReadMediaStore().whenDone(feature -> {
-            if (feature.exists()) {
+        mPermissions.handlePermission(permission.READ_EXTERNAL_STORAGE).whenDone(feature -> {
+            if (feature.isGranted()) {
                 mIntentManager.startIntent(queryIntent).whenDone(rIntent -> {
                     if (rIntent.exists()) {
                         asyncParseUris(mScope, rIntent.get().getResponse()).whenDone(resList -> {
@@ -214,7 +217,7 @@ public class IntentImages implements Destroyable {
                     }
                 });
             } else {
-                resFile.set(Result.nullValue(feature));
+                resFile.set(Result.nullValue(feature.asResult()));
             }
         });
         return resFile;
