@@ -4,7 +4,7 @@
 
     <string name="hcf_action_send">Senden</string>
     <string name="hcf_action_back">Zurück</string>
-    <string name="hcf_uncaughtexception_message">Beim Anzeigen ist ein Fehler aufgetreten. Versuchen Sie es bitte erneut.</string>
+    <string name="hcf_uncaughtexception_message">Beim Anzeigen ist ein Fehler aufgetreten. Helfen Sie uns, indem Sie uns einen Bericht senden. Dabei werden einige Angaben zur App und zum Betriebssystem übermittelt.</string>
     <string name="hcf_uncaughtexception_submitted">Vielen Dank für die Übermittlung des Fehlers. Ihre Nummer für den Kundensupport ist: %s.</string>
     <string name="hcf_uncaughtexception_submission_failed">Es war nicht möglich den Fehler zu übermitteln. Bitte prüfen Sie Ihre Internetverbindung oder versuchen Sie es später erneut.</string>
 
