@@ -97,7 +97,7 @@ public class Permissions implements Destroyable {
      * A ready to use aggregation of {@link ContextCompat#checkSelfPermission(Context, String)} and
      * {@link ActivityCompat#requestPermissions(Activity, String[], int)}
      *
-     * @param permissions the permissions e.g. from {@link permission}
+     * @param permissions the permissions e.g. from {@link permission}. Permissions may be also empty.
      * @return a task with a list of all requested permissions
      */
     public Task<List<PermissionResponse>> handlePermissions(String... permissions) {
@@ -115,9 +115,14 @@ public class Permissions implements Destroyable {
             }
         }
 
-        //now request the missing permissions, the response runs over the holder
-        ActivityCompat.requestPermissions(getActivity(), missingPermissions.toArray(new String[missingPermissions.size()]), holder.id);
-
+        if (missingPermissions.isEmpty()){
+            //android has a non-documented behavior here: missingPermissions is empty: java.lang.IllegalArgumentException: permission cannot be null or empty
+            //the PermissionResponse has been updated just above, and can be returned
+            holder.task.set(Arrays.asList(holder.responses));
+        }else {
+            //now request the missing permissions, the response runs over the holder
+            ActivityCompat.requestPermissions(getActivity(), missingPermissions.toArray(new String[missingPermissions.size()]), holder.id);
+        }
 
         return holder.task;
     }
