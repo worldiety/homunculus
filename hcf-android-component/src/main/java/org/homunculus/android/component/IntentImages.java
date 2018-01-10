@@ -140,7 +140,7 @@ public class IntentImages implements Destroyable {
         SettableTask<Result<File>> resFile = SettableTask.create("IntentImages.pickCameraPhoto");
 
         mPermissions.handlePermission(permission.CAMERA).whenDone(r -> {
-            if (r.isDenied()) {
+            if (r.isGranted()) {
                 Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                 // Ensure that there's a camera activity to handle the intent
                 if (takePictureIntent.resolveActivity(mPermissions.getActivity().getPackageManager()) != null) {
