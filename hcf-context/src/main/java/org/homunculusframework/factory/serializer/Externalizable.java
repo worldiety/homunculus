@@ -40,7 +40,7 @@ public class Externalizable implements Serializer {
     }
 
     @Override
-    public Object deserialize(InputStream in, Class<?> type) throws IOException {
+    public <T> T deserialize(InputStream in, Class<T> type) throws IOException {
         if (java.io.Externalizable.class.isAssignableFrom(type)) {
             //using this serializer without the contract is a developer fault and must be punished
             throw new Panic("the type " + type + " must implement java.io.Externalizable");
@@ -48,7 +48,8 @@ public class Externalizable implements Serializer {
         java.io.Externalizable newInstance;
         try {
             newInstance = (java.io.Externalizable) type.getConstructor().newInstance();
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            //cannot use InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException because of android incompatibility
+        } catch (Exception e) {
             //using this serializer without empty constructor is a developer fault and must be punished
             throw new Panic("tried to deserialize " + type + " which must provide a public (static) and empty constructor", e);
         }
@@ -59,7 +60,7 @@ public class Externalizable implements Serializer {
         } catch (ClassNotFoundException e) {
             throw new Panic(e);
         }
-        return newInstance;
+        return (T) newInstance;
     }
 
     @Override

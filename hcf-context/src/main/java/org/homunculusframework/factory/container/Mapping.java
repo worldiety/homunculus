@@ -17,6 +17,8 @@ package org.homunculusframework.factory.container;
 
 import org.homunculusframework.lang.Reflection;
 
+import java.io.Serializable;
+
 import javax.annotation.Nullable;
 
 /**
@@ -25,11 +27,13 @@ import javax.annotation.Nullable;
  * @author Torben Schinke
  * @since 1.0
  */
-public class Mapping {
+public final class Mapping implements Serializable {
+    private static final long serialVersionUID = -7518802539693390805L;
     @Nullable
     private final String name;
     @Nullable
     private final Class<?> type;
+
 
     private Mapping(@Nullable String name, @Nullable Class<?> type) {
         this.name = name;

@@ -29,6 +29,11 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 
+import java.io.DataOutput;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.Serializable;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
@@ -53,7 +58,9 @@ import java.util.TreeMap;
  * @author Torben Schinke
  * @since 1.0
  */
-public final class Request implements org.homunculusframework.lang.Map<String, Object> {
+public final class Request implements org.homunculusframework.lang.Map<String, Object>, Serializable {
+    private static final long serialVersionUID = -1832452970223818787L;
+
     private final Mapping mapping;
     private final Map<String, Object> requestParams;
 

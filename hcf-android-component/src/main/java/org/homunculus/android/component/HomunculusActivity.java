@@ -22,37 +22,141 @@ import org.homunculus.android.compat.EventAppCompatActivity;
 import org.homunculus.android.component.module.uncaughtexception.UncaughtException;
 import org.homunculus.android.core.Android;
 import org.homunculusframework.factory.container.Request;
+import org.homunculusframework.factory.serializer.Serializable;
+import org.homunculusframework.factory.serializer.Serializer;
 import org.homunculusframework.navigation.DefaultNavigation;
+import org.homunculusframework.navigation.Navigation;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Just like the {@link EventAppCompatActivity} but provides an even more provided and opinionated configuration allowing
  * an easier bootstrapping, which just works out of the box and guides you towards a working application. It has
  * a default configuration with {@link DefaultAndroidNavigation} and {@link SwitchAnimationLayout}.
+ * <p>
+ * The default behavior is to use {@link #onSaveInstanceState(Bundle)} and {@link #onCreate(Bundle)}.
+ * We do not use {@link #onRestoreInstanceState(Bundle)} because it is an entirely redundant method,
+ * as defined by the doc in https://developer.android.com/guide/components/activities/activity-lifecycle.html
+ * at 2018/01/10:
+ * <pre>
+ *     Because the onCreate() method is called whether the system is creating a new instance of your activity or recreating a previous one,
+ *     you must check whether the state Bundle is null before you attempt to read it. If it is null, then the system is creating a new instance
+ *     of the activity, instead of restoring a previous one that was destroyed.
+ * </pre>
  *
  * @author Torben Schinke
  * @since 1.0
  */
 public abstract class HomunculusActivity extends EventAppCompatActivity implements UncaughtExceptionHandler {
+    private final static String HC_NAVIGATION_STACK = "HC_NAVIGATION_STACK";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        init();
+        init(savedInstanceState);
     }
 
     /**
      * Intentionally separated from onCreate calls to onProvide a better developer experience for customization purposes
      * e.g. for overriding
      */
-    protected void init() {
+    protected void init(Bundle savedInstanceState) {
         DefaultNavigation nav = new DefaultAndroidNavigation(getScope());
         getScope().put(Android.NAME_NAVIGATION, nav);
         getScope().put(Android.NAME_LAYOUT_INFLATER, getSystemService(Context.LAYOUT_INFLATER_SERVICE));
         getScope().put(Android.NAME_FRAGMENT_MANAGER, getFragmentManager());
-        nav.forward(create());
+        if (savedInstanceState != null) {
+            if (restoreStackState(savedInstanceState)) {
+                nav.reload();
+            } else {
+                nav.forward(create());
+            }
+        } else {
+            nav.forward(create());
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        saveStackState(outState);
+    }
+
+    /**
+     * Saves the current stack state into the given bundle.
+     *
+     * @param outState the target
+     */
+    protected void saveStackState(Bundle outState) {
+        NavigationBuilder nb = getNavigation();
+        if (nb instanceof Navigation) {
+            //create a defensive copy into a serializable list
+            ArrayList<Request> tmp = new ArrayList<>(((Navigation) nb).getStack());
+            try {
+                //serialize simply into a byte array
+                ByteArrayOutputStream bout = new ByteArrayOutputStream();
+                getInstanceStateSerializer().serialize(tmp, bout);
+                outState.putByteArray(HC_NAVIGATION_STACK, bout.toByteArray());
+            } catch (IOException e) {
+                //clean it out, in case of programming error
+                outState.putByteArray(HC_NAVIGATION_STACK, null);
+                LoggerFactory.getLogger(getClass()).warn("onSaveInstanceState: the navigation stack contains a value which is not serializable by {}. Reason:", getInstanceStateSerializer(), e);
+            }
+
+        } else {
+            //clean it out, if no navigation is available
+            outState.putByteArray(HC_NAVIGATION_STACK, null);
+            LoggerFactory.getLogger(getClass()).warn("onSaveInstanceState: getNavigation() does not provide a Navigation instance");
+        }
+    }
+
+
+    /**
+     * Restores the stack state from the given bundle. If nothing is available the stack is not changed
+     *
+     * @param savedInstanceState
+     * @return true if the stack has been modified
+     */
+    protected boolean restoreStackState(Bundle savedInstanceState) {
+        byte[] serializedStack = savedInstanceState.getByteArray(HC_NAVIGATION_STACK);
+        NavigationBuilder nb = getNavigation();
+        if (nb instanceof Navigation) {
+            Navigation navigation = ((Navigation) nb);
+            if (serializedStack != null && serializedStack.length > 0) {
+                ByteArrayInputStream bin = new ByteArrayInputStream(serializedStack);
+                try {
+                    ArrayList<Request> tmp = getInstanceStateSerializer().deserialize(bin, ArrayList.class);
+                    navigation.getStack().clear();
+                    navigation.getStack().addAll(tmp);
+                    return true;
+                } catch (IOException e) {
+                    LoggerFactory.getLogger(getClass()).warn("onRestoreInstanceState: the serialized navigation stack contains a value which is not deserializable by {}. Reason:", getInstanceStateSerializer(), e);
+                    return false;
+                }
+            } else {
+                return false;
+            }
+            //else just do nothing, create() defines the first state
+        } else {
+            LoggerFactory.getLogger(getClass()).warn("onRestoreInstanceState: getNavigation() does not provide a Navigation instance");
+            return false;
+        }
+    }
+
+    /**
+     * Returns the serializer for the instance state. This implementation returns the {@link Serializable} by
+     * default.
+     *
+     * @return the serializer
+     */
+    protected Serializer getInstanceStateSerializer() {
+        return new Serializable();
     }
 
     /**

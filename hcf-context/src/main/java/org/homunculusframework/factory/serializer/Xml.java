@@ -25,6 +25,7 @@ import java.io.OutputStream;
  * The default implementation of {@link XMLEncoder} which should always work, using reflection. Probably the most
  * compatible implementation but probably also the slowest.
  * <p>
+ *
  * @author Torben Schinke
  * @since 1.0
  */
@@ -39,9 +40,9 @@ public class Xml implements Serializer {
     }
 
     @Override
-    public Object deserialize(InputStream in, Class<?> type) throws IOException {
+    public <T> T deserialize(InputStream in, Class<T> type) throws IOException {
         XMLDecoder decoder = new XMLDecoder(in);
-        return decoder.readObject();
+        return (T) decoder.readObject();
     }
 
     @Override

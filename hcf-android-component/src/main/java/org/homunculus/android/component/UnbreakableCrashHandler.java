@@ -147,11 +147,9 @@ public class UnbreakableCrashHandler {
                 //fix around weired redraw/buffer/vsync problem, see also https://source.android.com/devices/graphics/implement-vsync
 
                 //now it get awkward: we need to resync some lost events for drawing: force a onPause and onResume cycle to fix it
-                try {
-                    activity.startActivity(new Intent(activity, RecoverActivity.class));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                launch(activity);
+                //the following delay is required for exceptions which occur while failing in onCreate (restoreOnSaveInstance), probably also for immediate errors, does not work "alone"
+                mMainHandler.postDelayed(() -> launch(activity), 100);
 
             }
             return true;
@@ -161,6 +159,15 @@ public class UnbreakableCrashHandler {
             return true;
         });
     }
+
+    protected void launch(Activity activity) {
+        try {
+            activity.startActivity(new Intent(activity, RecoverActivity.class));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 
     protected void recursiveDispatch(Scope root, Thread t, Throwable e) {
         root.forEachEntry(entry -> {

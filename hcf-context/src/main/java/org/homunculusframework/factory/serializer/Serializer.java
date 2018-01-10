@@ -36,7 +36,7 @@ public interface Serializer {
     /**
      * unmarshalls the object, usually into the given dst. Ma
      */
-    Object deserialize(InputStream in, Class<?> type) throws IOException;
+    <T> T deserialize(InputStream in, Class<T> type) throws IOException;
 
     /**
      * Returns a unique serializer id
