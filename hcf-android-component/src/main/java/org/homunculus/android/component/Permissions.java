@@ -115,11 +115,11 @@ public class Permissions implements Destroyable {
             }
         }
 
-        if (missingPermissions.isEmpty()){
+        if (missingPermissions.isEmpty()) {
             //android has a non-documented behavior here: missingPermissions is empty: java.lang.IllegalArgumentException: permission cannot be null or empty
             //the PermissionResponse has been updated just above, and can be returned
             holder.task.set(Arrays.asList(holder.responses));
-        }else {
+        } else {
             //now request the missing permissions, the response runs over the holder
             ActivityCompat.requestPermissions(getActivity(), missingPermissions.toArray(new String[missingPermissions.size()]), holder.id);
         }
@@ -137,6 +137,22 @@ public class Permissions implements Destroyable {
         SettableTask<PermissionResponse> response = SettableTask.create(mScope, "handlePermission-" + permission);
         handlePermissions(new String[]{permission}).whenDone(res -> response.set(res.get(0)));
         return response;
+    }
+
+    /**
+     * Checks if all contained permission responses are granted.
+     *
+     * @param responses
+     * @return true if all permissions have been granted.
+     */
+    public static boolean allGranted(List<PermissionResponse> responses) {
+        int grants = 0;
+        for (PermissionResponse r : responses) {
+            if (r.isGranted()) {
+                grants++;
+            }
+        }
+        return responses.size() == grants;
     }
 
 

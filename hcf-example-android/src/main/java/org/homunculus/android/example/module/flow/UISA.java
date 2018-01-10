@@ -2,14 +2,21 @@ package org.homunculus.android.example.module.flow;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.widget.Button;
 import android.widget.LinearLayout;
 
 
+import org.homunculus.android.component.IntentImages;
 import org.homunculus.android.component.NavigationBuilder;
+import org.homunculus.android.example.BuildConfig;
 import org.homunculus.android.example.R;
 import org.homunculusframework.lang.Panic;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -27,9 +34,13 @@ public class UISA extends LinearLayout {
     @Inject
     private Activity activity;
 
+    @Inject
+    private IntentImages images;
+
     public UISA(Context context) {
         super(context);
     }
+
 
     @PostConstruct
     private void apply() {
@@ -44,6 +55,26 @@ public class UISA extends LinearLayout {
         });
         addView(btnToB);
 
+
+        Button btnTakePhoto = new Button(getContext());
+        btnTakePhoto.setText("take Photo");
+        btnTakePhoto.setOnClickListener(view -> {
+            images.startCameraForResult().whenDone(res -> res.log());
+        });
+        addView(btnTakePhoto);
+
+        images.registerOnCameraResult(res -> {
+            try {
+                res.log();
+                try (InputStream in = activity.getContentResolver().openInputStream(res.get())) {
+                    Bitmap bmp = BitmapFactory.decodeStream(in);
+                    System.out.println("bitmap size: " + bmp.getWidth() + "x" + bmp.getHeight());
+                    in.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
 }

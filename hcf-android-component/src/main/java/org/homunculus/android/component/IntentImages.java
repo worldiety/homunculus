@@ -19,7 +19,10 @@ import android.Manifest.permission;
 import android.app.Activity;
 import android.content.ClipData;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
@@ -32,6 +35,7 @@ import org.homunculus.android.component.Permissions.PermissionResponse;
 import org.homunculus.android.core.ActivityEventDispatcher;
 import org.homunculus.android.core.ActivityEventDispatcher.AbsActivityEventCallback;
 import org.homunculus.android.core.ActivityEventDispatcher.ActivityEventCallback;
+import org.homunculus.android.core.ActivityEventDispatcher.ActivityResult;
 import org.homunculusframework.concurrent.Async;
 import org.homunculusframework.concurrent.Task;
 import org.homunculusframework.lang.Destroyable;
@@ -57,7 +61,7 @@ import java.util.regex.Pattern;
  * @since 1.0
  */
 public class IntentImages implements Destroyable {
-
+    private final static int REQUEST_CODE_CAMERA = (short) 8457362;
     private final Intents mIntentManager;
     private final Permissions mPermissions;
     private final List<Procedure<List<Uri>>> mListeners;
@@ -102,42 +106,27 @@ public class IntentImages implements Destroyable {
 
 
     /**
-     * Starts an intent to pick a single image
+     * Starts an intent to pick a camera photo using the recommended android way by providing a FileProvider (hcf_files) target uri.
+     * The only modifications for your android manifest is to add the android.permission.CAMERA permission.
+     * This method has been tested and proved to work on the following devices:
+     * <ul>
+     * <li>Dell Venue 7, Stock Camera, Android 4.4.2</li>
+     * <li>Samsung S4 Mini, Samsung Camera, Android 4.4.2</li>
+     * <li>Samsung S3, Samsung Camera, Android 4.3</li>
+     * <li>Google Pixel XL, Stock Camera, Android 8.1</li>
+     * <li>Samsung S5 Neo, Samsung Camera, Android 6.0.1</li>
+     * <li></li>
+     * </ul>
+     * <p>
+     * A note of warning: You cannot rely on anything here, because Android's intent system is entirely underspecified and has no guarantees.
+     * This may be the reason why e.g. WhatsApp has created their own camera app, instead of using the system one. Also you cannot tell your customer, that he should
+     * install the stock android app, because it is simply not available for all devices. However, it is also not recommended to implement your own camera
+     * because the Google API is hard to impossible to get right, depending on your expectations.
      *
-     * @return
+     * @return returns a task which indicates if the intent has been fired successfully (e.g. camera access granted and camera activity available)
      */
-    public Task<Result<List<Uri>>> pickImage() {
-        Intent pickImages = new Intent(Intent.ACTION_GET_CONTENT);
-        pickImages.setType("image/*");
-        return pickUris(pickImages);
-    }
-
-    /**
-     * Starts an intent to pick multiple images. Works not on all platforms (introduced in SDK 18 / JellyBean)
-     *
-     * @return
-     */
-    public Task<Result<List<Uri>>> pickImages() {
-        Intent pickImages = new Intent(Intent.ACTION_GET_CONTENT);
-        pickImages.setType("image/*");
-        if (VERSION.SDK_INT >= VERSION_CODES.JELLY_BEAN_MR2) {
-            pickImages.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-        } else {
-            LoggerFactory.getLogger(getClass()).debug(VERSION.SDK_INT + " does not support EXTRA_ALLOW_MULTIPLE");
-        }
-        return pickUris(pickImages);
-    }
-
-
-    /**
-     * Starts an intent to pick a camera photo. You cannot rely on anything here, because Android's intent system is entirely underspecified and untestet. Even their most simple SDK examples
-     * won't work - even with their own stock camera (e.g. camera opens, stores image when pressed back but removes it if the user leaves the camera activity by accepting etc...)
-     *
-     * @param authority the android authority as defined in manifest in the FileProvider android:authorities attribute
-     * @return a task returning the given file to write the image into. Fails if the image was not captured.
-     */
-    public Task<Result<File>> pickCameraPhoto(String authority) {
-        SettableTask<Result<File>> resFile = SettableTask.create("IntentImages.pickCameraPhoto");
+    public Task<Result<Boolean>> startCameraForResult() {
+        SettableTask<Result<Boolean>> resFile = SettableTask.create("IntentImages.pickCameraPhoto");
 
         mPermissions.handlePermission(permission.CAMERA).whenDone(r -> {
             if (r.isGranted()) {
@@ -145,83 +134,96 @@ public class IntentImages implements Destroyable {
                 // Ensure that there's a camera activity to handle the intent
                 if (takePictureIntent.resolveActivity(mPermissions.getActivity().getPackageManager()) != null) {
 
-                    Async.createTask(mScope, (ctx) -> {
-                        File file;
-                        try {
-                            file = proposeImageFile();
-                            // Create the File where the photo should go
-                            file.delete();
-
-                            if (!file.createNewFile()) {
-                                throw new IOException("failed to create " + file);
+                    File file;
+                    try {
+                        File dir = new File(mPermissions.getActivity().getFilesDir(), "hcf_files");
+                        if (!dir.mkdirs()) {
+                            if (!dir.isDirectory()) {
+                                throw new IOException("not a directory or permission denied: " + dir);
                             }
-                        } catch (IOException e) {
-                            return Result.<File>create().setThrowable(e);
                         }
-                        Uri photoURI = FileProvider.getUriForFile(mPermissions.getActivity(), authority, file);
+                        // Create the File where the photo should go
+                        file = new File(dir, "lastCameraImage.jpg");
+                        if (!file.delete()) {
+                            if (file.exists()) {
+                                throw new IOException("cannot delete file: " + file);
+                            }
+                        }
+                        if (!file.createNewFile()) {
+                            if (!file.isFile()) {
+                                throw new IOException("cannot create empty file: " + file);
+                            }
+                        }
+
+                        Uri photoURI = FileProvider.getUriForFile(mPermissions.getActivity(), "hcf.provider", file);
 
                         takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-                        //hold this task until the intent returns. Actually we are not parsing uris from it
-                        Result<List<Uri>> resPicIntent = Async.await(pickUris(takePictureIntent));
-                        if (resPicIntent.has(Intents.TAG_UNACCEPTED_RESULT_CODE)) {
-                            return Result.<File>create().put(Result.TAG_CANCELLED);
-                        }
-                        if (file.length() == 0) {
-                            return Result.<File>create().setThrowable(new IOException("camera failed to write into " + file + ", either the app does not support the feature or access right are missing."));
-                        }
-                        return Result.<File>create(file);
-                    }).whenDone(res -> {
+                        takePictureIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                        fixPermissionsForLegacy(takePictureIntent, photoURI);
+                        mIntentManager.startActivityForResult(takePictureIntent, REQUEST_CODE_CAMERA);
+                        resFile.set(Result.create(true));
+                    } catch (IOException e) {
+                        Result res = Result.<Boolean>create().setThrowable(e);
                         resFile.set(res);
-                    });
+                    }
 
                 } else {
-                    resFile.set(Result.<File>create().put("intent.camera.misssing"));
+                    resFile.set(Result.<Boolean>create().put("intent.camera.missing"));
                 }
             } else {
                 resFile.set(Result.nullValue(r.asResult()));
             }
         });
 
-
         return resFile;
-
     }
 
+    private void fixPermissionsForLegacy(Intent intent, Uri uri) {
+        if (VERSION.SDK_INT < VERSION_CODES.O) {
 
-    private File proposeImageFile() throws IOException {
-        // Create an image file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
-        File storageDir = mPermissions.getActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(
-                imageFileName,  /* prefix */
-                ".jpg",         /* suffix */
-                storageDir      /* directory */
-        );
+            List<ResolveInfo> resolvedIntentActivities = mIntentManager.getContext().getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
+            for (ResolveInfo resolvedIntentInfo : resolvedIntentActivities) {
+                String packageName = resolvedIntentInfo.activityInfo.packageName;
 
-        return image;
-    }
-
-
-    private Task<Result<List<Uri>>> pickUris(Intent queryIntent) {
-        SettableTask<Result<List<Uri>>> resFile = SettableTask.create(mScope, "IntentImages.pickUris");
-        mPermissions.handlePermission(permission.READ_EXTERNAL_STORAGE).whenDone(feature -> {
-            if (feature.isGranted()) {
-                mIntentManager.startIntent(queryIntent).whenDone(rIntent -> {
-                    if (rIntent.exists()) {
-                        asyncParseUris(mScope, rIntent.get().getResponse()).whenDone(resList -> {
-                            resFile.set(resList);
-                        });
-                    } else {
-                        resFile.set(Result.nullValue(rIntent));
-                    }
-                });
-            } else {
-                resFile.set(Result.nullValue(feature.asResult()));
+                mIntentManager.getContext().grantUriPermission(packageName, uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
             }
-        });
-        return resFile;
+        }
     }
+
+
+    private File getCameraTmpFile() {
+        File dir = new File(mPermissions.getActivity().getFilesDir(), "hcf_files");
+        return new File(dir, "lastCameraImage.jpg");
+    }
+
+    /**
+     * Usually called after {@link #startCameraForResult()} has been invoked, but not necessarily always. Also
+     * it may be called even if in your current activity session {@link #startCameraForResult()} has not been called at all.
+     *
+     * @param callback the callback to register in the current scope.
+     */
+    public void registerOnCameraResult(Procedure<Result<Uri>> callback) {
+        mIntentManager.registerOnActivityResult(REQUEST_CODE_CAMERA, activityResult -> {
+            if (activityResult.getResultCode() != Activity.RESULT_OK) {
+                callback.apply(Result.<Uri>create().put("code", activityResult.getRequestCode()).setThrowable(new RuntimeException("unsupported result code: " + activityResult.getRequestCode())));
+            } else {
+                if (getCameraTmpFile().length() > 0) {
+                    Uri photoURI = FileProvider.getUriForFile(mPermissions.getActivity(), "hcf.provider", getCameraTmpFile());
+                    callback.apply(Result.create(photoURI));
+                } else {
+                    asyncParseUris(mScope, activityResult.getData()).whenDone(resList -> {
+                        if (resList.exists() && resList.get().size() > 0) {
+                            callback.apply(Result.create(resList.get().get(0)));
+                        } else {
+                            callback.apply(Result.nullValue(resList));
+                        }
+                    });
+                }
+            }
+            return true;
+        });
+    }
+
 
     public static Task<Result<List<Uri>>> asyncParseUris(Scope context, Intent intent) {
         return Async.createTask(context, (ctx) -> Result.create(parseUris(intent)));

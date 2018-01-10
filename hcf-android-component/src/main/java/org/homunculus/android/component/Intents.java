@@ -21,9 +21,13 @@ import android.content.Intent;
 
 import org.homunculus.android.core.ActivityEventDispatcher;
 import org.homunculus.android.core.ActivityEventDispatcher.AbsActivityEventCallback;
+import org.homunculus.android.core.ActivityEventDispatcher.ActivityResult;
 import org.homunculus.android.core.ContextScope;
+import org.homunculus.android.flavor.AndroidMainHandler;
 import org.homunculusframework.concurrent.Task;
 import org.homunculusframework.lang.Destroyable;
+import org.homunculusframework.lang.Function;
+import org.homunculusframework.lang.Procedure;
 import org.homunculusframework.lang.Result;
 import org.homunculusframework.scope.Scope;
 import org.homunculusframework.scope.SettableTask;
@@ -86,7 +90,9 @@ public final class Intents implements Destroyable {
      * @param intent            the intent to start. see {@link Activity#startActivityForResult(Intent, int)}
      * @param acceptableResults the acceptable result codes, e.g. {@link Activity#RESULT_OK}, otherwise fails with {@link #TAG_UNACCEPTED_RESULT_CODE}
      * @return
+     * @deprecated this invocation will miss all results which arrive after the activity is re-created, e.g. if the camera app would cause a low memory situation. Use {@link #startActivityForResult(Intent, int)} and {@link #registerOnActivityResult(int, Function)} instead.
      */
+    @Deprecated
     public final Task<Result<ActivityResult>> startIntent(Intent intent, int... acceptableResults) {
         SettableTask<Result<ActivityResult>> task = SettableTask.create(mScope, "Intents.startIntent");
         final int requestCode = ActivityEventDispatcher.generateNextRequestId();
@@ -101,6 +107,42 @@ public final class Intents implements Destroyable {
         return task;
     }
 
+    /**
+     * Just dispatches the call right to the activity
+     *
+     * @param intent      the intent
+     * @param requestCode the more or less unique request code. You should use a hard coded value for each specific call.
+     */
+    public void startActivityForResult(Intent intent, int requestCode) {
+        mActivityEvents.getActivity().startActivityForResult(intent, requestCode);
+    }
+
+    /**
+     * Registers the callback which is fired for each response (buffered or not).
+     *
+     * @param requestCode the request code to
+     * @param callback
+     */
+    public void registerOnActivityResult(int requestCode, Function<ActivityEventDispatcher.ActivityResult, Boolean> callback) {
+        AndroidMainHandler.assertMainThread();
+        //simply register for the event
+        mActivityEvents.register(mScope, new AbsActivityEventCallback() {
+            @Override
+            public boolean onActivityResult(Activity activity, int rCode, int resultCode, Intent data) {
+                if (requestCode == rCode) {
+                    return callback.apply(new ActivityEventDispatcher.ActivityResult(activity, requestCode, resultCode, data));
+                }
+                return false;
+            }
+        });
+
+        //and also check for an already available buffered result
+        ActivityEventDispatcher.ActivityResult res = mActivityEvents.consumeActivityResult(requestCode);
+        if (res != null) {
+            callback.apply(res);
+        }
+    }
+
     public Activity getContext() {
         return mActivityEvents.getActivity();
     }
@@ -112,6 +154,11 @@ public final class Intents implements Destroyable {
     }
 
 
+    /**
+     * Only used by {@link #startIntent(Intent, int...)}, use {@link ActivityEventDispatcher.ActivityResult} instead,
+     * because the state recovery after an activity restart is not possible (e.g. the listeners)
+     */
+    @Deprecated
     public static class ActivityResult {
         private final int[] mAcceptableResultCodes;
         private final Intent mIntentRequest;

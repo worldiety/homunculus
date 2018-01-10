@@ -9,6 +9,16 @@
         >
 
         <activity android:name=".UnbreakableCrashHandler$RecoverActivity"></activity>
+
+        <provider
+            android:name=".DefaultFileProvider"
+            android:authorities="hcf.provider"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths"/>
+        </provider>
+
     </application>
 
 </manifest>

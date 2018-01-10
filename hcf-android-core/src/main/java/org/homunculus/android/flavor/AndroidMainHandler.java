@@ -18,6 +18,8 @@ package org.homunculus.android.flavor;
 import android.os.Handler;
 import android.os.Looper;
 
+import org.homunculusframework.lang.Panic;
+
 /**
  * The default typed Android main thread implementation.
  *
@@ -34,5 +36,23 @@ public class AndroidMainHandler implements org.homunculusframework.factory.conta
     @Override
     public void post(Runnable r) {
         mHandler.post(r);
+    }
+
+    /**
+     * Returns true if the current thread is the main thread.
+     *
+     * @return true if the calling thread is the main thread
+     */
+    public static boolean isMainThread() {
+        return Thread.currentThread() == Looper.getMainLooper().getThread();
+    }
+
+    /**
+     * Asserts that the current thread is the main thread
+     */
+    public static void assertMainThread() throws Panic {
+        if (!isMainThread()) {
+            throw new Panic("expected main thread but found " + Thread.currentThread());
+        }
     }
 }

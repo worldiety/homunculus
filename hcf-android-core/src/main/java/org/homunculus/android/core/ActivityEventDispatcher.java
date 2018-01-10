@@ -24,7 +24,6 @@ import android.graphics.Canvas;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.PersistableBundle;
-import android.support.annotation.Nullable;
 import android.view.ActionMode;
 import android.view.ActionMode.Callback;
 import android.view.KeyEvent;
@@ -35,12 +34,15 @@ import android.view.SearchEvent;
 import android.view.View;
 
 import org.homunculus.android.compat.EventAppCompatActivity;
+import org.homunculus.android.flavor.AndroidMainHandler;
 import org.homunculusframework.scope.Scope;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.annotation.Nullable;
 
 
 /**
@@ -61,6 +63,8 @@ public class ActivityEventDispatcher<T extends Activity> {
     private Bundle mSavedInstanceStateAtOnCreate;
     private final Scope mBaseScope;
 
+    private List<ActivityResult> mBufferedActivityResults;
+
     /**
      * Creates an activity dispatcher with the given base scope. The base scope is used as a fallback.
      *
@@ -71,8 +75,38 @@ public class ActivityEventDispatcher<T extends Activity> {
         mStatus = ActivityStatus.Launching;
         mActivity = activity;
         mDispatcher = new InternalEventDispatcher();
-
+        mBufferedActivityResults = new ArrayList<>();
         mBaseScope = baseScope;
+    }
+
+    /**
+     * All {@link Activity#onActivityResult(int, int, Intent)} are buffered as soon as they arrive.
+     * This is required to properly react with asynchronously restored views. Results are consumed
+     * if a callback returns true.
+     *
+     * @return the buffered result list
+     */
+    public List<ActivityResult> getBufferedActivityResults() {
+        return mBufferedActivityResults;
+    }
+
+    /**
+     * Returns an activity result from the buffered ({@link #getBufferedActivityResults()}) and
+     * removes it.
+     *
+     * @param requestCode
+     * @return the first matching result or null if no result with the request code matches.
+     */
+    @Nullable
+    public ActivityResult consumeActivityResult(int requestCode) {
+        for (int i = 0; i < mBufferedActivityResults.size(); i++) {
+            ActivityResult res = mBufferedActivityResults.get(i);
+            if (res.getRequestCode() == requestCode) {
+                mBufferedActivityResults.remove(i);
+                return res;
+            }
+        }
+        return null;
     }
 
     /**
@@ -425,12 +459,19 @@ public class ActivityEventDispatcher<T extends Activity> {
 
         @Override
         public boolean onActivityResult(T activity, int requestCode, int resultCode, Intent data) {
+            AndroidMainHandler.assertMainThread();
+            mBufferedActivityResults.add(new ActivityResult(activity, requestCode, resultCode, data));
+            boolean consumed = false;
             for (ActivityEventCallback<T> cb : getCallbacks()) {
                 if (cb.onActivityResult(activity, requestCode, resultCode, data)) {
-                    return true;
+                    consumed = true;
+                    break;
                 }
             }
-            return false;
+            if (consumed) {
+                mBufferedActivityResults.remove(mBufferedActivityResults.size() - 1);
+            }
+            return consumed;
         }
 
         @Override
@@ -932,4 +973,34 @@ public class ActivityEventDispatcher<T extends Activity> {
         Dead
     }
 
+    public final static class ActivityResult {
+        private final Activity activity;
+        private final int requestCode;
+        private final int resultCode;
+        private final Intent data;
+
+        public ActivityResult(Activity activity, int requestCode, int resultCode, Intent data) {
+            this.activity = activity;
+            this.requestCode = requestCode;
+            this.resultCode = resultCode;
+            this.data = data;
+        }
+
+        public Activity getActivity() {
+            return activity;
+        }
+
+        public int getRequestCode() {
+            return requestCode;
+        }
+
+        public int getResultCode() {
+            return resultCode;
+        }
+
+        public Intent getData() {
+            return data;
+        }
+
+    }
 }
