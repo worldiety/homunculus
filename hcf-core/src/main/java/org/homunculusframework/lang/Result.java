@@ -245,6 +245,38 @@ public final class Result<T> extends Ref<T> implements org.homunculusframework.l
         return null;
     }
 
+    @Override
+    @Nullable
+    public T get() {
+        return super.get();
+    }
+
+    /**
+     * Unwraps a result, yielding the content of a successful result.
+     * A null value or a throwable are not considered to be a successful result
+     * and will cause a {@link Panic}.
+     * <p>
+     * Use this method to assert the above condition.
+     * Call it when you want to make clear, that your code cannot continue properly
+     * if the result is null or the producer has generated an exception.
+     * Do not use it as a general purpose function.
+     * <p>
+     * To handle a result properly use {@link #get()} or {@link #getThrowable()}
+     * to inspect things and, for example, to show a meaningful message to the user.
+     *
+     * @return the unwrapped value
+     */
+    public T unwrap() throws Panic {
+        T value = get();
+        if (throwable != null) {
+            throw new Panic(throwable);
+        }
+        if (value == null) {
+            throw new Panic("no value");
+        }
+        return value;
+    }
+
     /**
      * Recursively gets the value for the given tag and performs a safe typecast
      *
