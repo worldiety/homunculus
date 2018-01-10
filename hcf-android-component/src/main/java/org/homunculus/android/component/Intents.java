@@ -18,6 +18,7 @@ package org.homunculus.android.component;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.os.Bundle;
 
 import org.homunculus.android.core.ActivityEventDispatcher;
 import org.homunculus.android.core.ActivityEventDispatcher.AbsActivityEventCallback;
@@ -125,7 +126,7 @@ public final class Intents implements Destroyable {
      */
     public void registerOnActivityResult(int requestCode, Function<ActivityEventDispatcher.ActivityResult, Boolean> callback) {
         AndroidMainHandler.assertMainThread();
-        //simply register for the event
+        //simply whenReceived for the event
         mActivityEvents.register(mScope, new AbsActivityEventCallback() {
             @Override
             public boolean onActivityResult(Activity activity, int rCode, int resultCode, Intent data) {
@@ -151,6 +152,23 @@ public final class Intents implements Destroyable {
     public void destroy() {
         mActivityEvents.unregister(mCallback);
         mActivityIntents.clear();
+    }
+
+    public interface ResultIntent<R> {
+        /**
+         * Starts the intent activity for result
+         *
+         * @return true if the intent has been propagated to the system successfully
+         */
+        Task<Result<Boolean>> invoke();
+
+        /**
+         * Registers for an intent result. This should be registered at the outmost level (e.g. not the button listener) to
+         * ensure that it also is called correctly in {@link Activity#onRestoreInstanceState(Bundle)} situations.
+         *
+         * @param callback the callback to execute after restore instance state or when onActivityResult is just called
+         */
+        void whenReceived(Procedure<R> callback);
     }
 
 

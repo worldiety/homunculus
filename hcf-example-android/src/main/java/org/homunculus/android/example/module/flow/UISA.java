@@ -11,9 +11,6 @@ import android.widget.LinearLayout;
 
 import org.homunculus.android.component.IntentImages;
 import org.homunculus.android.component.NavigationBuilder;
-import org.homunculus.android.example.BuildConfig;
-import org.homunculus.android.example.R;
-import org.homunculusframework.lang.Panic;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -59,16 +56,37 @@ public class UISA extends LinearLayout {
         Button btnTakePhoto = new Button(getContext());
         btnTakePhoto.setText("take Photo");
         btnTakePhoto.setOnClickListener(view -> {
-            images.startCameraForResult().whenDone(res -> res.log());
+            images.cameraIntent().invoke().whenDone(res -> res.log());
         });
         addView(btnTakePhoto);
 
-        images.registerOnCameraResult(res -> {
+        images.cameraIntent().whenReceived(res -> {
             try {
                 res.log();
                 try (InputStream in = activity.getContentResolver().openInputStream(res.get())) {
                     Bitmap bmp = BitmapFactory.decodeStream(in);
                     System.out.println("bitmap size: " + bmp.getWidth() + "x" + bmp.getHeight());
+                    in.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+
+
+        Button btnPickImage = new Button(getContext());
+        btnPickImage.setText("pick image");
+        btnPickImage.setOnClickListener(view -> {
+            images.imageIntent().invoke().whenDone(res -> res.log());
+        });
+        addView(btnPickImage);
+
+        images.imageIntent().whenReceived(res -> {
+            try {
+                res.log();
+                try (InputStream in = activity.getContentResolver().openInputStream(res.get())) {
+                    Bitmap bmp = BitmapFactory.decodeStream(in);
+                    System.out.println("image bitmap size: " + bmp.getWidth() + "x" + bmp.getHeight());
                     in.close();
                 }
             } catch (IOException e) {

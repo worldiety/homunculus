@@ -7,6 +7,7 @@
     <string name="hcf_uncaughtexception_message">An error has occurred. Please try again.</string>
     <string name="hcf_uncaughtexception_submitted">The error has been submitted. Your support ticket is "%s".</string>
     <string name="hcf_uncaughtexception_submission_failed">It was not possible to send a report. Please check your internet or try again later.</string>
+    <string name="hcf_intent_choose_image">Select picture</string>
 
     <string name="hcf_action_ok">Ok</string>
     <string name="hcf_splash_title">welcome</string>

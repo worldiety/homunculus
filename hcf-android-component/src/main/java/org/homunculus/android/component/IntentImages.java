@@ -22,20 +22,17 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.support.v4.content.FileProvider;
 
-import org.homunculus.android.component.Permissions.PermissionResponse;
+import org.homunculus.android.component.Intents.ResultIntent;
 import org.homunculus.android.core.ActivityEventDispatcher;
 import org.homunculus.android.core.ActivityEventDispatcher.AbsActivityEventCallback;
 import org.homunculus.android.core.ActivityEventDispatcher.ActivityEventCallback;
-import org.homunculus.android.core.ActivityEventDispatcher.ActivityResult;
 import org.homunculusframework.concurrent.Async;
 import org.homunculusframework.concurrent.Task;
 import org.homunculusframework.lang.Destroyable;
@@ -49,7 +46,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -61,7 +57,11 @@ import java.util.regex.Pattern;
  * @since 1.0
  */
 public class IntentImages implements Destroyable {
-    private final static int REQUEST_CODE_CAMERA = (short) 8457362;
+    /**
+     * This is hardcoded because we need to find it back when the activity restarts. Using dynamic values would not work here.
+     */
+    private final static int REQUEST_CODE_CAMERA = 32123;
+    private final static int REQUEST_CODE_IMAGE = 32124;
     private final Intents mIntentManager;
     private final Permissions mPermissions;
     private final List<Procedure<List<Uri>>> mListeners;
@@ -104,6 +104,15 @@ public class IntentImages implements Destroyable {
         }
     }
 
+    /**
+     * Starts an intent to pick a gallery photo using the recommended android way.
+     * The only modifications for your android manifest is to add the android.permission.READ_EXTERNAL_STORAGE.
+     *
+     * @return a task which indicates if the intent has been fired successfully (e.g. camera access granted and camera activity available)
+     */
+    public ResultIntent<Result<Uri>> imageIntent() {
+        return new PickImage();
+    }
 
     /**
      * Starts an intent to pick a camera photo using the recommended android way by providing a FileProvider (hcf_files) target uri.
@@ -115,6 +124,7 @@ public class IntentImages implements Destroyable {
      * <li>Samsung S3, Samsung Camera, Android 4.3</li>
      * <li>Google Pixel XL, Stock Camera, Android 8.1</li>
      * <li>Samsung S5 Neo, Samsung Camera, Android 6.0.1</li>
+     * <li>Sony Z5 Compact, Sony Camera, Android 7.1.1</li>
      * <li></li>
      * </ul>
      * <p>
@@ -125,59 +135,13 @@ public class IntentImages implements Destroyable {
      *
      * @return returns a task which indicates if the intent has been fired successfully (e.g. camera access granted and camera activity available)
      */
-    public Task<Result<Boolean>> startCameraForResult() {
-        SettableTask<Result<Boolean>> resFile = SettableTask.create("IntentImages.pickCameraPhoto");
-
-        mPermissions.handlePermission(permission.CAMERA).whenDone(r -> {
-            if (r.isGranted()) {
-                Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                // Ensure that there's a camera activity to handle the intent
-                if (takePictureIntent.resolveActivity(mPermissions.getActivity().getPackageManager()) != null) {
-
-                    File file;
-                    try {
-                        File dir = new File(mPermissions.getActivity().getFilesDir(), "hcf_files");
-                        if (!dir.mkdirs()) {
-                            if (!dir.isDirectory()) {
-                                throw new IOException("not a directory or permission denied: " + dir);
-                            }
-                        }
-                        // Create the File where the photo should go
-                        file = new File(dir, "lastCameraImage.jpg");
-                        if (!file.delete()) {
-                            if (file.exists()) {
-                                throw new IOException("cannot delete file: " + file);
-                            }
-                        }
-                        if (!file.createNewFile()) {
-                            if (!file.isFile()) {
-                                throw new IOException("cannot create empty file: " + file);
-                            }
-                        }
-
-                        Uri photoURI = FileProvider.getUriForFile(mPermissions.getActivity(), "hcf.provider", file);
-
-                        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-                        takePictureIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-                        fixPermissionsForLegacy(takePictureIntent, photoURI);
-                        mIntentManager.startActivityForResult(takePictureIntent, REQUEST_CODE_CAMERA);
-                        resFile.set(Result.create(true));
-                    } catch (IOException e) {
-                        Result res = Result.<Boolean>create().setThrowable(e);
-                        resFile.set(res);
-                    }
-
-                } else {
-                    resFile.set(Result.<Boolean>create().put("intent.camera.missing"));
-                }
-            } else {
-                resFile.set(Result.nullValue(r.asResult()));
-            }
-        });
-
-        return resFile;
+    public ResultIntent<Result<Uri>> cameraIntent() {
+        return new PickCamera();
     }
 
+    /**
+     * There are weired crashing bugs with the samsung camera app on at least android 4.4. The stock camera on at least android 8.1 seems not to have any problem
+     */
     private void fixPermissionsForLegacy(Intent intent, Uri uri) {
         if (VERSION.SDK_INT < VERSION_CODES.O) {
 
@@ -194,34 +158,6 @@ public class IntentImages implements Destroyable {
     private File getCameraTmpFile() {
         File dir = new File(mPermissions.getActivity().getFilesDir(), "hcf_files");
         return new File(dir, "lastCameraImage.jpg");
-    }
-
-    /**
-     * Usually called after {@link #startCameraForResult()} has been invoked, but not necessarily always. Also
-     * it may be called even if in your current activity session {@link #startCameraForResult()} has not been called at all.
-     *
-     * @param callback the callback to register in the current scope.
-     */
-    public void registerOnCameraResult(Procedure<Result<Uri>> callback) {
-        mIntentManager.registerOnActivityResult(REQUEST_CODE_CAMERA, activityResult -> {
-            if (activityResult.getResultCode() != Activity.RESULT_OK) {
-                callback.apply(Result.<Uri>create().put("code", activityResult.getRequestCode()).setThrowable(new RuntimeException("unsupported result code: " + activityResult.getRequestCode())));
-            } else {
-                if (getCameraTmpFile().length() > 0) {
-                    Uri photoURI = FileProvider.getUriForFile(mPermissions.getActivity(), "hcf.provider", getCameraTmpFile());
-                    callback.apply(Result.create(photoURI));
-                } else {
-                    asyncParseUris(mScope, activityResult.getData()).whenDone(resList -> {
-                        if (resList.exists() && resList.get().size() > 0) {
-                            callback.apply(Result.create(resList.get().get(0)));
-                        } else {
-                            callback.apply(Result.nullValue(resList));
-                        }
-                    });
-                }
-            }
-            return true;
-        });
     }
 
 
@@ -352,6 +288,129 @@ public class IntentImages implements Destroyable {
     public void destroy() {
         if (mEvents != null) {
             mEvents.unregister(mCallback);
+        }
+    }
+
+    private class PickImage implements ResultIntent<Result<Uri>> {
+
+        @Override
+        public Task<Result<Boolean>> invoke() {
+            SettableTask<Result<Boolean>> resFile = SettableTask.create("IntentImages.pickImage");
+            mPermissions.handlePermission(permission.READ_EXTERNAL_STORAGE).whenDone(r -> {
+                if (r.isGranted()) {
+                    try {
+                        Intent intent = new Intent();
+                        intent.setType("image/*");
+                        intent.setAction(Intent.ACTION_GET_CONTENT);
+                        String title = mIntentManager.getContext().getString(R.string.hcf_intent_choose_image);
+                        mIntentManager.startActivityForResult(Intent.createChooser(intent, title), REQUEST_CODE_IMAGE);
+                    } catch (Exception e) {
+                        resFile.set(Result.auto(e));
+                    }
+                } else {
+                    resFile.set(Result.nullValue(r.asResult()));
+                }
+            });
+
+            return resFile;
+        }
+
+        @Override
+        public void whenReceived(Procedure<Result<Uri>> callback) {
+            mIntentManager.registerOnActivityResult(REQUEST_CODE_IMAGE, activityResult -> {
+                if (activityResult.getResultCode() != Activity.RESULT_OK) {
+                    callback.apply(Result.<Uri>create().put("code", activityResult.getRequestCode()).setThrowable(new RuntimeException("unsupported result code: " + activityResult.getRequestCode())));
+                } else {
+                    asyncParseUris(mScope, activityResult.getData()).whenDone(resList -> {
+                        if (resList.exists() && resList.get().size() > 0) {
+                            callback.apply(Result.create(resList.get().get(0)));
+                        } else {
+                            callback.apply(Result.nullValue(resList));
+                        }
+                    });
+                }
+                return true;
+            });
+        }
+    }
+
+    private class PickCamera implements ResultIntent<Result<Uri>> {
+
+        @Override
+        public Task<Result<Boolean>> invoke() {
+            SettableTask<Result<Boolean>> resFile = SettableTask.create("IntentImages.pickCameraPhoto");
+
+            mPermissions.handlePermission(permission.CAMERA).whenDone(r -> {
+                if (r.isGranted()) {
+                    Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                    // Ensure that there's a camera activity to handle the intent
+                    if (takePictureIntent.resolveActivity(mPermissions.getActivity().getPackageManager()) != null) {
+
+                        File file;
+                        try {
+                            File dir = new File(mPermissions.getActivity().getFilesDir(), "hcf_files");
+                            if (!dir.mkdirs()) {
+                                if (!dir.isDirectory()) {
+                                    throw new IOException("not a directory or permission denied: " + dir);
+                                }
+                            }
+                            // Create the File where the photo should go
+                            file = new File(dir, "lastCameraImage.jpg");
+                            if (!file.delete()) {
+                                if (file.exists()) {
+                                    throw new IOException("cannot delete file: " + file);
+                                }
+                            }
+                            if (!file.createNewFile()) {
+                                if (!file.isFile()) {
+                                    throw new IOException("cannot create empty file: " + file);
+                                }
+                            }
+
+                            Uri photoURI = FileProvider.getUriForFile(mPermissions.getActivity(), "hcf.provider", file);
+
+                            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                            takePictureIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                            fixPermissionsForLegacy(takePictureIntent, photoURI);
+                            mIntentManager.startActivityForResult(takePictureIntent, REQUEST_CODE_CAMERA);
+                            resFile.set(Result.create(true));
+                        } catch (IOException e) {
+                            Result res = Result.<Boolean>create().setThrowable(e);
+                            resFile.set(res);
+                        }
+
+                    } else {
+                        resFile.set(Result.<Boolean>create().put("intent.camera.missing"));
+                    }
+                } else {
+                    resFile.set(Result.nullValue(r.asResult()));
+                }
+            });
+
+            return resFile;
+        }
+
+        @Override
+        public void whenReceived(Procedure<Result<Uri>> callback) {
+            mIntentManager.registerOnActivityResult(REQUEST_CODE_CAMERA, activityResult -> {
+                if (activityResult.getResultCode() != Activity.RESULT_OK) {
+                    callback.apply(Result.<Uri>create().put("code", activityResult.getRequestCode()).setThrowable(new RuntimeException("unsupported result code: " + activityResult.getRequestCode())));
+                } else {
+                    if (getCameraTmpFile().length() > 0) {
+                        Uri photoURI = FileProvider.getUriForFile(mPermissions.getActivity(), "hcf.provider", getCameraTmpFile());
+                        callback.apply(Result.create(photoURI));
+                    } else {
+                        asyncParseUris(mScope, activityResult.getData()).whenDone(resList -> {
+                            if (resList.exists() && resList.get().size() > 0) {
+                                callback.apply(Result.create(resList.get().get(0)));
+                            } else {
+                                callback.apply(Result.nullValue(resList));
+                            }
+                        });
+                    }
+                }
+                return true;
+            });
         }
     }
 }
