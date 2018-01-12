@@ -35,6 +35,8 @@ import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 /**
  * Just like the {@link EventAppCompatActivity} but provides an even more provided and opinionated configuration allowing
  * an easier bootstrapping, which just works out of the box and guides you towards a working application. It has
@@ -63,17 +65,26 @@ public abstract class HomunculusActivity extends EventAppCompatActivity implemen
     }
 
     /**
-     * Intentionally separated from onCreate calls to onProvide a better developer experience for customization purposes
-     * e.g. for overriding
+     * Intentionally separated from onCreate. Creates a better developer experience for customization purposes
+     * e.g. for overriding. Also provides instances in the activity scope for:
+     * <ul>
+     * <li>{@link Android#NAME_NAVIGATION} by calling {@link #createNavigation()}</li>
+     * <li>{@link Android#NAME_LAYOUT_INFLATER}</li>
+     * <li>{@link Android#NAME_FRAGMENT_MANAGER}</li>
+     * </ul>
+     * Detects if the given savedInstanceState is null and potentially calls {@link #restoreStackState(Bundle)} and
+     * {@link #onStackRestored(Navigation, Bundle)}.
      */
-    protected void init(Bundle savedInstanceState) {
-        DefaultNavigation nav = new DefaultAndroidNavigation(getScope());
+    protected void init(@Nullable Bundle savedInstanceState) {
+        Navigation nav = createNavigation();
         getScope().put(Android.NAME_NAVIGATION, nav);
         getScope().put(Android.NAME_LAYOUT_INFLATER, getSystemService(Context.LAYOUT_INFLATER_SERVICE));
         getScope().put(Android.NAME_FRAGMENT_MANAGER, getFragmentManager());
         if (savedInstanceState != null) {
             if (restoreStackState(savedInstanceState)) {
-                nav.reload();
+                if (!onStackRestored(nav, savedInstanceState)) {
+                    nav.reload();
+                }
             } else {
                 nav.forward(create());
             }
@@ -82,6 +93,35 @@ public abstract class HomunculusActivity extends EventAppCompatActivity implemen
         }
     }
 
+    /**
+     * Called after the stack has been restored due to a saved instance state (see {@link #onSaveInstanceState(Bundle)}.
+     * If this method returns false (the default behavior) the last state (top) is {@link Navigation#reload()}ed.
+     * <p>
+     * You can use this method if you need or want to drive the restoration through e.g. a splash screen or to
+     * inject additional instances into the current scope before reloaded the restored state.
+     *
+     * @param navigation         the navigation instance into which the stack has been restored
+     * @param savedInstanceState the bundle
+     * @return return false to simply reload the last state from the navigation stack or return true, if you care yourself (e.g. just apply a state which reloads later)
+     */
+    protected boolean onStackRestored(Navigation navigation, @Nullable Bundle savedInstanceState) {
+        return false;
+    }
+
+    /**
+     * Creates the activity wide navigation implementation, which is by default {@link DefaultAndroidNavigation}
+     *
+     * @return the navigation to use. Available by name {@link Android#NAME_NAVIGATION} in the scope.
+     */
+    protected Navigation createNavigation() {
+        return new DefaultAndroidNavigation(getScope());
+    }
+
+    /**
+     * Calls to {@link #saveStackState(Bundle)} to write the navigation stack into the bundle.
+     *
+     * @param outState
+     */
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -89,7 +129,7 @@ public abstract class HomunculusActivity extends EventAppCompatActivity implemen
     }
 
     /**
-     * Saves the current stack state into the given bundle.
+     * Saves the current stack state into the given bundle by using the serializer in {@link #getInstanceStateSerializer()}
      *
      * @param outState the target
      */
