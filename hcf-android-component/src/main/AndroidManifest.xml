@@ -12,11 +12,11 @@
 
         <provider
             android:name=".DefaultFileProvider"
-            android:authorities="hcf.provider"
+            android:authorities="${applicationId}.hcf.provider"
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/provider_paths"/>
+                android:resource="@xml/hcf_provider_paths"/>
         </provider>
 
     </application>

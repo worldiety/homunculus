@@ -60,15 +60,15 @@ public class IntentImages implements Destroyable {
     /**
      * This is hardcoded because we need to find it back when the activity restarts. Using dynamic values would not work here.
      */
-    private final static int REQUEST_CODE_CAMERA = 32123;
-    private final static int REQUEST_CODE_IMAGE = 32124;
-    private final Intents mIntentManager;
-    private final Permissions mPermissions;
-    private final List<Procedure<List<Uri>>> mListeners;
-    private final ActivityEventDispatcher<?> mEvents;
-    private final ActivityEventCallback mCallback;
-    private List<Uri> mLastParsedUris;
-    private final Scope mScope;
+    private int requestCodeCamera = 32123;
+    private int requestCodeImage = 32124;
+    private final Intents intentManager;
+    private final Permissions permissions;
+    private final List<Procedure<List<Uri>>> listeners;
+    private final ActivityEventDispatcher<?> events;
+    private final ActivityEventCallback callback;
+    private List<Uri> lastParsedUris;
+    private final Scope scope;
 
     /**
      * Creates a new instance to handle image intents and onNewIntent events. Always checks the current activities intent for any uris when created. Due to the nature of the matter, it cannot decide if an uri
@@ -77,30 +77,47 @@ public class IntentImages implements Destroyable {
      * @param events may be null. If so, no onNewIntent events are handled.
      */
     public IntentImages(Scope scope, ActivityEventDispatcher<?> events) {
-        mIntentManager = new Intents(scope, events);
-        mPermissions = new Permissions(scope, events);
-        mListeners = new ArrayList<>();
-        mEvents = events;
-        mScope = scope;
+        intentManager = new Intents(scope, events);
+        permissions = new Permissions(scope, events);
+        listeners = new ArrayList<>();
+        this.events = events;
+        this.scope = scope;
 
-        mLastParsedUris = parseUris(mPermissions.getActivity().getIntent());
-        mCallback = new AbsActivityEventCallback() {
+        lastParsedUris = parseUris(permissions.getActivity().getIntent());
+        callback = new AbsActivityEventCallback() {
             @Override
             public void onActivityNewIntent(Activity activity, Intent intent) {
-                mLastParsedUris = parseUris(intent);
+                lastParsedUris = parseUris(intent);
                 notifyUrisChanged();
             }
         };
-        if (mEvents != null) {
-            events.register(mCallback);
+        if (this.events != null) {
+            events.register(callback);
         }
 
     }
 
+    /**
+     * Updates the default camera request code, in case you need to fix collisions
+     *
+     * @param requestCodeCamera the new request code
+     */
+    public void setRequestCodeCamera(int requestCodeCamera) {
+        this.requestCodeCamera = requestCodeCamera;
+    }
+
+    /**
+     * Updates the default image request code, in case you need to fix collisions
+     *
+     * @param requestCodeImage the new request code
+     */
+    public void setRequestCodeImage(int requestCodeImage) {
+        this.requestCodeImage = requestCodeImage;
+    }
 
     private void notifyUrisChanged() {
-        for (Procedure<List<Uri>> cb : mListeners) {
-            cb.apply(mLastParsedUris);
+        for (Procedure<List<Uri>> cb : listeners) {
+            cb.apply(lastParsedUris);
         }
     }
 
@@ -145,18 +162,18 @@ public class IntentImages implements Destroyable {
     private void fixPermissionsForLegacy(Intent intent, Uri uri) {
         if (VERSION.SDK_INT < VERSION_CODES.O) {
 
-            List<ResolveInfo> resolvedIntentActivities = mIntentManager.getContext().getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
+            List<ResolveInfo> resolvedIntentActivities = intentManager.getContext().getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
             for (ResolveInfo resolvedIntentInfo : resolvedIntentActivities) {
                 String packageName = resolvedIntentInfo.activityInfo.packageName;
 
-                mIntentManager.getContext().grantUriPermission(packageName, uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                intentManager.getContext().grantUriPermission(packageName, uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
             }
         }
     }
 
 
     private File getCameraTmpFile() {
-        File dir = new File(mPermissions.getActivity().getFilesDir(), "hcf_files");
+        File dir = new File(permissions.getActivity().getFilesDir(), "hcf_files");
         return new File(dir, "lastCameraImage.jpg");
     }
 
@@ -271,8 +288,8 @@ public class IntentImages implements Destroyable {
      */
 
     public void registerImagesReceivedCallback(Procedure<List<Uri>> func) {
-        func.apply(mLastParsedUris);
-        mListeners.add(func);
+        func.apply(lastParsedUris);
+        listeners.add(func);
     }
 
     /**
@@ -281,13 +298,13 @@ public class IntentImages implements Destroyable {
      * @param func
      */
     public void unregisterImagesReceivedCallback(Procedure<List<Uri>> func) {
-        mListeners.remove(func);
+        listeners.remove(func);
     }
 
     @Override
     public void destroy() {
-        if (mEvents != null) {
-            mEvents.unregister(mCallback);
+        if (events != null) {
+            events.unregister(callback);
         }
     }
 
@@ -296,14 +313,14 @@ public class IntentImages implements Destroyable {
         @Override
         public Task<Result<Boolean>> invoke() {
             SettableTask<Result<Boolean>> resFile = SettableTask.create("IntentImages.pickImage");
-            mPermissions.handlePermission(permission.READ_EXTERNAL_STORAGE).whenDone(r -> {
+            permissions.handlePermission(permission.READ_EXTERNAL_STORAGE).whenDone(r -> {
                 if (r.isGranted()) {
                     try {
                         Intent intent = new Intent();
                         intent.setType("image/*");
                         intent.setAction(Intent.ACTION_GET_CONTENT);
-                        String title = mIntentManager.getContext().getString(R.string.hcf_intent_choose_image);
-                        mIntentManager.startActivityForResult(Intent.createChooser(intent, title), REQUEST_CODE_IMAGE);
+                        String title = intentManager.getContext().getString(R.string.hcf_intent_choose_image);
+                        intentManager.startActivityForResult(Intent.createChooser(intent, title), requestCodeImage);
                     } catch (Exception e) {
                         resFile.set(Result.auto(e));
                     }
@@ -317,11 +334,11 @@ public class IntentImages implements Destroyable {
 
         @Override
         public void whenReceived(Procedure<Result<Uri>> callback) {
-            mIntentManager.registerOnActivityResult(REQUEST_CODE_IMAGE, activityResult -> {
+            intentManager.registerOnActivityResult(requestCodeImage, activityResult -> {
                 if (activityResult.getResultCode() != Activity.RESULT_OK) {
                     callback.apply(Result.<Uri>create().put("code", activityResult.getRequestCode()).setThrowable(new RuntimeException("unsupported result code: " + activityResult.getRequestCode())));
                 } else {
-                    asyncParseUris(mScope, activityResult.getData()).whenDone(resList -> {
+                    asyncParseUris(scope, activityResult.getData()).whenDone(resList -> {
                         if (resList.exists() && resList.get().size() > 0) {
                             callback.apply(Result.create(resList.get().get(0)));
                         } else {
@@ -340,15 +357,15 @@ public class IntentImages implements Destroyable {
         public Task<Result<Boolean>> invoke() {
             SettableTask<Result<Boolean>> resFile = SettableTask.create("IntentImages.pickCameraPhoto");
 
-            mPermissions.handlePermission(permission.CAMERA).whenDone(r -> {
+            permissions.handlePermission(permission.CAMERA).whenDone(r -> {
                 if (r.isGranted()) {
                     Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                     // Ensure that there's a camera activity to handle the intent
-                    if (takePictureIntent.resolveActivity(mPermissions.getActivity().getPackageManager()) != null) {
+                    if (takePictureIntent.resolveActivity(permissions.getActivity().getPackageManager()) != null) {
 
                         File file;
                         try {
-                            File dir = new File(mPermissions.getActivity().getFilesDir(), "hcf_files");
+                            File dir = new File(permissions.getActivity().getFilesDir(), "hcf_files");
                             if (!dir.mkdirs()) {
                                 if (!dir.isDirectory()) {
                                     throw new IOException("not a directory or permission denied: " + dir);
@@ -367,12 +384,12 @@ public class IntentImages implements Destroyable {
                                 }
                             }
 
-                            Uri photoURI = FileProvider.getUriForFile(mPermissions.getActivity(), "hcf.provider", file);
+                            Uri photoURI = FileProvider.getUriForFile(permissions.getActivity(), getAuthority(), file);
 
                             takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
                             takePictureIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
                             fixPermissionsForLegacy(takePictureIntent, photoURI);
-                            mIntentManager.startActivityForResult(takePictureIntent, REQUEST_CODE_CAMERA);
+                            intentManager.startActivityForResult(takePictureIntent, requestCodeCamera);
                             resFile.set(Result.create(true));
                         } catch (IOException e) {
                             Result res = Result.<Boolean>create().setThrowable(e);
@@ -390,17 +407,21 @@ public class IntentImages implements Destroyable {
             return resFile;
         }
 
+        private String getAuthority() {
+            return permissions.getActivity().getApplicationContext().getPackageName() + ".hcf.provider";
+        }
+
         @Override
         public void whenReceived(Procedure<Result<Uri>> callback) {
-            mIntentManager.registerOnActivityResult(REQUEST_CODE_CAMERA, activityResult -> {
+            intentManager.registerOnActivityResult(requestCodeCamera, activityResult -> {
                 if (activityResult.getResultCode() != Activity.RESULT_OK) {
                     callback.apply(Result.<Uri>create().put("code", activityResult.getRequestCode()).setThrowable(new RuntimeException("unsupported result code: " + activityResult.getRequestCode())));
                 } else {
                     if (getCameraTmpFile().length() > 0) {
-                        Uri photoURI = FileProvider.getUriForFile(mPermissions.getActivity(), "hcf.provider", getCameraTmpFile());
+                        Uri photoURI = FileProvider.getUriForFile(permissions.getActivity(), getAuthority(), getCameraTmpFile());
                         callback.apply(Result.create(photoURI));
                     } else {
-                        asyncParseUris(mScope, activityResult.getData()).whenDone(resList -> {
+                        asyncParseUris(scope, activityResult.getData()).whenDone(resList -> {
                             if (resList.exists() && resList.get().size() > 0) {
                                 callback.apply(Result.create(resList.get().get(0)));
                             } else {

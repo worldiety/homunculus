@@ -10,6 +10,8 @@ import org.homunculusframework.factory.container.Container;
 import org.homunculusframework.scope.Scope;
 
 /**
+ * TODO think about workaround like https://medium.com/@andretietz/auto-initialize-your-android-library-2349daf06920
+ *
  * Created by Torben Schinke on 08.11.17.
  */
 
