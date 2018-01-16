@@ -1,5 +1,6 @@
 package org.homunculus.android.example.module.cart;
 
+import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -12,6 +13,8 @@ import org.homunculus.android.component.Permissions;
 import org.homunculus.android.example.module.company.CompanyController;
 import org.homunculus.android.flavor.Resource;
 import org.homunculus.android.example.R;
+import org.homunculus.android.component.Debounce;
+import org.homunculusframework.concurrent.Async;
 import org.homunculusframework.factory.flavor.hcf.Persistent;
 import org.homunculusframework.factory.container.Request;
 import org.homunculusframework.lang.Reference;
@@ -165,6 +168,22 @@ public class CartView extends LinearLayout {
         addView(crashMain, new LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
 
 
+        Button btnOnce = new Button(getContext());
+        btnOnce.setText("run once");
+        Debounce.clickOnce(btnOnce, view -> {
+            new AlertDialog.Builder(getContext()).setMessage("clicked " + btnOnce).create().show();
+        });
+        addView(btnOnce, new LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
+
+        Button btnDebounce = new Button(getContext());
+        btnDebounce.setText("debounce");
+        Debounce.click(btnDebounce, view -> {
+            return Async.inThread(() -> {
+                Thread.sleep(3000);
+                return "hallo";
+            });
+        });
+        addView(btnDebounce, new LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
     }
 
     public static class SomeSettings implements Serializable {

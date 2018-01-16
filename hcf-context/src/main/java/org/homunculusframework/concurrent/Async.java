@@ -57,6 +57,19 @@ public class Async {
     }
 
     /**
+     * See {@link #inThread(Scope, Function, boolean)}
+     */
+    public static <T> Task<Result<T>> inThread(Callable<T> func) {
+        return inThread(ctx -> {
+            try {
+                return Result.create(func.call());
+            } catch (Exception e) {
+                return Result.<T>auto(e);
+            }
+        });
+    }
+
+    /**
      * Just spawns a new thread
      *
      * @param closure      the closure to execute

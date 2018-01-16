@@ -15,6 +15,17 @@
  */
 package org.homunculus.android.component;
 
+import android.app.Dialog;
+import android.content.Context;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.support.annotation.NonNull;
+import android.view.Gravity;
+import android.widget.FrameLayout;
+import android.widget.FrameLayout.LayoutParams;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+
 import org.homunculus.android.compat.EventAppCompatActivity;
 import org.homunculus.android.component.SwitchAnimationLayout.AnimationProvider;
 import org.homunculus.android.component.SwitchAnimationLayout.DefaultAnimation;
@@ -24,6 +35,8 @@ import org.homunculusframework.navigation.BackActionConsumer;
 import org.homunculusframework.navigation.DefaultNavigation;
 import org.homunculusframework.navigation.Navigation;
 import org.homunculusframework.scope.Scope;
+
+import javax.annotation.Nullable;
 
 /**
  * A default implementation of {@link NavigationBuilder} with Android flavor. {@link #backward()}
@@ -35,6 +48,10 @@ import org.homunculusframework.scope.Scope;
  * @since 1.0
  */
 public class DefaultAndroidNavigation extends DefaultNavigation implements NavigationBuilder {
+
+    @Nullable
+    private NavigationBlockingDialog blockingIndicatorDialog;
+
     public DefaultAndroidNavigation(Scope scope) {
         super(scope);
     }
@@ -61,6 +78,32 @@ public class DefaultAndroidNavigation extends DefaultNavigation implements Navig
         super.backward(request);
     }
 
+
+    @Override
+    protected void onBeforeApply(@Nullable Request currentRequest, Request nextRequest) {
+        super.onBeforeApply(currentRequest, nextRequest);
+
+        NavigationBlockingDialog dlg = blockingIndicatorDialog;
+        if (dlg != null) {
+            dlg.cancel();
+            blockingIndicatorDialog = null;
+        }
+        dlg = new NavigationBlockingDialog(getScope().resolve(Context.class));
+        dlg.show();
+        blockingIndicatorDialog = dlg;
+
+    }
+
+    @Override
+    protected void onAfterApply(@Nullable Request currentRequest, Request nextRequest, @Nullable Throwable details) {
+        super.onAfterApply(currentRequest, nextRequest, details);
+
+        NavigationBlockingDialog dlg = blockingIndicatorDialog;
+        if (dlg != null) {
+            dlg.cancel();
+            blockingIndicatorDialog = null;
+        }
+    }
 
     @Override
     public AndroidNavigation forward(Class<?> type) {
@@ -206,5 +249,26 @@ public class DefaultAndroidNavigation extends DefaultNavigation implements Navig
         FORWARD,
         BACKWARD,
         REDIRECT
+    }
+
+    public static class NavigationBlockingDialog extends Dialog {
+
+        public NavigationBlockingDialog(@NonNull Context context) {
+            super(context);
+            onCreate();
+        }
+
+        protected void onCreate() {
+            getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
+
+            setCancelable(false);
+            FrameLayout layout = new FrameLayout(getContext());
+            layout.setBackgroundColor(Color.TRANSPARENT);
+            ProgressBar pg = new ProgressBar(getContext());
+            pg.setIndeterminate(true);
+            Display dsp = Display.from(getContext());
+            layout.addView(pg, new LayoutParams(dsp.dipToPix(64), dsp.dipToPix(64), Gravity.CENTER));
+            setContentView(layout);
+        }
     }
 }

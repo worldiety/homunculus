@@ -219,52 +219,104 @@ public class DefaultNavigation implements Navigation {
     }
 
     private void applyInternal(Request request) {
+        UserInterfaceState uis = currentUIS;
+        Request currentRequest;
+        if (uis != null) {
+            currentRequest = uis.getRequest();
+        } else {
+            currentRequest = null;
+        }
+        postBeforeApply(currentRequest, request);
         request.put(Container.NAME_CALLSTACK, DefaultFactory.getCallStack(0));
         request.execute(scope).whenDone(res -> {
-            final Container container = scope.resolve(Container.NAME_CONTAINER, Container.class);
-            if (container == null) {
-                LoggerFactory.getLogger(getClass()).error("no container found in scope, request discarded");
-                return;
-            }
-
-            Object obj = res.get();
-            if (obj instanceof ModelAndView) {
-                ModelAndView mav = (ModelAndView) obj;
-                Scope uisScope = createChild(scope, mav);
-                container.prepareScope(uisScope);
-                Task<Component<?>> task;
-                switch (mav.getView().getMappingType()) {
-                    case CLASS:
-                        task = container.createBean(uisScope, mav.getView().getType());
-                        break;
-                    case NAME:
-                        task = container.createBean(uisScope, mav.getView().getName());
-                        break;
-                    default:
-                        throw new Panic();
+            try {
+                final Container container = scope.resolve(Container.NAME_CONTAINER, Container.class);
+                if (container == null) {
+                    LoggerFactory.getLogger(getClass()).error("no container found in scope, request discarded");
+                    return;
                 }
 
-                attachComponentTask(request, uisScope, task);
-            } else if (obj instanceof Component) {
-                Scope uisScope = ((Component) obj).getScope();
-                SettableTask<Component<?>> task = SettableTask.create(uisScope, "execute tmp");
-                task.set((Component) obj);
-                attachComponentTask(request, uisScope, task);
-            } else {
-                if (obj == null) {
-                    LoggerFactory.getLogger(getClass()).error("invocation returned 'null' component, not useful for navigation: {} -> {}", request.getMapping(), obj);
-                    //remove the request silently from the stack, otherwise the behavior is weired, because one can go back "nothing"
-                    if (request == getTop()) {
-                        pop();
+                Object obj = res.get();
+                if (obj instanceof ModelAndView) {
+                    ModelAndView mav = (ModelAndView) obj;
+                    Scope uisScope = createChild(scope, mav);
+                    container.prepareScope(uisScope);
+                    Task<Component<?>> task;
+                    switch (mav.getView().getMappingType()) {
+                        case CLASS:
+                            task = container.createBean(uisScope, mav.getView().getType());
+                            break;
+                        case NAME:
+                            task = container.createBean(uisScope, mav.getView().getName());
+                            break;
+                        default:
+                            throw new Panic();
                     }
+
+                    attachComponentTask(request, uisScope, task);
+                } else if (obj instanceof Component) {
+                    Scope uisScope = ((Component) obj).getScope();
+                    SettableTask<Component<?>> task = SettableTask.create(uisScope, "execute tmp");
+                    task.set((Component) obj);
+                    attachComponentTask(request, uisScope, task);
                 } else {
-                    LoggerFactory.getLogger(getClass()).error("expected a 'component' or 'ModelAndView' but received '{}'", obj);
+                    if (obj == null) {
+                        LoggerFactory.getLogger(getClass()).error("invocation returned 'null' component, not useful for navigation: {} -> {}", request.getMapping(), obj);
+                        //remove the request silently from the stack, otherwise the behavior is weired, because one can go back "nothing"
+                        if (request == getTop()) {
+                            pop();
+                        }
+                        postAfterApply(currentRequest, request, res.getThrowable());
+                    } else {
+                        LoggerFactory.getLogger(getClass()).error("expected a 'component' or 'ModelAndView' but received '{}'", obj);
+                        postAfterApply(currentRequest, request, new RuntimeException("expected a 'component' or 'ModelAndView' but received " + obj));
+                    }
                 }
+            } catch (RuntimeException | Error e) {
+                postAfterApply(currentRequest, request, e);
+                throw e;
             }
         });
     }
 
+    /**
+     * Delegates to {@link #onBeforeApply(Request, Request)}
+     */
+    protected void postBeforeApply(@Nullable Request oldRequest, Request newRequest) {
+        onBeforeApply(oldRequest, newRequest);
+    }
+
+    /**
+     * Delegates {@link #onAfterApply(Request, Request, Throwable)}
+     */
+    protected void postAfterApply(@Nullable Request currentRequest, Request nextRequest, @Nullable Throwable details) {
+        onAfterApply(currentRequest, nextRequest, details);
+    }
+
+    /**
+     * Called before a new state is applied or the old state has been changed. It is called directly from the same
+     */
+    protected void onBeforeApply(@Nullable Request currentRequest, Request nextRequest) {
+
+    }
+
+    /**
+     * Called after the state has been applied or if application has been rejected. The throwable is not null,
+     * the UIS has not been applied
+     */
+    protected void onAfterApply(@Nullable Request oldRequest, Request newRequest, @Nullable Throwable details) {
+
+    }
+
     private void attachComponentTask(Request request, Scope uisScope, Task<Component<?>> task) {
+        UserInterfaceState uis = currentUIS;
+        Request currentRequest;
+        if (uis != null) {
+            currentRequest = uis.getRequest();
+        } else {
+            currentRequest = null;
+        }
+
         task.whenDone(component -> {
             Object newUIS = component.get();
             if (newUIS != null && component.getFailures().isEmpty()) {
@@ -275,6 +327,7 @@ public class DefaultNavigation implements Navigation {
                 LoggerFactory.getLogger(getClass()).error("denied applying UIS: {}", newUIS);
 
                 if (!component.getFailures().isEmpty()) {
+                    postAfterApply(currentRequest, request, component.getFailures().get(0));
                     if (crashOnFail) {
                         throw new RuntimeException("failed to create bean", component.getFailures().get(0));
                     } else {
@@ -282,6 +335,8 @@ public class DefaultNavigation implements Navigation {
                             LoggerFactory.getLogger(getClass()).error("created failed", t);
                         }
                     }
+                } else {
+                    postAfterApply(currentRequest, request, new RuntimeException("denied applying UIS: " + newUIS));
                 }
             }
         });
@@ -291,16 +346,19 @@ public class DefaultNavigation implements Navigation {
         UserInterfaceState oldUIS = currentUIS;
         if (oldUIS == null) {
             currentUIS = uis;
+            postAfterApply(null, uis.getRequest(), null);
             LoggerFactory.getLogger(getClass()).info("applied UIS {}", uis);
         } else {
             Container container = scope.resolve(Container.NAME_CONTAINER, Container.class);
             if (container == null) {
                 LoggerFactory.getLogger(getClass()).error("no container found in scope, tearDownOldAndApplyNew discarded");
+                postAfterApply(oldUIS.getRequest(), uis.getRequest(), new RuntimeException("no container found in scope, tearDownOldAndApplyNew discarded"));
             } else {
                 container.destroyComponent(oldUIS.scope, oldUIS.bean, true).whenDone(component -> {
                     if (!component.getFailures().isEmpty()) {
                         LoggerFactory.getLogger(getClass()).error("problems destroying UIS: {}", component.get());
 
+                        postAfterApply(oldUIS.getRequest(), uis.getRequest(), component.getFailures().get(0));
                         if (crashOnFail) {
                             throw new RuntimeException("failed to destroy bean", component.getFailures().get(0));
                         } else {
@@ -311,6 +369,9 @@ public class DefaultNavigation implements Navigation {
                     }
                     LoggerFactory.getLogger(getClass()).info("applied UIS {}", uis);
                     currentUIS = uis;
+                    if (component.getFailures().isEmpty()) {
+                        postAfterApply(oldUIS.getRequest(), uis.getRequest(), null);
+                    }
                 });
             }
         }
@@ -388,4 +449,5 @@ public class DefaultNavigation implements Navigation {
             return request;
         }
     }
+
 }

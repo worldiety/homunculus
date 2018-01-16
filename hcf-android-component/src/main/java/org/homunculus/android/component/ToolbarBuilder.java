@@ -520,7 +520,7 @@ public class ToolbarBuilder {
      * Notice: This method only adds a {@link MenuItemClickListener} to a menuitem which need to be specified in a xml-menu (see {@link #setMenuId(Integer)}
      *
      * @param id            The resource ID of the menu item
-     * @param clickListener The click listener for the menu item
+     * @param clickListener The clickOnce listener for the menu item
      * @return The corresponding ToolBarContentConfigurator
      */
     public ToolbarBuilder addMenuItemListener(Integer id, MenuItemClickListener clickListener) {
@@ -529,7 +529,7 @@ public class ToolbarBuilder {
     }
 
     /**
-     * Use this to set a standard menu with corresponding click listeners for menu items from the menu
+     * Use this to set a standard menu with corresponding clickOnce listeners for menu items from the menu
      *
      * @param menuId        Resource ID of the menu (defined in /res/menu/)
      * @param clicklistener Map containing resource IDs for menu items as keys and clicklistener for those items as values
@@ -548,7 +548,7 @@ public class ToolbarBuilder {
 
         /**
          * @param menuItem The menu item that was clicked
-         * @return Boolean to evaluate item click
+         * @return Boolean to evaluate item clickOnce
          */
         boolean onMenuItemSelected(MenuItem menuItem);
     }
