@@ -25,6 +25,8 @@
         </activity>
         <activity android:name=".module.flow.FlowActivity">
         </activity>
+        <activity android:name=".module.validator.ValidatorActivity">
+        </activity>
 
 
     </application>

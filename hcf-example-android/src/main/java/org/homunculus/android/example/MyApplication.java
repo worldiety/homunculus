@@ -10,6 +10,8 @@ import org.homunculus.android.component.module.uncaughtexception.Supportiety.App
 import org.homunculus.android.example.module.benchmark.Register;
 import org.homunculus.android.example.module.cart.*;
 import org.homunculus.android.example.module.company.CompanyController;
+import org.homunculus.android.example.module.validator.TestValidatorController;
+import org.homunculus.android.example.module.validator.ValidatorUIS;
 import org.homunculusframework.factory.container.Configuration;
 import org.homunculusframework.factory.container.Container;
 import org.homunculusframework.jpa.ormlite.ORMLiteEntityManager;
@@ -35,6 +37,8 @@ public class MyApplication extends HomunculusApplication {
         cfg.add(CartUIS.class);
         cfg.add(CompanyController.class);
         cfg.add(CartUIS2.class);
+        cfg.add(TestValidatorController.class);
+        cfg.add(ValidatorUIS.class);
 
         //try performance on real device
 //        Register.register(cfg);

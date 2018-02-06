@@ -9,6 +9,7 @@ import android.widget.LinearLayout;
 import org.homunculus.android.example.module.cart.CartActivity;
 import org.homunculus.android.example.module.flow.FlowActivity;
 import org.homunculus.android.example.module.toolbar.ToolbarActivity;
+import org.homunculus.android.example.module.validator.ValidatorActivity;
 import org.homunculusframework.scope.Scope;
 
 public class MainActivity extends AppCompatActivity {
@@ -42,5 +43,11 @@ public class MainActivity extends AppCompatActivity {
         });
         layout.addView(btnFlow);
 
+        Button btnValidator = new Button(this);
+        btnValidator.setText("validator");
+        btnValidator.setOnClickListener(v -> {
+            startActivity(new Intent(this, ValidatorActivity.class));
+        });
+        layout.addView(btnValidator);
     }
 }

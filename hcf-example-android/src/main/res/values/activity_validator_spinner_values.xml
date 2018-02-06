@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="validator_spinner_values">
+        <item>Spinner Test 1</item>
+        <item>Spinner Test 2</item>
+        <item>aerlemann@worldiety.de</item>
+    </string-array>
+</resources>

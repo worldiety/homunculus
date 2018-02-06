@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <EditText
+        android:id="@+id/ed_test1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:tag="test1"
+        android:hint="Test1"/>
+
+    <EditText
+        android:id="@+id/ed_test2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:tag="test2"
+        android:hint="Test2"/>
+
+    <Spinner
+        android:id="@+id/sp_test"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:tag="sp_test"
+        android:entries="@array/validator_spinner_values"></Spinner>
+
+    <Button
+        android:id="@+id/bt_validate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Validate!"/>
+
+</LinearLayout>
