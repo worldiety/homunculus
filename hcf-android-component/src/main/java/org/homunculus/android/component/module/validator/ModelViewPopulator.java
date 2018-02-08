@@ -1,5 +1,6 @@
 package org.homunculus.android.component.module.validator;
 
+import android.support.design.widget.TextInputLayout;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -24,8 +25,8 @@ public class ModelViewPopulator<T> {
     /**
      * Populates a given model with the values of a {@link View}. Matching fields between model and view are found via reflection
      * using the {@link Resource}-Annotation in the model and the {@link View#getId()}-method in the view.
-     *
-     * Currently supported Views are: {@link EditText}
+     * <p>
+     * Currently supported Views are: {@link EditText}, {@link TextInputLayout}
      *
      * @param src view or viewgroup, if view it's id is matched against the according field in dst
      * @param dst the bean to be filled
@@ -46,8 +47,8 @@ public class ModelViewPopulator<T> {
     /**
      * Populates a {@link View} with the values of a given model. Matching fields between model and view are found via reflection
      * using the {@link Resource}-Annotation in the model and the {@link View#getId()}-method in the view.
-     *
-     * Currently supported Views are: {@link EditText}
+     * <p>
+     * Currently supported Views are: {@link EditText}, {@link TextInputLayout}
      *
      * @param src the bean
      * @param dst view or viewgroup, if view it's id is matched against the according field in dst
@@ -68,6 +69,13 @@ public class ModelViewPopulator<T> {
     private void findObjectViewMatchRecursively(View dst, Field field, Resource resource, T src, OnMatchFound<T> onMatchFound) {
         if (dst instanceof ViewGroup) {
             for (int i = 0; i < ((ViewGroup) dst).getChildCount(); i++) {
+                View found = dst.findViewById(resource.value());
+                if (found != null) {
+                    field.setAccessible(true);
+                    onMatchFound.onMatchFound(found, field, src);
+                    return;
+                }
+                //We did not find anything, try harder
                 findObjectViewMatchRecursively(((ViewGroup) dst).getChildAt(i), field, resource, src, onMatchFound);
             }
         } else {
@@ -79,27 +87,26 @@ public class ModelViewPopulator<T> {
     }
 
     private void setFieldValueToSpecificView(View dst, Field field, T src) {
-        if (dst instanceof EditText) {
-            try {
-                ((EditText) dst).setText((CharSequence) field.get(src));
-            } catch (IllegalAccessException e) {
-                throw new RuntimeException(e);
-            }
+        if (isTextInputLayout(dst)) {
+            ((TextInputLayout) dst).getEditText().setText(getField(field, src));
+        } else if (isEditText(dst)) {
+            ((EditText) dst).setText(getField(field, src));
         }
     }
 
     private void setViewValueToField(View src, Field field, T dst) {
-        if (src instanceof EditText) {
-            try {
-                field.set(dst, ((EditText) src).getText().toString());
-            } catch (IllegalAccessException e) {
-                throw new RuntimeException(e);
-            }
+        if (isTextInputLayout(src)) {
+            setField(((TextInputLayout) src).getEditText().getText().toString(), field, dst);
+        } else if (isEditText(src)) {
+            setField(((EditText) src).getText().toString(), field, dst);
         }
     }
 
     private boolean setErrorToView(View dst, String error) {
-        if (dst instanceof EditText) {
+        if (isTextInputLayout(dst)) {
+            ((TextInputLayout) dst).setError(error);
+            return true;
+        } else if (isEditText(dst)) {
             ((EditText) dst).setError(error);
             return true;
         }
@@ -107,10 +114,39 @@ public class ModelViewPopulator<T> {
         return false;
     }
 
+    private CharSequence getField(Field field, T src) {
+        try {
+            return (CharSequence) field.get(src);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void setField(String text, Field field, T dst) {
+        try {
+            field.set(dst, text);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private boolean isEditText(View dst) {
+        return dst instanceof EditText;
+    }
+
+    private boolean isTextInputLayout(View dst) {
+        try {
+            return dst instanceof TextInputLayout;
+        } catch (NoClassDefFoundError e) {
+            //dependency missing, so nothing to worry about
+            return false;
+        }
+    }
+
     /**
      * Sets the given {@link View} or the Views in the given {@link ViewGroup} to an error-state, using the error-messages defined in the {@link BindingResult}.
      * <p>
-     * Currently supported Views are: {@link EditText}
+     * Currently supported Views are: {@link EditText}, {@link TextInputLayout}
      *
      * @param dst    view or viewgroup, if view it's id is matched against the according field in dst
      * @param errors a {@link BindingResult} created by the {@link HomunculusValidator}
