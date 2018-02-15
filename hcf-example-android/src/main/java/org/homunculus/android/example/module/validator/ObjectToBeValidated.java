@@ -16,15 +16,15 @@ import javax.validation.constraints.Size;
 public class ObjectToBeValidated implements Serializable {
 
     @Resource(R.id.ed_test1)
-    @Size(min = 8, message = "Need min 8 chars!")
+    @Size(min = 8, message = "error_min_eight_chars")
     private String test1 = "";
 
     @Resource(R.id.ed_test2)
-    @NotEmpty(message = "No! It's empty!")
+    @NotEmpty(message = "error_empty")
     private String test2 = "";
 
     @Resource(R.id.sp_test)
-    @Email(message = "No email!")
+    @Email(message = "error_no_email")
     private String valueFromSpinner = "";
 
     public String getTest1() {

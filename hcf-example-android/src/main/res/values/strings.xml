@@ -1,4 +1,6 @@
 <resources>
     <string name="app_name">HCF Example app</string>
-    <string name="min_eight_chars">Min 8 chars!</string>
+    <string name="error_min_eight_chars">Min 8 chars!</string>
+    <string name="error_empty">"Oh no! It's empty!"</string>
+    <string name="error_no_email">"This is not email!"</string>
 </resources>

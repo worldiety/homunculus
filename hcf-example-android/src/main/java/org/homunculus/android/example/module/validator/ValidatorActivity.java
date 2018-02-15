@@ -21,7 +21,7 @@ public class ValidatorActivity extends HomunculusActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        HomunculusValidator validator = new HomunculusValidator();
+        HomunculusValidator validator = HomunculusValidator.createAndroidResourceMessagesValidator(this, getPackageName());
         getScope().put("$validator", validator);
     }
 }
