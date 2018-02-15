@@ -1,8 +1,9 @@
 package org.homunculus.android.example.module.validator;
 
 import org.homunculus.android.component.module.validator.BindingResult;
+import org.homunculus.android.component.module.validator.ConstraintValidationError;
+import org.homunculus.android.component.module.validator.CustomValidationError;
 import org.homunculus.android.component.module.validator.HomunculusValidator;
-import org.homunculus.android.component.module.validator.ValidationError;
 import org.homunculusframework.navigation.ModelAndView;
 
 import javax.inject.Named;
@@ -23,7 +24,7 @@ public class TestValidatorController {
         //check db stuff
         boolean dbFailedNotUniqueBlub = true;
         if (dbFailedNotUniqueBlub) {
-            errors.addError(new ValidationError<>(this.getClass().getSimpleName(), "DB not unique blub"));
+            errors.addCustomValidationError(new CustomValidationError("DB not unique blub", new RuntimeException()));
         }
 
         if (!errors.hasErrors()) {

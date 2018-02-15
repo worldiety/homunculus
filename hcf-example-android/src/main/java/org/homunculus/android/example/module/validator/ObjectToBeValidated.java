@@ -25,6 +25,7 @@ public class ObjectToBeValidated implements Serializable {
 
     @Resource(R.id.sp_test)
     @Email(message = "error_no_email")
+    @NotEmpty(message = "error_empty")
     private String valueFromSpinner = "";
 
     public String getTest1() {

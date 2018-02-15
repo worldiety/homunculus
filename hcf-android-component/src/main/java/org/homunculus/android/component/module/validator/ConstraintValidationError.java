@@ -16,29 +16,15 @@ import javax.validation.constraints.NotNull;
  * Created by aerlemann on 05.02.18.
  */
 @Unfinished
-public class ValidationError<T> {
+public class ConstraintValidationError<T> {
 
     private final String objectName;
     private final String defaultMessage;
-
-    @Nullable
     private final String field;
 
     @Nullable
     private final Object rejectedValue;
-
-    @Nullable
     private final ConstraintViolation<T> underlyingViolation;
-
-    /**
-     * Create a new ValidationError instance.
-     *
-     * @param objectName     the name of the affected object
-     * @param defaultMessage the default message to be used to resolve this message
-     */
-    public ValidationError(String objectName, String defaultMessage) {
-        this(objectName, null, null, defaultMessage, null);
-    }
 
 
     /**
@@ -46,40 +32,20 @@ public class ValidationError<T> {
      *
      * @param violation the underlying underlyingViolation, coming from {@link javax.validation.Validator#validate(Object, Class[])}
      */
-    public ValidationError(@NotNull ConstraintViolation<T> violation) {
+    public ConstraintValidationError(@NotNull ConstraintViolation<T> violation) {
         super();
         this.objectName = violation.getRootBean().getClass().getName();
         Assert.assertNotNull(objectName, "Object name must not be null");
         this.field = violation.getPropertyPath().toString();
+        Assert.assertNotNull(field);
         this.rejectedValue = violation.getInvalidValue();
         this.defaultMessage = violation.getMessage();
         this.underlyingViolation = violation;
     }
 
     /**
-     * Create a new ValidationError instance.
-     *
-     * @param objectName     the name of the affected object
-     * @param field          the affected field of the object
-     * @param rejectedValue  the rejected field value
-     * @param defaultMessage the default message to be used to resolve this message
-     * @param violation      the underlying underlyingViolation, coming from {@link javax.validation.Validator#validate(Object, Class[])}
-     */
-    public ValidationError(String objectName, @Nullable String field, @Nullable Object rejectedValue, String defaultMessage, @Nullable ConstraintViolation<T> violation) {
-        super();
-        this.objectName = objectName;
-        Assert.assertNotNull(objectName, "Object name must not be null");
-        this.field = field;
-        this.rejectedValue = rejectedValue;
-        this.defaultMessage = defaultMessage;
-        this.underlyingViolation = violation;
-    }
-
-
-    /**
      * Return the affected field of the object.
      */
-    @Nullable
     public String getField() {
         return this.field;
     }
@@ -121,7 +87,6 @@ public class ValidationError<T> {
      *
      * @return
      */
-    @Nullable
     public ConstraintViolation getUnderlyingViolation() {
         return this.underlyingViolation;
     }
@@ -134,7 +99,7 @@ public class ValidationError<T> {
         if (other == null || other.getClass() != getClass() || !super.equals(other)) {
             return false;
         }
-        ValidationError<T> otherError = (ValidationError<T>) other;
+        ConstraintValidationError<T> otherError = (ConstraintValidationError<T>) other;
         return (ObjectUtils.nullSafeEquals(getField(), otherError.getField()) &&
                 ObjectUtils.nullSafeEquals(getRejectedValue(), otherError.getRejectedValue()) &&
                 ObjectUtils.nullSafeEquals(getObjectName(), otherError.getObjectName()) &&

@@ -5,13 +5,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 
+import org.homunculus.android.component.module.validator.supportedConnectors.EditTextValidatorViewConnector;
+import org.homunculus.android.component.module.validator.supportedConnectors.TextInputLayoutValidatorViewConnector;
 import org.homunculus.android.flavor.Resource;
 import org.homunculusframework.annotations.Unfinished;
 import org.homunculusframework.lang.Reflection;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Class which is used to populate a model from a {@link View} or the other way around. It also offers a method
@@ -21,6 +25,23 @@ import java.util.List;
  */
 @Unfinished
 public class ModelViewPopulator<T> {
+
+    private List<ValidatorViewConnector<T>> validatorViewConnectors;
+
+    public ModelViewPopulator() {
+        validatorViewConnectors = new ArrayList<>();
+        validatorViewConnectors.add(new TextInputLayoutValidatorViewConnector<>());
+        validatorViewConnectors.add(new EditTextValidatorViewConnector<>());
+    }
+
+    /**
+     * Adds an additional {@link ValidatorViewConnector<T>}
+     *
+     * @param validatorViewConnector a {@link ValidatorViewConnector<T>}
+     */
+    public void addValidatorViewConnector(ValidatorViewConnector<T> validatorViewConnector) {
+        validatorViewConnectors.add(validatorViewConnector);
+    }
 
     /**
      * Populates a given model with the values of a {@link View}. Matching fields between model and view are found via reflection
@@ -87,60 +108,32 @@ public class ModelViewPopulator<T> {
     }
 
     private void setFieldValueToSpecificView(View dst, Field field, T src) {
-        if (isTextInputLayout(dst)) {
-            ((TextInputLayout) dst).getEditText().setText(getField(field, src));
-        } else if (isEditText(dst)) {
-            ((EditText) dst).setText(getField(field, src));
+        for (ValidatorViewConnector<T> validatorViewConnector : validatorViewConnectors) {
+            if (validatorViewConnector.isViewOfThisKind(dst)) {
+                validatorViewConnector.setFieldValueToSpecificView(dst, field, src);
+                return;
+            }
         }
     }
 
     private void setViewValueToField(View src, Field field, T dst) {
-        if (isTextInputLayout(src)) {
-            setField(((TextInputLayout) src).getEditText().getText().toString(), field, dst);
-        } else if (isEditText(src)) {
-            setField(((EditText) src).getText().toString(), field, dst);
+        for (ValidatorViewConnector<T> validatorViewConnector : validatorViewConnectors) {
+            if (validatorViewConnector.isViewOfThisKind(src)) {
+                validatorViewConnector.setViewValueToField(src, field, dst);
+                return;
+            }
         }
     }
 
     private boolean setErrorToView(View dst, String error) {
-        if (isTextInputLayout(dst)) {
-            ((TextInputLayout) dst).setError(error);
-            return true;
-        } else if (isEditText(dst)) {
-            ((EditText) dst).setError(error);
-            return true;
+        for (ValidatorViewConnector<T> validatorViewConnector : validatorViewConnectors) {
+            if (validatorViewConnector.isViewOfThisKind(dst)) {
+                validatorViewConnector.setErrorToView(dst, error);
+                return true;
+            }
         }
 
         return false;
-    }
-
-    private CharSequence getField(Field field, T src) {
-        try {
-            return (CharSequence) field.get(src);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void setField(String text, Field field, T dst) {
-        try {
-            field.set(dst, text);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private boolean isEditText(View dst) {
-        return dst instanceof EditText;
-    }
-
-    private boolean isTextInputLayout(View dst) {
-        try {
-            return dst instanceof TextInputLayout;
-        } catch (NoClassDefFoundError e) {
-            //dependency missing, so nothing to worry about
-            return false;
-        }
     }
 
     /**
@@ -150,12 +143,12 @@ public class ModelViewPopulator<T> {
      *
      * @param dst    view or viewgroup, if view it's id is matched against the according field in dst
      * @param errors a {@link BindingResult} created by the {@link HomunculusValidator}
-     * @return a List of {@link ValidationError<T>}s, which could not be set to a View in dst (either because unsupported, or because it is an error not created by
+     * @return a {@link BindingResult <T>} with errors, which could not be set to a View in dst (either because unsupported, or because it is an error not created by
      * {@link HomunculusValidator}.
      */
-    public List<ValidationError<T>> insertErrorState(View dst, BindingResult<T> errors) {
-        List<ValidationError<T>> errorsWithNoMatchingView = new ArrayList<>();
-        for (ValidationError<T> error : errors.getErrors()) {
+    public BindingResult<T> insertErrorState(View dst, BindingResult<T> errors) {
+        Set<ConstraintValidationError<T>> errorsWithNoMatchingView = new HashSet<>();
+        for (ConstraintValidationError<T> error : errors.getConstraintValidationErrors()) {
             T model = error.getObject();
             if (model == null || error.getField() == null) {
                 errorsWithNoMatchingView.add(error);
@@ -181,7 +174,7 @@ public class ModelViewPopulator<T> {
             }
         }
 
-        return errorsWithNoMatchingView;
+        return new BindingResult<T>(errorsWithNoMatchingView, errors.getCustomValidationErrors());
     }
 
     private interface OnMatchFound<T> {

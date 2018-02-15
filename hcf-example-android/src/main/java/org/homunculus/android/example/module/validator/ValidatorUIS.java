@@ -9,14 +9,13 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 
 import org.homunculus.android.component.module.validator.BindingResult;
+import org.homunculus.android.component.module.validator.ConstraintValidationError;
+import org.homunculus.android.component.module.validator.CustomValidationError;
 import org.homunculus.android.component.module.validator.ModelViewPopulator;
-import org.homunculus.android.component.module.validator.ValidationError;
 import org.homunculus.android.example.R;
 import org.homunculusframework.factory.container.Request;
 import org.homunculusframework.navigation.Navigation;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -61,10 +60,16 @@ public class ValidatorUIS extends FrameLayout {
         modelViewPopulator.populateView(viewModel, layout);
 
         if (errors != null) {
-            List<ValidationError<ObjectToBeValidated>> errorsWhichCouldNotBeInserted = modelViewPopulator.insertErrorState(layout, errors);
-            for (ValidationError<ObjectToBeValidated> error : errorsWhichCouldNotBeInserted) {
-                //TODO handle errors, which cannot be assigned to a View
-                LoggerFactory.getLogger(this.getClass()).error("Handle me! I'm an error!: " + error.getField() + ", " + error.getObjectName() + ", " + error.getRejectedValue() + ", " + error.getDefaultMessage());
+            BindingResult<ObjectToBeValidated> errorResult = modelViewPopulator.insertErrorState(layout, errors);
+            for (ConstraintValidationError<ObjectToBeValidated> error : errorResult.getConstraintValidationErrors()) {
+                //handle errors, which cannot be assigned to a View
+                LoggerFactory.getLogger(this.getClass()).error("Handle me! I'm a constraint error!: " + error.getField() + ", " + error.getObjectName() + ", " + error.getRejectedValue() + ", " + error.getDefaultMessage());
+
+            }
+
+            for (CustomValidationError error : errorResult.getCustomValidationErrors()) {
+                //handle custom errors
+                LoggerFactory.getLogger(this.getClass()).error("Handle me! I'm a custom error!: " + error.getMessage() + ", " + error.getException());
 
             }
         }
