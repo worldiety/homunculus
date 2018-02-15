@@ -1,5 +1,3 @@
-
-
 apply plugin: 'com.android.application'
 
 android {
@@ -31,31 +29,13 @@ android {
 }
 
 dependencies {
-    compile(project(":hcf-core"))
-    compile(project(":hcf-context"))
-    compile(project(":hcf-android-core"))
-    compile(project(":hcf-android-component"))
-
-    //this is for the validator and it's annotations
-    compile 'org.hibernate:hibernate-validator:5.1.3.Final'
-    annotationProcessor 'org.hibernate:hibernate-validator-annotation-processor:5.1.3.Final'
-    compile 'org.glassfish.web:javax.el:2.2.4'
-    //compile 'javax.el:javax.el-api:2.2.4'
-
-    //this is for @inject or @named
-    compile 'javax.inject:javax.inject:1'
-
-    //this is for @PostConstruct or @PreDestroy
-    compile 'javax.annotation:jsr250-api:1.0'
+    compile(project(":hcf-android-bootstrap"))
 
     //h2 is an embedded database
     compile 'com.h2database:h2:1.4.196'
 
     //jpa annotations
     compile 'org.apache.geronimo.specs:geronimo-jpa_2.0_spec:1.1'
-
-    //spring annotations
-    compile(project(":hcf-api-spring"))
 
     //orm lite, supports jpa
     compile 'com.j256.ormlite:ormlite-android:5.0'
@@ -72,5 +52,4 @@ dependencies {
     compile 'com.android.support:design:26.1.0'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     testCompile 'junit:junit:4.12'
-    compile 'org.slf4j:slf4j-simple:1.7.25'
 }

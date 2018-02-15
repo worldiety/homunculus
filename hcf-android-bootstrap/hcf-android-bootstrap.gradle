@@ -1,0 +1,123 @@
+apply plugin: 'com.android.library'
+apply plugin: 'com.github.dcendents.android-maven'
+
+android {
+    compileSdkVersion 26
+    buildToolsVersion "26.0.2"
+
+    defaultConfig {
+        minSdkVersion 16
+        targetSdkVersion 26
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    lintOptions {
+        abortOnError false
+    }
+}
+
+
+group = "org.homunculusframework"
+
+
+apply plugin: 'maven-publish'
+
+apply plugin: 'com.jfrog.bintray'
+
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+
+task javadoc(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+// add javadoc/source jar tasks as artifacts
+artifacts {
+    archives sourcesJar, javadocJar
+}
+
+publishing {
+    publications {
+        MyPublication(MavenPublication) {
+
+            pom.withXml {
+                // Iterate over the compile dependencies (we don't want the test ones), adding a <dependency> node for each
+                configurations.compile.allDependencies.each {
+                    def dependencyNode = dependenciesNode.appendNode('dependency')
+                    dependencyNode.appendNode('groupId', it.group)
+                    dependencyNode.appendNode('artifactId', it.name)
+                    dependencyNode.appendNode('version', it.version)
+                }
+            }
+        }
+    }
+}
+
+//nano ~/.gradle/gradle.properties
+bintray {
+    user = bintray_user
+    key = bintray_key
+    publish = true
+    configurations = ['archives']
+    pkg {
+        websiteUrl = 'http://homunculus.io/'
+        repo = 'homunculus'
+        name = project.name
+        userOrg = 'worldiety'
+        publicDownloadNumbers = true
+        licenses = ['Apache-2.0']
+        vcsUrl = 'https://github.com/worldiety/homunculus.git'
+        version {
+            name = project.version
+        }
+
+    }
+}
+
+
+dependencies {
+    compile(project(":hcf-core"))
+    compile(project(":hcf-context"))
+    compile(project(":hcf-android-core"))
+    compile(project(":hcf-android-component"))
+    //spring annotations
+    compile(project(":hcf-api-spring"))
+
+    //this is for the validator and it's annotations
+    compile 'org.hibernate:hibernate-validator:5.1.3.Final'
+    annotationProcessor 'org.hibernate:hibernate-validator-annotation-processor:5.1.3.Final'
+    compile 'org.glassfish.web:javax.el:2.2.4'
+    //compile 'javax.el:javax.el-api:2.2.4'
+
+    //this is for @inject or @named
+    compile 'javax.inject:javax.inject:1'
+
+    //this is for @PostConstruct or @PreDestroy
+    compile 'javax.annotation:jsr250-api:1.0'
+
+    //the logger
+    compile 'org.slf4j:slf4j-simple:1.7.25'
+}
