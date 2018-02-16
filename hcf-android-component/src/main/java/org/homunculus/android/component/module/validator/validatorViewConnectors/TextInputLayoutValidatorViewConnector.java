@@ -1,12 +1,13 @@
-package org.homunculus.android.component.module.validator.supportedConnectors;
+package org.homunculus.android.component.module.validator.validatorViewConnectors;
 
 import android.support.design.widget.TextInputLayout;
 import android.view.View;
 
+import org.homunculus.android.component.module.validator.FieldValueAdapter;
 import org.homunculus.android.component.module.validator.ValidatorViewConnector;
 
 /**
- * {@link ValidatorViewConnector<T> for {@link TextInputLayout}}
+ * {@link ValidatorViewConnector<T>} for {@link TextInputLayout}
  * <p>
  * Created by aerlemann on 15.02.18.
  */
@@ -23,7 +24,7 @@ public class TextInputLayoutValidatorViewConnector<T> extends ValidatorViewConne
     }
 
     @Override
-    public void setErrorToView(View dst, String error) {
+    public void setErrorToView(View dst, String error, FieldValueAdapter<T> fieldValueAdapter) {
         ((TextInputLayout) dst).setError(error);
     }
 

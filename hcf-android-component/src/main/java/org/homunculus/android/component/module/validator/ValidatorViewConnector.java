@@ -25,32 +25,35 @@ public abstract class ValidatorViewConnector<T> {
     /**
      * Set the value of a field (field) of a given object (src) to a destination {@link View} (dst)
      *
-     * @param dst   the destination {@link View} supported by this connector
-     * @param field the field, which information is to be filled into dst
-     * @param src   the object, which contains the field
+     * @param dst                 the destination {@link View} supported by this connector
+     * @param field               the field, which information is to be filled into dst
+     * @param src                 the object, which contains the field
+     * @param fieldValueAdapter
      */
-    void setFieldValueToSpecificView(View dst, Field field, T src) {
-        setTextToView(dst, getField(field, src));
+    void setFieldValueToSpecificView(View dst, Field field, T src, FieldValueAdapter<T> fieldValueAdapter) {
+        setTextToView(dst, fieldValueAdapter.getField(field, src));
     }
 
     /**
      * Sets the value of a {@link View} (src) to a field (field) of a given object (dst)
      *
-     * @param src   the source {@link View} supported by this connector
-     * @param field the field, which information is to be filled from src
-     * @param dst   the object, which contains the field
+     * @param src                 the source {@link View} supported by this connector
+     * @param field               the field, which information is to be filled from src
+     * @param dst                 the object, which contains the field
+     * @param fieldValueAdapter
      */
-    void setViewValueToField(View src, Field field, T dst) {
-        setField(getTextFromView(src), field, dst);
+    void setViewValueToField(View src, Field field, T dst, FieldValueAdapter<T> fieldValueAdapter) {
+        fieldValueAdapter.setField(getTextFromView(src), field, dst);
     }
 
     /**
      * Sets an error text to a given {@link View}
      *
-     * @param dst   the destination {@link View} supported by this connector
-     * @param error the error string, which is to be set to dst
+     * @param dst                 the destination {@link View} supported by this connector
+     * @param error               the error string, which is to be set to dst
+     * @param fieldValueAdapter
      */
-    protected abstract void setErrorToView(View dst, String error);
+    protected abstract void setErrorToView(View dst, String error, FieldValueAdapter<T> fieldValueAdapter);
 
     /**
      * Gets a String out of a given {@link View}
@@ -67,20 +70,4 @@ public abstract class ValidatorViewConnector<T> {
      * @param text the text or null to be set to the view
      */
     protected abstract void setTextToView(View view, String text);
-
-    private String getField(Field field, T src) {
-        try {
-            return (String) field.get(src);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void setField(String text, Field field, T dst) {
-        try {
-            field.set(dst, text);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-    }
 }

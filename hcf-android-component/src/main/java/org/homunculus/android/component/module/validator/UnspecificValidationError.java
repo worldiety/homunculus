@@ -5,7 +5,7 @@ import org.homunculusframework.annotations.Unfinished;
 import javax.annotation.Nullable;
 
 /**
- * Simple error class for custom errors, which can be added to a {@link BindingResult}
+ * Simple error class for errors, which are not specific to a field or object and can be added to a {@link BindingResult}
  * <p>
  * Created by aerlemann on 15.02.18.
  */

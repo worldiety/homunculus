@@ -5,9 +5,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 
-import org.homunculus.android.component.module.validator.supportedConnectors.EditTextValidatorViewConnector;
-import org.homunculus.android.component.module.validator.supportedConnectors.SpinnerValidatorViewConnector;
-import org.homunculus.android.component.module.validator.supportedConnectors.TextInputLayoutValidatorViewConnector;
+import org.homunculus.android.component.module.validator.fieldValueAdapters.IntegerFieldValueAdapter;
+import org.homunculus.android.component.module.validator.fieldValueAdapters.StringFieldValueAdapter;
+import org.homunculus.android.component.module.validator.validatorViewConnectors.EditTextValidatorViewConnector;
+import org.homunculus.android.component.module.validator.validatorViewConnectors.SpinnerValidatorViewConnector;
+import org.homunculus.android.component.module.validator.validatorViewConnectors.TextInputLayoutValidatorViewConnector;
 import org.homunculus.android.flavor.Resource;
 import org.homunculusframework.annotations.Unfinished;
 import org.homunculusframework.lang.Reflection;
@@ -28,12 +30,17 @@ import java.util.Set;
 public class ModelViewPopulator<T> {
 
     private List<ValidatorViewConnector<T>> validatorViewConnectors;
+    private List<FieldValueAdapter<T>> fieldValueAdapters;
 
     public ModelViewPopulator() {
         validatorViewConnectors = new ArrayList<>();
         validatorViewConnectors.add(new TextInputLayoutValidatorViewConnector<>());
         validatorViewConnectors.add(new EditTextValidatorViewConnector<>());
         validatorViewConnectors.add(new SpinnerValidatorViewConnector<>());
+
+        fieldValueAdapters = new ArrayList<>();
+        fieldValueAdapters.add(new StringFieldValueAdapter<>());
+        fieldValueAdapters.add(new IntegerFieldValueAdapter<>());
     }
 
     /**
@@ -43,6 +50,15 @@ public class ModelViewPopulator<T> {
      */
     public void addValidatorViewConnector(ValidatorViewConnector<T> validatorViewConnector) {
         validatorViewConnectors.add(validatorViewConnector);
+    }
+
+    /**
+     * Adds an additional {@link FieldValueAdapter<T>}
+     *
+     * @param fieldValueAdapter a {@link FieldValueAdapter<T>}
+     */
+    public void addFieldValueAdapter(FieldValueAdapter<T> fieldValueAdapter) {
+        fieldValueAdapters.add(fieldValueAdapter);
     }
 
     /**
@@ -60,10 +76,13 @@ public class ModelViewPopulator<T> {
             if (resource == null)
                 continue;
 
-            if (field.getType() != String.class)
-                continue;
+            field.setAccessible(true);
 
-            findObjectViewMatchRecursively(src, field, resource, dst, this::setViewValueToField);
+            FieldValueAdapter<T> fieldValueAdapter = getFieldValueConnector(field, dst);
+            if (fieldValueAdapter == null)
+                throw new RuntimeException("Unsupported field type!: " + field.getType());
+
+            findObjectViewMatchRecursively(src, field, resource, dst, (view, field1, object) -> setViewValueToField(view, field1, object, fieldValueAdapter));
         }
     }
 
@@ -82,10 +101,13 @@ public class ModelViewPopulator<T> {
             if (resource == null)
                 continue;
 
-            if (field.getType() != String.class)
-                continue;
+            field.setAccessible(true);
 
-            findObjectViewMatchRecursively(dst, field, resource, src, this::setFieldValueToSpecificView);
+            FieldValueAdapter<T> fieldValueAdapter = getFieldValueConnector(field, src);
+            if (fieldValueAdapter == null)
+                throw new RuntimeException("Unsupported field type!: " + field.getType());
+
+            findObjectViewMatchRecursively(dst, field, resource, src, (view, field1, object) -> setFieldValueToSpecificView(view, field1, object, fieldValueAdapter));
         }
     }
 
@@ -93,39 +115,37 @@ public class ModelViewPopulator<T> {
         if (dst instanceof ViewGroup) {
             View found = dst.findViewById(resource.value());
             if (found != null) {
-                field.setAccessible(true);
                 onMatchFound.onMatchFound(found, field, src);
             }
         } else {
             if (dst.getId() == resource.value()) {
-                field.setAccessible(true);
                 onMatchFound.onMatchFound(dst, field, src);
             }
         }
     }
 
-    private void setFieldValueToSpecificView(View dst, Field field, T src) {
+    private void setFieldValueToSpecificView(View dst, Field field, T src, FieldValueAdapter<T> fieldValueAdapter) {
         for (ValidatorViewConnector<T> validatorViewConnector : validatorViewConnectors) {
             if (validatorViewConnector.isViewOfThisKind(dst)) {
-                validatorViewConnector.setFieldValueToSpecificView(dst, field, src);
+                validatorViewConnector.setFieldValueToSpecificView(dst, field, src, fieldValueAdapter);
                 return;
             }
         }
     }
 
-    private void setViewValueToField(View src, Field field, T dst) {
+    private void setViewValueToField(View src, Field field, T dst, FieldValueAdapter<T> fieldValueAdapter) {
         for (ValidatorViewConnector<T> validatorViewConnector : validatorViewConnectors) {
             if (validatorViewConnector.isViewOfThisKind(src)) {
-                validatorViewConnector.setViewValueToField(src, field, dst);
+                validatorViewConnector.setViewValueToField(src, field, dst, fieldValueAdapter);
                 return;
             }
         }
     }
 
-    private boolean setErrorToView(View dst, String error) {
+    private boolean setErrorToView(View dst, String error, FieldValueAdapter<T> fieldValueAdapter) {
         for (ValidatorViewConnector<T> validatorViewConnector : validatorViewConnectors) {
             if (validatorViewConnector.isViewOfThisKind(dst)) {
-                validatorViewConnector.setErrorToView(dst, error);
+                validatorViewConnector.setErrorToView(dst, error, fieldValueAdapter);
                 return true;
             }
         }
@@ -160,11 +180,14 @@ public class ModelViewPopulator<T> {
                 if (resource == null)
                     continue;
 
-                if (field.getType() != String.class)
-                    continue;
+                field.setAccessible(true);
+
+                FieldValueAdapter<T> fieldValueAdapter = getFieldValueConnector(field, model);
+                if (fieldValueAdapter == null)
+                    throw new RuntimeException("Unsupported field type!: " + field.getType());
 
                 findObjectViewMatchRecursively(dst, field, resource, model, (view, field1, object) -> {
-                    if (!setErrorToView(view, error.getDefaultMessage())) {
+                    if (!setErrorToView(view, error.getDefaultMessage(), fieldValueAdapter)) {
                         errorsWithNoMatchingView.add(error);
                     }
                 });
@@ -172,6 +195,15 @@ public class ModelViewPopulator<T> {
         }
 
         return new BindingResult<T>(errorsWithNoMatchingView, errors.getUnspecificValidationErrors());
+    }
+
+    private FieldValueAdapter<T> getFieldValueConnector(Field field, T object) {
+        for (FieldValueAdapter<T> fieldValueAdapter : fieldValueAdapters) {
+            if (fieldValueAdapter.isFieldTypeSupported(field, object)) {
+                return fieldValueAdapter;
+            }
+        }
+        return null;
     }
 
     private interface OnMatchFound<T> {

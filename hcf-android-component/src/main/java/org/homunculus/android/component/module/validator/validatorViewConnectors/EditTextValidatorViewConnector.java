@@ -1,12 +1,13 @@
-package org.homunculus.android.component.module.validator.supportedConnectors;
+package org.homunculus.android.component.module.validator.validatorViewConnectors;
 
 import android.view.View;
 import android.widget.EditText;
 
+import org.homunculus.android.component.module.validator.FieldValueAdapter;
 import org.homunculus.android.component.module.validator.ValidatorViewConnector;
 
 /**
- * {@link ValidatorViewConnector<T> for {@link EditText}}
+ * {@link ValidatorViewConnector<T>} for {@link EditText}
  * <p>
  * Created by aerlemann on 15.02.18.
  */
@@ -18,7 +19,7 @@ public class EditTextValidatorViewConnector<T> extends ValidatorViewConnector<T>
     }
 
     @Override
-    public void setErrorToView(View dst, String error) {
+    public void setErrorToView(View dst, String error, FieldValueAdapter<T> fieldValueAdapter) {
         ((EditText) dst).setError(error);
     }
 

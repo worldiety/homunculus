@@ -3,4 +3,5 @@
     <string name="error_min_eight_chars">Min 8 chars!</string>
     <string name="error_empty">"Oh no! It's empty!"</string>
     <string name="error_no_email">"This is no email!"</string>
+    <string name="error_min_zero">"Must be minimum 0!"</string>
 </resources>

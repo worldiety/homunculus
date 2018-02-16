@@ -7,6 +7,7 @@ import org.homunculus.android.flavor.Resource;
 
 import java.io.Serializable;
 
+import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.Size;
 
 /**
@@ -27,6 +28,10 @@ public class ObjectToBeValidated implements Serializable {
     @Email(message = "error_no_email")
     @NotEmpty(message = "error_empty")
     private String valueFromSpinner = "";
+
+    @Resource(R.id.ed_numbertest)
+    @DecimalMin(value = "0", message = "error_min_zero")
+    private int numberTest = -1;
 
     public String getTest1() {
         return test1;
