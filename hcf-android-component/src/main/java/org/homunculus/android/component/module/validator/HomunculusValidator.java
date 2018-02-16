@@ -34,7 +34,7 @@ public class HomunculusValidator {
      * @return a {@link HomunculusValidator} with the default configuration
      */
     public static HomunculusValidator createDefaultValidator() {
-        return new HomunculusValidator(false, null, null);
+        return new HomunculusValidator(false, null);
     }
 
     /**
@@ -45,11 +45,11 @@ public class HomunculusValidator {
      *
      * @return a {@link HomunculusValidator} with Android string configuration
      */
-    public static HomunculusValidator createAndroidResourceMessagesValidator(Context context, String applicationPackageName) {
-        return new HomunculusValidator(true, context, applicationPackageName);
+    public static HomunculusValidator createAndroidResourceMessagesValidator(Context context) {
+        return new HomunculusValidator(true, context);
     }
 
-    private HomunculusValidator(boolean buildForAndroidMessages, Context androidContext, String applicationPackageName) {
+    private HomunculusValidator(boolean buildForAndroidMessages, Context androidContext) {
         Configuration<?> validationConfig = Validation
                 .byDefaultProvider()
                 .configure()
@@ -60,7 +60,7 @@ public class HomunculusValidator {
                 @Override
                 public String interpolate(String messageTemplate, Context context) {
                     try {
-                        int id = androidContext.getResources().getIdentifier(messageTemplate, "string", applicationPackageName);
+                        int id = androidContext.getResources().getIdentifier(messageTemplate, "string", androidContext.getApplicationContext().getPackageName());
                         return androidContext.getString(id);
                     } catch (Exception e) {
                         LoggerFactory.getLogger(this.getClass()).info("Could not find resource: " + messageTemplate);

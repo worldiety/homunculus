@@ -8,7 +8,7 @@ import java.util.Set;
 import javax.validation.ConstraintViolation;
 
 /**
- * Result, which wraps {@link ConstraintViolation} into the slimmer {@link ConstraintValidationError} and allows adding additional custom errors
+ * Result, which wraps {@link ConstraintViolation} into the slimmer {@link FieldSpecificValidationError} and allows adding additional custom errors
  * <p>
  * Created by aerlemann on 05.02.18.
  */
@@ -16,8 +16,8 @@ import javax.validation.ConstraintViolation;
 @Unfinished
 public class BindingResult<T> {
 
-    private Set<ConstraintValidationError<T>> constraintValidationErrors;
-    private Set<CustomValidationError> customValidationErrors;
+    private Set<FieldSpecificValidationError<T>> fieldSpecificValidationErrors;
+    private Set<UnspecificValidationError> unspecificValidationErrors;
 
     public BindingResult() {
         super();
@@ -25,38 +25,42 @@ public class BindingResult<T> {
 
     public BindingResult(Set<ConstraintViolation<T>> violations) {
         super();
-        constraintValidationErrors = new HashSet<>();
-        customValidationErrors = new HashSet<>();
+        fieldSpecificValidationErrors = new HashSet<>();
+        unspecificValidationErrors = new HashSet<>();
 
         for (ConstraintViolation<T> violation : violations) {
-            constraintValidationErrors.add(new ConstraintValidationError<>(violation));
+            fieldSpecificValidationErrors.add(new FieldSpecificValidationError<>(violation));
         }
     }
 
-    public BindingResult(Set<ConstraintValidationError<T>> constraintValidationErrors, Set<CustomValidationError> customValidationErrors) {
+    public BindingResult(Set<FieldSpecificValidationError<T>> fieldSpecificValidationErrors, Set<UnspecificValidationError> unspecificValidationErrors) {
         super();
-        this.constraintValidationErrors = new HashSet<>(constraintValidationErrors);
-        this.customValidationErrors = new HashSet<>(customValidationErrors);
+        this.fieldSpecificValidationErrors = new HashSet<>(fieldSpecificValidationErrors);
+        this.unspecificValidationErrors = new HashSet<>(unspecificValidationErrors);
     }
 
-    public Set<ConstraintValidationError<T>> getConstraintValidationErrors() {
-        return constraintValidationErrors;
+    public Set<FieldSpecificValidationError<T>> getFieldSpecificValidationErrors() {
+        return fieldSpecificValidationErrors;
     }
 
-    public Set<CustomValidationError> getCustomValidationErrors() {
-        return customValidationErrors;
+    public Set<UnspecificValidationError> getUnspecificValidationErrors() {
+        return unspecificValidationErrors;
     }
 
-    public void addCustomValidationError(CustomValidationError error) {
-        customValidationErrors.add(error);
+    public void addConstraintValidationError(FieldSpecificValidationError<T> fieldSpecificValidationError) {
+        this.fieldSpecificValidationErrors.add(fieldSpecificValidationError);
+    }
+
+    public void addCustomValidationError(UnspecificValidationError error) {
+        this.unspecificValidationErrors.add(error);
     }
 
     public boolean hasConstraintValidationErrors() {
-        return !constraintValidationErrors.isEmpty();
+        return !fieldSpecificValidationErrors.isEmpty();
     }
 
     public boolean hasCustomValidationErrors() {
-        return !customValidationErrors.isEmpty();
+        return !unspecificValidationErrors.isEmpty();
     }
 
     public boolean hasErrors() {

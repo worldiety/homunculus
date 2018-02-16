@@ -11,28 +11,29 @@ import javax.validation.constraints.NotNull;
 
 /**
  * Simple error-class offering easy access to the important parameters (for validation). If more details are needed, the underlying {@link ConstraintViolation} can
- * be accessed via {@link #getUnderlyingViolation()}.
+ * be accessed via {@link #getUnderlyingViolation()}, if the error is coming from the {@link org.hibernate.validator.HibernateValidator}.
  * <p>
  * Created by aerlemann on 05.02.18.
  */
 @Unfinished
-public class ConstraintValidationError<T> {
+public class FieldSpecificValidationError<T> {
 
     private final String objectName;
     private final String defaultMessage;
     private final String field;
+    private final T fieldParent;
 
     @Nullable
     private final Object rejectedValue;
+    @Nullable
     private final ConstraintViolation<T> underlyingViolation;
-
 
     /**
      * Create a new ValidationError instance.
      *
      * @param violation the underlying underlyingViolation, coming from {@link javax.validation.Validator#validate(Object, Class[])}
      */
-    public ConstraintValidationError(@NotNull ConstraintViolation<T> violation) {
+    public FieldSpecificValidationError(@NotNull ConstraintViolation<T> violation) {
         super();
         this.objectName = violation.getRootBean().getClass().getName();
         Assert.assertNotNull(objectName, "Object name must not be null");
@@ -41,6 +42,27 @@ public class ConstraintValidationError<T> {
         this.rejectedValue = violation.getInvalidValue();
         this.defaultMessage = violation.getMessage();
         this.underlyingViolation = violation;
+        this.fieldParent = violation.getRootBean();
+    }
+
+    /**
+     * Create a new ValidationError instance.
+     *
+     * @param object        the object, which contains the field containing the error
+     * @param fieldName     the name of the field containing the error
+     * @param message       the message to be shown to the user
+     * @param rejectedValue the value of the field, which was rejected
+     */
+    public FieldSpecificValidationError(T object, String fieldName, String message, @Nullable Object rejectedValue) {
+        super();
+        this.objectName = object.getClass().getName();
+        Assert.assertNotNull(objectName, "Object name must not be null");
+        this.field = fieldName;
+        Assert.assertNotNull(field);
+        this.rejectedValue = rejectedValue;
+        this.defaultMessage = message;
+        this.underlyingViolation = null;
+        this.fieldParent = object;
     }
 
     /**
@@ -68,8 +90,8 @@ public class ConstraintValidationError<T> {
     /**
      * Return the affected object.
      */
-    public T getObject() {
-        return this.underlyingViolation == null ? null : underlyingViolation.getRootBean();
+    public T getFieldParent() {
+        return fieldParent;
     }
 
     /**
@@ -87,6 +109,7 @@ public class ConstraintValidationError<T> {
      *
      * @return
      */
+    @Nullable
     public ConstraintViolation getUnderlyingViolation() {
         return this.underlyingViolation;
     }
@@ -99,7 +122,7 @@ public class ConstraintValidationError<T> {
         if (other == null || other.getClass() != getClass() || !super.equals(other)) {
             return false;
         }
-        ConstraintValidationError<T> otherError = (ConstraintValidationError<T>) other;
+        FieldSpecificValidationError<T> otherError = (FieldSpecificValidationError<T>) other;
         return (ObjectUtils.nullSafeEquals(getField(), otherError.getField()) &&
                 ObjectUtils.nullSafeEquals(getRejectedValue(), otherError.getRejectedValue()) &&
                 ObjectUtils.nullSafeEquals(getObjectName(), otherError.getObjectName()) &&

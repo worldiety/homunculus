@@ -9,8 +9,8 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 
 import org.homunculus.android.component.module.validator.BindingResult;
-import org.homunculus.android.component.module.validator.ConstraintValidationError;
-import org.homunculus.android.component.module.validator.CustomValidationError;
+import org.homunculus.android.component.module.validator.FieldSpecificValidationError;
+import org.homunculus.android.component.module.validator.UnspecificValidationError;
 import org.homunculus.android.component.module.validator.ModelViewPopulator;
 import org.homunculus.android.example.R;
 import org.homunculusframework.factory.container.Request;
@@ -61,13 +61,13 @@ public class ValidatorUIS extends FrameLayout {
 
         if (errors != null) {
             BindingResult<ObjectToBeValidated> errorResult = modelViewPopulator.insertErrorState(layout, errors);
-            for (ConstraintValidationError<ObjectToBeValidated> error : errorResult.getConstraintValidationErrors()) {
+            for (FieldSpecificValidationError<ObjectToBeValidated> error : errorResult.getFieldSpecificValidationErrors()) {
                 //handle errors, which cannot be assigned to a View
                 LoggerFactory.getLogger(this.getClass()).error("Handle me! I'm a constraint error!: " + error.getField() + ", " + error.getObjectName() + ", " + error.getRejectedValue() + ", " + error.getDefaultMessage());
 
             }
 
-            for (CustomValidationError error : errorResult.getCustomValidationErrors()) {
+            for (UnspecificValidationError error : errorResult.getUnspecificValidationErrors()) {
                 //handle custom errors
                 LoggerFactory.getLogger(this.getClass()).error("Handle me! I'm a custom error!: " + error.getMessage() + ", " + error.getException());
 

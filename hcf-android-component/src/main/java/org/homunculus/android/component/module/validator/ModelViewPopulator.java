@@ -6,6 +6,7 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 
 import org.homunculus.android.component.module.validator.supportedConnectors.EditTextValidatorViewConnector;
+import org.homunculus.android.component.module.validator.supportedConnectors.SpinnerValidatorViewConnector;
 import org.homunculus.android.component.module.validator.supportedConnectors.TextInputLayoutValidatorViewConnector;
 import org.homunculus.android.flavor.Resource;
 import org.homunculusframework.annotations.Unfinished;
@@ -32,6 +33,7 @@ public class ModelViewPopulator<T> {
         validatorViewConnectors = new ArrayList<>();
         validatorViewConnectors.add(new TextInputLayoutValidatorViewConnector<>());
         validatorViewConnectors.add(new EditTextValidatorViewConnector<>());
+        validatorViewConnectors.add(new SpinnerValidatorViewConnector<>());
     }
 
     /**
@@ -89,15 +91,10 @@ public class ModelViewPopulator<T> {
 
     private void findObjectViewMatchRecursively(View dst, Field field, Resource resource, T src, OnMatchFound<T> onMatchFound) {
         if (dst instanceof ViewGroup) {
-            for (int i = 0; i < ((ViewGroup) dst).getChildCount(); i++) {
-                View found = dst.findViewById(resource.value());
-                if (found != null) {
-                    field.setAccessible(true);
-                    onMatchFound.onMatchFound(found, field, src);
-                    return;
-                }
-                //We did not find anything, try harder
-                findObjectViewMatchRecursively(((ViewGroup) dst).getChildAt(i), field, resource, src, onMatchFound);
+            View found = dst.findViewById(resource.value());
+            if (found != null) {
+                field.setAccessible(true);
+                onMatchFound.onMatchFound(found, field, src);
             }
         } else {
             if (dst.getId() == resource.value()) {
@@ -147,9 +144,9 @@ public class ModelViewPopulator<T> {
      * {@link HomunculusValidator}.
      */
     public BindingResult<T> insertErrorState(View dst, BindingResult<T> errors) {
-        Set<ConstraintValidationError<T>> errorsWithNoMatchingView = new HashSet<>();
-        for (ConstraintValidationError<T> error : errors.getConstraintValidationErrors()) {
-            T model = error.getObject();
+        Set<FieldSpecificValidationError<T>> errorsWithNoMatchingView = new HashSet<>();
+        for (FieldSpecificValidationError<T> error : errors.getFieldSpecificValidationErrors()) {
+            T model = error.getFieldParent();
             if (model == null || error.getField() == null) {
                 errorsWithNoMatchingView.add(error);
                 continue;
@@ -174,7 +171,7 @@ public class ModelViewPopulator<T> {
             }
         }
 
-        return new BindingResult<T>(errorsWithNoMatchingView, errors.getCustomValidationErrors());
+        return new BindingResult<T>(errorsWithNoMatchingView, errors.getUnspecificValidationErrors());
     }
 
     private interface OnMatchFound<T> {

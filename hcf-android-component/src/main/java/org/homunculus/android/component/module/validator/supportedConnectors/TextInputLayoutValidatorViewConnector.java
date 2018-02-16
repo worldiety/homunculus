@@ -5,15 +5,13 @@ import android.view.View;
 
 import org.homunculus.android.component.module.validator.ValidatorViewConnector;
 
-import java.lang.reflect.Field;
-
 /**
  * {@link ValidatorViewConnector<T> for {@link TextInputLayout}}
  * <p>
  * Created by aerlemann on 15.02.18.
  */
 
-public class TextInputLayoutValidatorViewConnector<T> implements ValidatorViewConnector<T> {
+public class TextInputLayoutValidatorViewConnector<T> extends ValidatorViewConnector<T> {
     @Override
     public boolean isViewOfThisKind(View view) {
         try {
@@ -25,33 +23,17 @@ public class TextInputLayoutValidatorViewConnector<T> implements ValidatorViewCo
     }
 
     @Override
-    public void setFieldValueToSpecificView(View dst, Field field, T src) {
-        ((TextInputLayout) dst).getEditText().setText(getField(field, src));
-    }
-
-    @Override
-    public void setViewValueToField(View src, Field field, T dst) {
-        setField(((TextInputLayout) src).getEditText().getText().toString(), field, dst);
-    }
-
-    @Override
     public void setErrorToView(View dst, String error) {
         ((TextInputLayout) dst).setError(error);
     }
 
-    private CharSequence getField(Field field, T src) {
-        try {
-            return (CharSequence) field.get(src);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
+    @Override
+    protected String getTextFromView(View view) {
+        return ((TextInputLayout) view).getEditText().getText().toString();
     }
 
-    private void setField(String text, Field field, T dst) {
-        try {
-            field.set(dst, text);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
+    @Override
+    protected void setTextToView(View view, String text) {
+        ((TextInputLayout) view).getEditText().setText(text);
     }
 }

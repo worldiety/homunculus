@@ -10,7 +10,7 @@ import javax.annotation.Nullable;
  * Created by aerlemann on 15.02.18.
  */
 @Unfinished
-public class CustomValidationError {
+public class UnspecificValidationError {
 
     private String message;
     private Exception exception;
@@ -21,7 +21,7 @@ public class CustomValidationError {
      * @param message   a error message, which may be shown somewhere in the UI later
      * @param exception the exception, which is reason for this error
      */
-    public CustomValidationError(String message, Exception exception) {
+    public UnspecificValidationError(@Nullable String message, Exception exception) {
         this.message = message;
         this.exception = exception;
     }
@@ -31,7 +31,7 @@ public class CustomValidationError {
      *
      * @param message a error message, which may be shown somewhere in the UI later
      */
-    public CustomValidationError(String message) {
+    public UnspecificValidationError(String message) {
         this.message = message;
         this.exception = null;
     }
@@ -41,7 +41,7 @@ public class CustomValidationError {
      *
      * @param exception the exception, which is reason for this error
      */
-    public CustomValidationError(Exception exception) {
+    public UnspecificValidationError(Exception exception) {
         this.message = null;
         this.exception = exception;
     }
