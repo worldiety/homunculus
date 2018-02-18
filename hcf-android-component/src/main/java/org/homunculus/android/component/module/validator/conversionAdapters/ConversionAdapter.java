@@ -2,6 +2,7 @@ package org.homunculus.android.component.module.validator.conversionAdapters;
 
 import android.view.View;
 
+import org.homunculus.android.component.module.validator.ValidatorViewConnector;
 import org.homunculusframework.annotations.Unfinished;
 
 import java.lang.reflect.Field;
@@ -29,11 +30,24 @@ public abstract class ConversionAdapter<V extends View, F, M> {
         }
     }
 
+    public boolean isViewTypeSupported(View view) {
+        try {
+            V v = (V) view;
+            return isViewSupported(v);
+        } catch (ClassCastException | NoClassDefFoundError e) {
+            return false;
+        }
+    }
+
     abstract boolean isFieldTypeSupported(F fieldType);
+
+    abstract boolean isViewSupported(V view);
 
     abstract void setFieldValueToView(F value, V view);
 
     abstract F getFieldValueFromView(V view);
+
+    public abstract ValidatorViewConnector getErrorHandler();
 
     private F getFieldValue(Field field, M src) {
         try {

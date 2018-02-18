@@ -5,11 +5,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 
-import org.homunculus.android.component.module.validator.fieldValueAdapters.IntegerFieldValueAdapter;
-import org.homunculus.android.component.module.validator.fieldValueAdapters.StringFieldValueAdapter;
-import org.homunculus.android.component.module.validator.validatorViewConnectors.EditTextValidatorViewConnector;
-import org.homunculus.android.component.module.validator.validatorViewConnectors.SpinnerValidatorViewConnector;
-import org.homunculus.android.component.module.validator.validatorViewConnectors.TextInputLayoutValidatorViewConnector;
+import org.homunculus.android.component.module.validator.conversionAdapters.ConversionAdapter;
+import org.homunculus.android.component.module.validator.conversionAdapters.StringToEditTextAdapter;
+import org.homunculus.android.component.module.validator.conversionAdapters.StringToSpinnerAdapter;
+import org.homunculus.android.component.module.validator.conversionAdapters.StringToTextInputLayoutAdapter;
 import org.homunculus.android.flavor.Resource;
 import org.homunculusframework.annotations.Unfinished;
 import org.homunculusframework.lang.Reflection;
@@ -29,36 +28,22 @@ import java.util.Set;
 @Unfinished
 public class ModelViewPopulator<T> {
 
-    private List<ValidatorViewConnector<T>> validatorViewConnectors;
-    private List<FieldValueAdapter<T>> fieldValueAdapters;
+    private List<ConversionAdapter> conversionAdapters;
 
     public ModelViewPopulator() {
-        validatorViewConnectors = new ArrayList<>();
-        validatorViewConnectors.add(new TextInputLayoutValidatorViewConnector<>());
-        validatorViewConnectors.add(new EditTextValidatorViewConnector<>());
-        validatorViewConnectors.add(new SpinnerValidatorViewConnector<>());
-
-        fieldValueAdapters = new ArrayList<>();
-        fieldValueAdapters.add(new StringFieldValueAdapter<>());
-        fieldValueAdapters.add(new IntegerFieldValueAdapter<>());
+        conversionAdapters = new ArrayList<>();
+        conversionAdapters.add(new StringToTextInputLayoutAdapter<T>());
+        conversionAdapters.add(new StringToEditTextAdapter<T>());
+        conversionAdapters.add(new StringToSpinnerAdapter<T>());
     }
 
     /**
-     * Adds an additional {@link ValidatorViewConnector<T>}
+     * Adds an additional {@link ConversionAdapter}
      *
-     * @param validatorViewConnector a {@link ValidatorViewConnector<T>}
+     * @param conversionAdapter a {@link ConversionAdapter}
      */
-    public void addValidatorViewConnector(ValidatorViewConnector<T> validatorViewConnector) {
-        validatorViewConnectors.add(validatorViewConnector);
-    }
-
-    /**
-     * Adds an additional {@link FieldValueAdapter<T>}
-     *
-     * @param fieldValueAdapter a {@link FieldValueAdapter<T>}
-     */
-    public void addFieldValueAdapter(FieldValueAdapter<T> fieldValueAdapter) {
-        fieldValueAdapters.add(fieldValueAdapter);
+    public void addConversionAdapter(ConversionAdapter conversionAdapter) {
+        conversionAdapters.add(conversionAdapter);
     }
 
     /**
@@ -77,12 +62,7 @@ public class ModelViewPopulator<T> {
                 continue;
 
             field.setAccessible(true);
-
-            FieldValueAdapter<T> fieldValueAdapter = getFieldValueConnector(field, dst);
-            if (fieldValueAdapter == null)
-                throw new RuntimeException("Unsupported field type!: " + field.getType());
-
-            findObjectViewMatchRecursively(src, field, resource, dst, (view, field1, object) -> setViewValueToField(view, field1, object, fieldValueAdapter));
+            findObjectViewMatchRecursively(src, field, resource, dst, (view, field1, object) -> setViewValueToField(view, field1, object, getConversionAdapter(field1, object, view)));
         }
     }
 
@@ -102,12 +82,7 @@ public class ModelViewPopulator<T> {
                 continue;
 
             field.setAccessible(true);
-
-            FieldValueAdapter<T> fieldValueAdapter = getFieldValueConnector(field, src);
-            if (fieldValueAdapter == null)
-                throw new RuntimeException("Unsupported field type!: " + field.getType());
-
-            findObjectViewMatchRecursively(dst, field, resource, src, (view, field1, object) -> setFieldValueToSpecificView(view, field1, object, fieldValueAdapter));
+            findObjectViewMatchRecursively(dst, field, resource, src, (view, field1, object) -> setFieldValueToSpecificView(view, field1, object, getConversionAdapter(field1, object, view)));
         }
     }
 
@@ -124,30 +99,22 @@ public class ModelViewPopulator<T> {
         }
     }
 
-    private void setFieldValueToSpecificView(View dst, Field field, T src, FieldValueAdapter<T> fieldValueAdapter) {
-        for (ValidatorViewConnector<T> validatorViewConnector : validatorViewConnectors) {
-            if (validatorViewConnector.isViewOfThisKind(dst)) {
-                validatorViewConnector.setFieldValueToSpecificView(dst, field, src, fieldValueAdapter);
-                return;
-            }
+    private void setFieldValueToSpecificView(View dst, Field field, T src, ConversionAdapter conversionAdapter) {
+        if (conversionAdapter != null) {
+            conversionAdapter.transferFieldToView(field, dst, src);
         }
     }
 
-    private void setViewValueToField(View src, Field field, T dst, FieldValueAdapter<T> fieldValueAdapter) {
-        for (ValidatorViewConnector<T> validatorViewConnector : validatorViewConnectors) {
-            if (validatorViewConnector.isViewOfThisKind(src)) {
-                validatorViewConnector.setViewValueToField(src, field, dst, fieldValueAdapter);
-                return;
-            }
+    private void setViewValueToField(View src, Field field, T dst, ConversionAdapter conversionAdapter) {
+        if (conversionAdapter != null) {
+            conversionAdapter.transferViewToField(src, field, dst);
         }
     }
 
-    private boolean setErrorToView(View dst, String error, FieldValueAdapter<T> fieldValueAdapter) {
-        for (ValidatorViewConnector<T> validatorViewConnector : validatorViewConnectors) {
-            if (validatorViewConnector.isViewOfThisKind(dst)) {
-                validatorViewConnector.setErrorToView(dst, error, fieldValueAdapter);
-                return true;
-            }
+    private boolean setErrorToView(View dst, String error, ConversionAdapter conversionAdapter) {
+        if (conversionAdapter != null) {
+            conversionAdapter.getErrorHandler().setErrorToView(dst, error);
+            return true;
         }
 
         return false;
@@ -181,13 +148,8 @@ public class ModelViewPopulator<T> {
                     continue;
 
                 field.setAccessible(true);
-
-                FieldValueAdapter<T> fieldValueAdapter = getFieldValueConnector(field, model);
-                if (fieldValueAdapter == null)
-                    throw new RuntimeException("Unsupported field type!: " + field.getType());
-
                 findObjectViewMatchRecursively(dst, field, resource, model, (view, field1, object) -> {
-                    if (!setErrorToView(view, error.getDefaultMessage(), fieldValueAdapter)) {
+                    if (!setErrorToView(view, error.getDefaultMessage(), getConversionAdapter(field1, object, view))) {
                         errorsWithNoMatchingView.add(error);
                     }
                 });
@@ -197,10 +159,12 @@ public class ModelViewPopulator<T> {
         return new BindingResult<T>(errorsWithNoMatchingView, errors.getUnspecificValidationErrors());
     }
 
-    private FieldValueAdapter<T> getFieldValueConnector(Field field, T object) {
-        for (FieldValueAdapter<T> fieldValueAdapter : fieldValueAdapters) {
-            if (fieldValueAdapter.isFieldTypeSupported(field, object)) {
-                return fieldValueAdapter;
+    private ConversionAdapter getConversionAdapter(Field field, T object, View view) {
+        for (ConversionAdapter conversionAdapter : conversionAdapters) {
+            if (conversionAdapter.isFieldTypeSupported(field, object)) {
+                if (conversionAdapter.isViewTypeSupported(view)) {
+                    return conversionAdapter;
+                }
             }
         }
         return null;

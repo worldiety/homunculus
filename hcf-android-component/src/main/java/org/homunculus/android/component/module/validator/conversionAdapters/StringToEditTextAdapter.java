@@ -2,6 +2,8 @@ package org.homunculus.android.component.module.validator.conversionAdapters;
 
 import android.widget.EditText;
 
+import org.homunculus.android.component.module.validator.ValidatorViewConnector;
+import org.homunculus.android.component.module.validator.validatorViewConnectors.EditTextValidatorViewConnector;
 import org.homunculusframework.annotations.Unfinished;
 
 /**
@@ -16,6 +18,11 @@ public class StringToEditTextAdapter<M> extends ConversionAdapter<EditText, Stri
     }
 
     @Override
+    boolean isViewSupported(EditText view) {
+        return view != null;
+    }
+
+    @Override
     void setFieldValueToView(String value, EditText view) {
         view.setText(value);
     }
@@ -23,5 +30,10 @@ public class StringToEditTextAdapter<M> extends ConversionAdapter<EditText, Stri
     @Override
     String getFieldValueFromView(EditText view) {
         return view.getText().toString();
+    }
+
+    @Override
+    public ValidatorViewConnector getErrorHandler() {
+        return new EditTextValidatorViewConnector();
     }
 }

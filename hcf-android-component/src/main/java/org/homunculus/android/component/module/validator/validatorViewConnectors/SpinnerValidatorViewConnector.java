@@ -7,25 +7,16 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.Spinner;
-import android.widget.SpinnerAdapter;
-
-import org.homunculus.android.component.module.validator.FieldValueAdapter;
 import org.homunculus.android.component.module.validator.ValidatorViewConnector;
 
 /**
- * {@link ValidatorViewConnector<T>} for {@link Spinner}
+ * {@link ValidatorViewConnector} for {@link Spinner}
  * <p>
  * Created by aerlemann on 16.02.18.
  */
-public class SpinnerValidatorViewConnector<T> extends ValidatorViewConnector<T> {
-
+public class SpinnerValidatorViewConnector extends ValidatorViewConnector {
     @Override
-    protected boolean isViewOfThisKind(View view) {
-        return view instanceof Spinner;
-    }
-
-    @Override
-    protected void setErrorToView(View dst, String error, FieldValueAdapter<T> fieldValueAdapter) {
+    protected void setErrorToView(View dst, String error) {
         ViewGroup parent = dst.getParent() != null && dst.getParent() instanceof ViewGroup ? (ViewGroup) dst.getParent() : null;
         if (parent == null)
             return;
@@ -51,26 +42,5 @@ public class SpinnerValidatorViewConnector<T> extends ValidatorViewConnector<T> 
         errorTextView.setPadding(7, 7, 7, 7);
         newParent.addView(dst, new LayoutParams(dst.getLayoutParams().width, dst.getLayoutParams().height));
         newParent.addView(errorTextView);
-    }
-
-    @Override
-    protected String getTextFromView(View view) {
-        Spinner spinner = (Spinner) view;
-        Object selectedItem = spinner.getSelectedItem();
-        if (selectedItem instanceof String)
-            return (String) selectedItem;
-
-        return null;
-    }
-
-    @Override
-    protected void setTextToView(View view, String text) {
-        Spinner spinner = (Spinner) view;
-        SpinnerAdapter adapter = spinner.getAdapter();
-        for (int i = 0; i < adapter.getCount(); i++) {
-            if (adapter.getItem(i).equals(text)) {
-                spinner.setSelection(i);
-            }
-        }
     }
 }
