@@ -45,8 +45,6 @@ public class HomunculusFlavor implements Configurator {
         persistent.putSerializer(new Serializable());
         persistent.putSerializer(new Xml());
         configuration.addFieldProcessor(persistent);
-        configuration.addComponentProcessor(new HCFComponentCtrConnection());
         configuration.addComponentProcessor(new HCFComponent());
-        configuration.addScopePrepareProcessor(new HCFScopeConnectionProxy());
     }
 }

@@ -1,7 +1,6 @@
 package org.homunculus.android.example.module.cart;
 
 import org.homunculusframework.concurrent.ThreadNotInterruptible;
-import org.homunculusframework.factory.connection.Connection;
 import org.homunculusframework.factory.flavor.hcf.Execute;
 import org.homunculusframework.factory.container.Container;
 import org.homunculusframework.navigation.ModelAndView;
@@ -48,7 +47,7 @@ public class CartController {
     }
 
     /**
-     * Requesting backend methods directly is possible as well, recommend is to use the {@link Connection} pattern
+     * Requesting backend methods directly is possible as well, recommend is to use the {@link org.homunculusframework.factory.async.AsyncDelegate} pattern
      * as seen in {@link CartControllerConnection}
      */
     @ThreadNotInterruptible

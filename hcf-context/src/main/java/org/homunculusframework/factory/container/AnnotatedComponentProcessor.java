@@ -15,7 +15,6 @@
  */
 package org.homunculusframework.factory.container;
 
-import org.homunculusframework.factory.connection.Connection;
 import org.homunculusframework.scope.Scope;
 import org.homunculusframework.stereotype.UserInterfaceState;
 import org.slf4j.LoggerFactory;
@@ -88,11 +87,6 @@ public interface AnnotatedComponentProcessor {
          */
         CONTROLLER,
 
-        /**
-         * Because controllers should never returns Task objects, you can define {@link Connection} proxies, which
-         * allows scope based and concurrent interaction with it.
-         */
-        CONTROLLER_CONNECTION
     }
 }
 

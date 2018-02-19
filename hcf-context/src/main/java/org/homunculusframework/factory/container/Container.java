@@ -18,8 +18,6 @@ package org.homunculusframework.factory.container;
 import org.homunculusframework.concurrent.Task;
 import org.homunculusframework.factory.ObjectCreator;
 import org.homunculusframework.factory.ObjectInjector;
-import org.homunculusframework.factory.connection.Connection;
-import org.homunculusframework.factory.connection.ConnectionProxyFactory;
 import org.homunculusframework.factory.container.AnnotatedComponentProcessor.AnnotatedComponent;
 import org.homunculusframework.factory.container.Mapping.MappingType;
 import org.homunculusframework.factory.flavor.hcf.Execute;
@@ -29,11 +27,6 @@ import org.homunculusframework.scope.Scope;
 import org.homunculusframework.scope.SettableTask;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
-import javax.annotation.PostConstruct;
-import javax.inject.Named;
-
-import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -41,6 +34,10 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.annotation.Nullable;
+import javax.annotation.PostConstruct;
+import javax.inject.Named;
 
 /**
  * The container holds the life instances and manages the life cycles of entities and stereotypes in a scope.
@@ -67,7 +64,7 @@ public final class Container {
 
     /**
      * Denotes a {@link Handler} used to post into some background thread(s) of an application, which is NEVER the UI thread.
-     * Used e.g. for {@link PostConstruct} or by {@link Task} proxied by a {@link Connection} method.
+     * Used e.g. for {@link PostConstruct} or by {@link Task} proxied by a {@link org.homunculusframework.factory.async.AsyncDelegate} method.
      */
     public final static String NAME_BACKGROUND_HANDLER = "$backgroundHandler";
 
@@ -179,20 +176,6 @@ public final class Container {
                 }
             }
 
-            //automatically implement connection proxies
-            for (Class<Connection> clazz : configuration.getControllerConnections()) {
-                ParameterizedType type = (ParameterizedType) clazz.getGenericInterfaces()[0];
-                Class controllerType = (Class) type.getActualTypeArguments()[0];
-                Object controllerInstance = containerScope.resolve(controllerType);
-                if (controllerInstance == null) {
-                    LoggerFactory.getLogger(getClass()).error("connection '{}' refers to non-existing controller '{}'", clazz, controllerType);
-                    continue;
-                }
-
-                //create and insert the proxy factory
-                ConnectionProxyFactory proxy = new ConnectionProxyFactory(controllerInstance, clazz, 0);
-                containerScope.put("$proxyfactory@" + Reflection.getName(controllerInstance.getClass()), proxy);
-            }
 
             containerScope.put(NAME_CONTAINER, this);
             running = true;

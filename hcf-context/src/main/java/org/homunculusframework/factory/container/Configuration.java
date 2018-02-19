@@ -18,7 +18,6 @@ package org.homunculusframework.factory.container;
 import org.homunculusframework.factory.ObjectCreator;
 import org.homunculusframework.factory.ObjectDestroyer;
 import org.homunculusframework.factory.ObjectInjector;
-import org.homunculusframework.factory.connection.Connection;
 import org.homunculusframework.factory.container.AnnotatedComponentProcessor.AnnotatedComponent;
 import org.homunculusframework.factory.component.DefaultFactory;
 import org.homunculusframework.lang.Panic;
@@ -49,10 +48,6 @@ public class Configuration {
      */
     private final List<AnnotatedComponent> controllers;
 
-    /**
-     * Controllers may have proxied connections to them to automatically implement various comfort functions
-     */
-    private final List<Class<Connection>> controllerConnections;
 
     /**
      * Only used for error tracking, in a configuration all id's should be unique, even they don't share a common mindset (e.g. beans and controllers)
@@ -90,7 +85,6 @@ public class Configuration {
         this.annotatedFieldProcessors = new ArrayList<>();
         this.onInjectMethodProcessors = new ArrayList<>();
         this.onTearDownProcessors = new ArrayList<>();
-        this.controllerConnections = new ArrayList<>();
         this.annotatedComponentProcessors = new ArrayList<>();
         this.annotatedRequestMappings = new ArrayList<>();
         this.scopePrepareProcessors = new ArrayList<>();
@@ -132,10 +126,6 @@ public class Configuration {
         return onTearDownProcessors;
     }
 
-
-    public List<Class<Connection>> getControllerConnections() {
-        return controllerConnections;
-    }
 
     /**
      * Returns the root scope of this configuration
@@ -207,10 +197,6 @@ public class Configuration {
                         beans.put(component.getName(), clazz);
                         LoggerFactory.getLogger(getClass()).info("added @Controller {}", clazz);
                         continue;
-                    case CONTROLLER_CONNECTION:
-                        controllerConnections.add((Class<Connection>) clazz);
-                        LoggerFactory.getLogger(getClass()).info("added @Connection {}", clazz);
-                        return true;//cancel early, this one cannot be a bean
                     default:
                         throw new Panic();
                 }
