@@ -12,6 +12,7 @@ import org.homunculus.android.component.module.validator.conversionAdapters.Stri
 import org.homunculus.android.flavor.Resource;
 import org.homunculusframework.annotations.Unfinished;
 import org.homunculusframework.lang.Reflection;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -29,12 +30,15 @@ import java.util.Set;
 public class ModelViewPopulator<T> {
 
     private List<ConversionAdapter> conversionAdapters;
+    private FieldViewTransferUtil<T> fieldViewTransferUtil;
 
     public ModelViewPopulator() {
         conversionAdapters = new ArrayList<>();
         conversionAdapters.add(new StringToTextInputLayoutAdapter<T>());
         conversionAdapters.add(new StringToEditTextAdapter<T>());
         conversionAdapters.add(new StringToSpinnerAdapter<T>());
+
+        fieldViewTransferUtil = new FieldViewTransferUtil<>();
     }
 
     /**
@@ -101,13 +105,13 @@ public class ModelViewPopulator<T> {
 
     private void setFieldValueToSpecificView(View dst, Field field, T src, ConversionAdapter conversionAdapter) {
         if (conversionAdapter != null) {
-            conversionAdapter.transferFieldToView(field, dst, src);
+            fieldViewTransferUtil.transferFieldToView(field, dst, src, conversionAdapter);
         }
     }
 
     private void setViewValueToField(View src, Field field, T dst, ConversionAdapter conversionAdapter) {
         if (conversionAdapter != null) {
-            conversionAdapter.transferViewToField(src, field, dst);
+            fieldViewTransferUtil.transferViewToField(src, field, dst, conversionAdapter);
         }
     }
 
@@ -161,12 +165,15 @@ public class ModelViewPopulator<T> {
 
     private ConversionAdapter getConversionAdapter(Field field, T object, View view) {
         for (ConversionAdapter conversionAdapter : conversionAdapters) {
-            if (conversionAdapter.isFieldTypeSupported(field, object)) {
-                if (conversionAdapter.isViewTypeSupported(view)) {
+            if (fieldViewTransferUtil.isFieldTypeSupported(field, object, conversionAdapter)) {
+                if (fieldViewTransferUtil.isViewTypeSupported(view, conversionAdapter)) {
                     return conversionAdapter;
                 }
             }
         }
+
+        LoggerFactory.getLogger(this.getClass()).warn("Could not find ConversionAdapter for view-field combination: " + view.getClass().getSimpleName() + "-" + field.getType().getName());
+
         return null;
     }
 

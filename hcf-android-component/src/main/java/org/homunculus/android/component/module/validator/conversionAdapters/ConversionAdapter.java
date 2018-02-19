@@ -5,63 +5,35 @@ import android.view.View;
 import org.homunculus.android.component.module.validator.ViewErrorHandler;
 import org.homunculusframework.annotations.Unfinished;
 
-import java.lang.reflect.Field;
-
 /**
+ * An adapter for use in {@link org.homunculus.android.component.module.validator.ModelViewPopulator}. It sets a value from type F
+ * to a {@link View} from type V
+ * <p>
  * Created by aerlemann on 16.02.18.
  */
 @Unfinished
-public abstract class ConversionAdapter<V extends View, F, M> {
+public interface ConversionAdapter<V extends View, F> {
 
-    public void transferFieldToView(Field field, V view, M model) {
-        setFieldValueToView(getFieldValue(field, model), view);
-    }
+    /**
+     * Sets the a value to a {@link View}
+     *
+     * @param value value of type F
+     * @param view  {@link View} of type V
+     */
+    void setFieldValueToView(F value, V view);
 
-    public void transferViewToField(V view, Field field, M model) {
-        setField(getFieldValueFromView(view), field, model);
-    }
+    /**
+     * Gets a value from a {@link View}
+     *
+     * @param view {@link View} of type V
+     * @return value of type F
+     */
+    F getFieldValueFromView(V view);
 
-    public boolean isFieldTypeSupported(Field field, M model) {
-        try {
-            F value = (F) field.get(model);
-            return isFieldTypeSupported(value);
-        } catch (IllegalAccessException | ClassCastException e) {
-            return false;
-        }
-    }
-
-    public boolean isViewTypeSupported(View view) {
-        try {
-            V v = (V) view;
-            return isViewSupported(v);
-        } catch (ClassCastException | NoClassDefFoundError e) {
-            return false;
-        }
-    }
-
-    abstract boolean isFieldTypeSupported(F fieldType);
-
-    abstract boolean isViewSupported(V view);
-
-    abstract void setFieldValueToView(F value, V view);
-
-    abstract F getFieldValueFromView(V view);
-
-    public abstract ViewErrorHandler getErrorHandler();
-
-    private F getFieldValue(Field field, M src) {
-        try {
-            return (F) field.get(src);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void setField(F text, Field field, M dst) {
-        try {
-            field.set(dst, text);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-    }
+    /**
+     * Gets the {@link ViewErrorHandler} for a {@link View} from type V
+     *
+     * @return
+     */
+    ViewErrorHandler<V> getErrorHandler();
 }

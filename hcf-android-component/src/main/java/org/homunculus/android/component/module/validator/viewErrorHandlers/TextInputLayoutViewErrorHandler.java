@@ -1,7 +1,7 @@
 package org.homunculus.android.component.module.validator.viewErrorHandlers;
 
 import android.support.design.widget.TextInputLayout;
-import android.view.View;
+
 import org.homunculus.android.component.module.validator.ViewErrorHandler;
 
 /**
@@ -10,7 +10,7 @@ import org.homunculus.android.component.module.validator.ViewErrorHandler;
  * Created by aerlemann on 15.02.18.
  */
 
-public class TextInputLayoutViewErrorHandler extends ViewErrorHandler<TextInputLayout> {
+public class TextInputLayoutViewErrorHandler implements ViewErrorHandler<TextInputLayout> {
     @Override
     public void setErrorToView(TextInputLayout dst, String error) {
         dst.setError(error);

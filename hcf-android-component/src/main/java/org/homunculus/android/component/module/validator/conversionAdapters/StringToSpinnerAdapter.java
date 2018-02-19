@@ -7,22 +7,14 @@ import org.homunculus.android.component.module.validator.ViewErrorHandler;
 import org.homunculus.android.component.module.validator.viewErrorHandlers.SpinnerViewErrorHandler;
 
 /**
- * Created by alex on 18.02.18.
+ * {@link ConversionAdapter} for the combination of {@link Spinner} and {@link String}
+ * <p>
+ * Created by aerlemann on 18.02.18.
  */
 
-public class StringToSpinnerAdapter<M> extends ConversionAdapter<Spinner, String, M> {
+public class StringToSpinnerAdapter<M> implements ConversionAdapter<Spinner, String> {
     @Override
-    boolean isFieldTypeSupported(String fieldType) {
-        return fieldType != null;
-    }
-
-    @Override
-    boolean isViewSupported(Spinner view) {
-        return view != null;
-    }
-
-    @Override
-    void setFieldValueToView(String value, Spinner view) {
+    public void setFieldValueToView(String value, Spinner view) {
         SpinnerAdapter adapter = view.getAdapter();
         for (int i = 0; i < adapter.getCount(); i++) {
             if (adapter.getItem(i).equals(value)) {
@@ -32,7 +24,7 @@ public class StringToSpinnerAdapter<M> extends ConversionAdapter<Spinner, String
     }
 
     @Override
-    String getFieldValueFromView(Spinner view) {
+    public String getFieldValueFromView(Spinner view) {
         Object selectedItem = view.getSelectedItem();
         if (selectedItem instanceof String)
             return (String) selectedItem;
@@ -41,7 +33,7 @@ public class StringToSpinnerAdapter<M> extends ConversionAdapter<Spinner, String
     }
 
     @Override
-    public ViewErrorHandler getErrorHandler() {
+    public ViewErrorHandler<Spinner> getErrorHandler() {
         return new SpinnerViewErrorHandler();
     }
 }

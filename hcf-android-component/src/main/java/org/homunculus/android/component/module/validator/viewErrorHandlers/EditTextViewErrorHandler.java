@@ -10,7 +10,7 @@ import org.homunculus.android.component.module.validator.ViewErrorHandler;
  * Created by aerlemann on 15.02.18.
  */
 
-public class EditTextViewErrorHandler extends ViewErrorHandler<EditText> {
+public class EditTextViewErrorHandler implements ViewErrorHandler<EditText> {
     @Override
     public void setErrorToView(EditText dst, String error) {
         dst.setError(error);

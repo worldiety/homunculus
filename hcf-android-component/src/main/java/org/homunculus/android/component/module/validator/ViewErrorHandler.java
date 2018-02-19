@@ -4,20 +4,18 @@ import android.view.View;
 
 import org.homunculusframework.annotations.Unfinished;
 
-import java.lang.reflect.Field;
-
 /**
- * Abstract class, which is used by {@link ModelViewPopulator} to fill a {@link View} with information or get information from the {@link View}
+ * Interface, which is used by {@link ModelViewPopulator} to fill a specific {@link View} with error-information
  * <p>
  * Created by aerlemann on 15.02.18.
  */
 @Unfinished
-public abstract class ViewErrorHandler<T extends View> {
+public interface ViewErrorHandler<T extends View> {
     /**
      * Sets an error text to a given {@link View}
      *
-     * @param dst                 the destination {@link View} supported by this connector
-     * @param error               the error string, which is to be set to dst
+     * @param dst   the destination {@link View} supported by this connector
+     * @param error the error string, which is to be set to dst
      */
-    protected abstract void setErrorToView(T dst, String error);
+    void setErrorToView(T dst, String error);
 }
