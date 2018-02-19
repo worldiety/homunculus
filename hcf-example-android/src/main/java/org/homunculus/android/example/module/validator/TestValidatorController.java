@@ -2,8 +2,8 @@ package org.homunculus.android.example.module.validator;
 
 import org.homunculus.android.component.module.validator.BindingResult;
 import org.homunculus.android.component.module.validator.FieldSpecificValidationError;
-import org.homunculus.android.component.module.validator.UnspecificValidationError;
 import org.homunculus.android.component.module.validator.HomunculusValidator;
+import org.homunculus.android.component.module.validator.UnspecificValidationError;
 import org.homunculusframework.navigation.ModelAndView;
 
 import java.sql.SQLException;
@@ -23,7 +23,7 @@ public class TestValidatorController {
     @Named("/save")
     public ModelAndView save(ObjectToBeValidated entity, HomunculusValidator validator) {
         BindingResult<ObjectToBeValidated> errors = validator.validate(entity);
-        if(errors.hasErrors()) {
+        if (errors.hasErrors()) {
             //We already have errors. Don't do db stuff.
             return new ModelAndView("validator").put("viewModel", entity).put("errors", errors);
         }

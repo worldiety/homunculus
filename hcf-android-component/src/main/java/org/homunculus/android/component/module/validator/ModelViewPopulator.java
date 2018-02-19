@@ -6,6 +6,8 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 
 import org.homunculus.android.component.module.validator.conversionAdapters.ConversionAdapter;
+import org.homunculus.android.component.module.validator.conversionAdapters.IntegerToEditTextAdapter;
+import org.homunculus.android.component.module.validator.conversionAdapters.IntegerToTextInputLayoutAdapter;
 import org.homunculus.android.component.module.validator.conversionAdapters.StringToEditTextAdapter;
 import org.homunculus.android.component.module.validator.conversionAdapters.StringToSpinnerAdapter;
 import org.homunculus.android.component.module.validator.conversionAdapters.StringToTextInputLayoutAdapter;
@@ -34,10 +36,6 @@ public class ModelViewPopulator<T> {
 
     public ModelViewPopulator() {
         conversionAdapters = new ArrayList<>();
-        conversionAdapters.add(new StringToTextInputLayoutAdapter<T>());
-        conversionAdapters.add(new StringToEditTextAdapter<T>());
-        conversionAdapters.add(new StringToSpinnerAdapter<T>());
-
         fieldViewTransferUtil = new FieldViewTransferUtil<>();
     }
 

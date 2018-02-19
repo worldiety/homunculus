@@ -12,7 +12,7 @@ import org.homunculus.android.component.module.validator.viewErrorHandlers.Spinn
  * Created by aerlemann on 18.02.18.
  */
 
-public class StringToSpinnerAdapter<M> implements ConversionAdapter<Spinner, String> {
+public class StringToSpinnerAdapter implements ConversionAdapter<Spinner, String> {
     @Override
     public void setFieldValueToView(String value, Spinner view) {
         SpinnerAdapter adapter = view.getAdapter();

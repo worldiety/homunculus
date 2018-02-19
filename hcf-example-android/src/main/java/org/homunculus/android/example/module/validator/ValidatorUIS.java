@@ -9,9 +9,9 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 
 import org.homunculus.android.component.module.validator.BindingResult;
+import org.homunculus.android.component.module.validator.DefaultModelViewPopulator;
 import org.homunculus.android.component.module.validator.FieldSpecificValidationError;
 import org.homunculus.android.component.module.validator.UnspecificValidationError;
-import org.homunculus.android.component.module.validator.ModelViewPopulator;
 import org.homunculus.android.example.R;
 import org.homunculusframework.factory.container.Request;
 import org.homunculusframework.navigation.Navigation;
@@ -42,7 +42,7 @@ public class ValidatorUIS extends FrameLayout {
     private BindingResult<ObjectToBeValidated> errors;
 
     @Inject
-    private ModelViewPopulator<ObjectToBeValidated> modelViewPopulator;
+    private DefaultModelViewPopulator<ObjectToBeValidated> modelViewPopulator;
 
     public ValidatorUIS(@NonNull Context context) {
         super(context);

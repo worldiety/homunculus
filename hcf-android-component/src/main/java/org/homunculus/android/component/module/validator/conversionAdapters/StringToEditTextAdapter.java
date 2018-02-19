@@ -12,7 +12,7 @@ import org.homunculusframework.annotations.Unfinished;
  * Created by aerlemann on 16.02.18.
  */
 @Unfinished
-public class StringToEditTextAdapter<M> implements ConversionAdapter<EditText, String> {
+public class StringToEditTextAdapter implements ConversionAdapter<EditText, String> {
 
     @Override
     public void setFieldValueToView(String value, EditText view) {
