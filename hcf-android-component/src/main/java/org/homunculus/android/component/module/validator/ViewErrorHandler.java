@@ -12,12 +12,12 @@ import java.lang.reflect.Field;
  * Created by aerlemann on 15.02.18.
  */
 @Unfinished
-public abstract class ValidatorViewConnector {
+public abstract class ViewErrorHandler<T extends View> {
     /**
      * Sets an error text to a given {@link View}
      *
      * @param dst                 the destination {@link View} supported by this connector
      * @param error               the error string, which is to be set to dst
      */
-    protected abstract void setErrorToView(View dst, String error);
+    protected abstract void setErrorToView(T dst, String error);
 }

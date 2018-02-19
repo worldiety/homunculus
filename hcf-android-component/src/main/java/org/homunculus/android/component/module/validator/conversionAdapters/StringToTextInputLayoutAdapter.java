@@ -2,8 +2,8 @@ package org.homunculus.android.component.module.validator.conversionAdapters;
 
 import android.support.design.widget.TextInputLayout;
 
-import org.homunculus.android.component.module.validator.ValidatorViewConnector;
-import org.homunculus.android.component.module.validator.validatorViewConnectors.TextInputLayoutValidatorViewConnector;
+import org.homunculus.android.component.module.validator.ViewErrorHandler;
+import org.homunculus.android.component.module.validator.viewErrorHandlers.TextInputLayoutViewErrorHandler;
 
 /**
  * Created by alex on 18.02.18.
@@ -31,7 +31,7 @@ public class StringToTextInputLayoutAdapter<M> extends ConversionAdapter<TextInp
     }
 
     @Override
-    public ValidatorViewConnector getErrorHandler() {
-        return new TextInputLayoutValidatorViewConnector();
+    public ViewErrorHandler getErrorHandler() {
+        return new TextInputLayoutViewErrorHandler();
     }
 }

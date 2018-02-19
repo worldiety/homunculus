@@ -2,7 +2,7 @@ package org.homunculus.android.component.module.validator.conversionAdapters;
 
 import android.view.View;
 
-import org.homunculus.android.component.module.validator.ValidatorViewConnector;
+import org.homunculus.android.component.module.validator.ViewErrorHandler;
 import org.homunculusframework.annotations.Unfinished;
 
 import java.lang.reflect.Field;
@@ -47,7 +47,7 @@ public abstract class ConversionAdapter<V extends View, F, M> {
 
     abstract F getFieldValueFromView(V view);
 
-    public abstract ValidatorViewConnector getErrorHandler();
+    public abstract ViewErrorHandler getErrorHandler();
 
     private F getFieldValue(Field field, M src) {
         try {

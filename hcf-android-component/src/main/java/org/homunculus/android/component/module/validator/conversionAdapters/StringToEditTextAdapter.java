@@ -2,8 +2,8 @@ package org.homunculus.android.component.module.validator.conversionAdapters;
 
 import android.widget.EditText;
 
-import org.homunculus.android.component.module.validator.ValidatorViewConnector;
-import org.homunculus.android.component.module.validator.validatorViewConnectors.EditTextValidatorViewConnector;
+import org.homunculus.android.component.module.validator.ViewErrorHandler;
+import org.homunculus.android.component.module.validator.viewErrorHandlers.EditTextViewErrorHandler;
 import org.homunculusframework.annotations.Unfinished;
 
 /**
@@ -22,6 +22,7 @@ public class StringToEditTextAdapter<M> extends ConversionAdapter<EditText, Stri
         return view != null;
     }
 
+
     @Override
     void setFieldValueToView(String value, EditText view) {
         view.setText(value);
@@ -33,7 +34,7 @@ public class StringToEditTextAdapter<M> extends ConversionAdapter<EditText, Stri
     }
 
     @Override
-    public ValidatorViewConnector getErrorHandler() {
-        return new EditTextValidatorViewConnector();
+    public ViewErrorHandler getErrorHandler() {
+        return new EditTextViewErrorHandler();
     }
 }

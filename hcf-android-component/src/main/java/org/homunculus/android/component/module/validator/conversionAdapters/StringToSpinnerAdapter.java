@@ -3,8 +3,8 @@ package org.homunculus.android.component.module.validator.conversionAdapters;
 import android.widget.Spinner;
 import android.widget.SpinnerAdapter;
 
-import org.homunculus.android.component.module.validator.ValidatorViewConnector;
-import org.homunculus.android.component.module.validator.validatorViewConnectors.SpinnerValidatorViewConnector;
+import org.homunculus.android.component.module.validator.ViewErrorHandler;
+import org.homunculus.android.component.module.validator.viewErrorHandlers.SpinnerViewErrorHandler;
 
 /**
  * Created by alex on 18.02.18.
@@ -41,7 +41,7 @@ public class StringToSpinnerAdapter<M> extends ConversionAdapter<Spinner, String
     }
 
     @Override
-    public ValidatorViewConnector getErrorHandler() {
-        return new SpinnerValidatorViewConnector();
+    public ViewErrorHandler getErrorHandler() {
+        return new SpinnerViewErrorHandler();
     }
 }

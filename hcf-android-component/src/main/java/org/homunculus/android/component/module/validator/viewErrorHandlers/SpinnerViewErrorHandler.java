@@ -1,4 +1,4 @@
-package org.homunculus.android.component.module.validator.validatorViewConnectors;
+package org.homunculus.android.component.module.validator.viewErrorHandlers;
 
 import android.support.v7.widget.AppCompatTextView;
 import android.util.TypedValue;
@@ -7,16 +7,16 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.Spinner;
-import org.homunculus.android.component.module.validator.ValidatorViewConnector;
+import org.homunculus.android.component.module.validator.ViewErrorHandler;
 
 /**
- * {@link ValidatorViewConnector} for {@link Spinner}
+ * {@link ViewErrorHandler} for {@link Spinner}
  * <p>
  * Created by aerlemann on 16.02.18.
  */
-public class SpinnerValidatorViewConnector extends ValidatorViewConnector {
+public class SpinnerViewErrorHandler extends ViewErrorHandler<Spinner> {
     @Override
-    protected void setErrorToView(View dst, String error) {
+    protected void setErrorToView(Spinner dst, String error) {
         ViewGroup parent = dst.getParent() != null && dst.getParent() instanceof ViewGroup ? (ViewGroup) dst.getParent() : null;
         if (parent == null)
             return;
