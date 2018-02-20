@@ -6,11 +6,6 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 
 import org.homunculus.android.component.module.validator.conversionAdapters.ConversionAdapter;
-import org.homunculus.android.component.module.validator.conversionAdapters.IntegerToEditTextAdapter;
-import org.homunculus.android.component.module.validator.conversionAdapters.IntegerToTextInputLayoutAdapter;
-import org.homunculus.android.component.module.validator.conversionAdapters.StringToEditTextAdapter;
-import org.homunculus.android.component.module.validator.conversionAdapters.StringToSpinnerAdapter;
-import org.homunculus.android.component.module.validator.conversionAdapters.StringToTextInputLayoutAdapter;
 import org.homunculus.android.flavor.Resource;
 import org.homunculusframework.annotations.Unfinished;
 import org.homunculusframework.lang.Reflection;
@@ -134,10 +129,10 @@ public class ModelViewPopulator<T> {
      */
     public BindingResult<T> insertErrorState(View dst, BindingResult<T> errors) {
         Set<FieldSpecificValidationError<T>> errorsWithNoMatchingView = new HashSet<>();
+        errorsWithNoMatchingView.addAll(errors.getFieldSpecificValidationErrors());
         for (FieldSpecificValidationError<T> error : errors.getFieldSpecificValidationErrors()) {
             T model = error.getFieldParent();
             if (model == null || error.getField() == null) {
-                errorsWithNoMatchingView.add(error);
                 continue;
             }
 
@@ -151,8 +146,8 @@ public class ModelViewPopulator<T> {
 
                 field.setAccessible(true);
                 findObjectViewMatchRecursively(dst, field, resource, model, (view, field1, object) -> {
-                    if (!setErrorToView(view, error.getDefaultMessage(), getConversionAdapter(field1, object, view))) {
-                        errorsWithNoMatchingView.add(error);
+                    if (setErrorToView(view, error.getDefaultMessage(), getConversionAdapter(field1, object, view))) {
+                        errorsWithNoMatchingView.remove(error);
                     }
                 });
             }
