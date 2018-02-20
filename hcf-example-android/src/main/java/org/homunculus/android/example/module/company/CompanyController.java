@@ -6,6 +6,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
+
 import java.util.List;
 
 @Singleton
@@ -14,7 +15,7 @@ public class CompanyController {
     @Inject
     private EntityManager em;
 
-    public void testLoad() {
+    public Void testLoad() {
         Company cmp = em.find(Company.class, "de.worldiety");
         LoggerFactory.getLogger(getClass()).info("{}", cmp);
         em.remove(cmp);
@@ -37,5 +38,6 @@ public class CompanyController {
         for (Company c : companyList) {
             LoggerFactory.getLogger(getClass()).info("{}", c);
         }
+        return null;
     }
 }

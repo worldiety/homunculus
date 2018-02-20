@@ -12,4 +12,6 @@ public class CartControllerConnection extends AsyncDelegate<CartController> {
     public Task<Result<CartModel>> getPoJoCart(int cartId) {
         return async( ctr -> ctr.getPoJoCart(cartId));
     }
+
+
 }

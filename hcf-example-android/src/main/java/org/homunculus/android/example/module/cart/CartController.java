@@ -64,4 +64,8 @@ public class CartController {
         }
         return cart;
     }
+
+    public CartModel getPoJoCart2(int cartId, String x, SideMenuView notAllowed) throws InterruptedException {
+        return null;
+    }
 }
