@@ -6,9 +6,16 @@ mainClassName="org.homunculus.codegen.Test"
 dependencies {
     compile(project(":hcf-core"))
     compile(project(":hcf-context"))
+    compile(project(":hcf-api-spring"))
     compile 'com.github.javaparser:javaparser-core:3.5.7'
     compile 'com.github.javaparser:java-symbol-solver-core:0.6.3'
     compile 'com.helger:jcodemodel:3.0.1'
     compile 'org.slf4j:slf4j-simple:1.7.25'
     compile 'org.slf4j:slf4j-api:1.7.25'
+
+    //this is for @inject or @named
+    compile 'javax.inject:javax.inject:1'
+
+    //this is for @PostConstruct or @PreDestroy
+    compile 'javax.annotation:jsr250-api:1.0'
 }

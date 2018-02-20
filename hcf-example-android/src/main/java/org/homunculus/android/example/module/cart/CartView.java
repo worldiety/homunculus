@@ -15,12 +15,14 @@ import org.homunculus.android.flavor.Resource;
 import org.homunculus.android.example.R;
 import org.homunculus.android.component.Debounce;
 import org.homunculusframework.concurrent.Async;
+import org.homunculusframework.factory.flavor.hcf.FactoryParam;
 import org.homunculusframework.factory.flavor.hcf.Persistent;
 import org.homunculusframework.factory.container.Request;
 import org.homunculusframework.lang.Reference;
 import org.homunculusframework.navigation.Navigation;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -34,6 +36,19 @@ import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 @Named("/cart/view/list")
 public class CartView extends LinearLayout {
 
+    public final static String MY_NAME ="asdf";
+
+    @FactoryParam
+    @Inject
+    private String someString;
+
+    @FactoryParam
+    @Inject
+    @Nullable
+    @Named(MY_NAME)
+    private String someOptionalString;
+
+    @FactoryParam
     @Inject
     @Named("cart")
     private CartModel mCart;
@@ -64,6 +79,7 @@ public class CartView extends LinearLayout {
 
     @Inject
     private Permissions permissions;
+
 
     public CartView(Context context) {
         super(context);

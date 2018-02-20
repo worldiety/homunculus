@@ -3,7 +3,6 @@ package org.homunculus.codegen.generator;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
-import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.JDefinedClass;
 import com.helger.jcodemodel.JExpr;
@@ -22,7 +21,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by Torben Schinke on 20.02.18.
@@ -67,6 +65,7 @@ public class GenerateAsyncControllers implements Generator {
                     newMeth.body()._return(JExpr.direct("async(ctr -> ctr." + m.declaration.getNameAsString() + "(" + ptmp + "))"));
                 }
 
+                LoggerFactory.getLogger(getClass()).info("created {} with {} methods", jc.fullName(), exportedAsyncMethods.size());
             }
 
         }

@@ -8,6 +8,7 @@ import com.helger.jcodemodel.JCodeModel;
 import org.homunculus.codegen.generator.GenerateAsyncControllers;
 import org.homunculus.codegen.generator.GenerateAutoDiscovery;
 import org.homunculus.codegen.generator.GenerateAutoDiscovery.DiscoveryKind;
+import org.homunculus.codegen.generator.GenerateRequestFactories;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
@@ -82,6 +83,7 @@ public class Project {
     public void generate() throws Exception {
         new GenerateAutoDiscovery().generate(this);
         new GenerateAsyncControllers().generate(this);
+        new GenerateRequestFactories().generate(this);
     }
 
     public void emitGeneratedClass(File targetDir) throws IOException {

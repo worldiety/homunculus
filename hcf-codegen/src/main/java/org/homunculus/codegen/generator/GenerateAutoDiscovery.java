@@ -52,15 +52,18 @@ public class GenerateAutoDiscovery implements Generator {
         JMethod con = jc.constructor(JMod.PUBLIC);
         JVar varCfg = con.param(Configuration.class, "cfg");
         JBlock body = con.body();
+        int total = 0;
         for (Entry<DiscoveryKind, List<SrcFile>> entry : discoveryKinds.entrySet()) {
             body.addSingleLineComment();
             body.addSingleLineComment("register all kinds of " + entry.getKey());
             for (SrcFile file : entry.getValue()) {
                 body.invoke(JExpr.ref(varCfg.name()), "register").arg(JExpr.direct(file.getFullQualifiedNamePrimaryClassName() + ".class"));
+                total++;
             }
 
         }
 
+        LoggerFactory.getLogger(getClass()).info("created {} with {} registrations", jc.fullName(), total);
 
     }
 
