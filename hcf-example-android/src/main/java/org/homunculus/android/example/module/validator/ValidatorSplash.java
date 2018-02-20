@@ -1,6 +1,7 @@
 package org.homunculus.android.example.module.validator;
 
 import org.homunculus.android.component.module.splash.Splash;
+import org.homunculusframework.factory.container.Request;
 
 /**
  * Created by aerlemann on 04.02.18.
@@ -8,7 +9,7 @@ import org.homunculus.android.component.module.splash.Splash;
 
 public class ValidatorSplash extends Splash {
     @Override
-    protected Class<?> getTarget() {
-        return ValidatorUIS.class;
+    protected Request getTarget() {
+        return new Request(ValidatorUIS.class);
     }
 }

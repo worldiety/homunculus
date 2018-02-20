@@ -18,18 +18,12 @@ package org.homunculus.android.component.module.splash;
 import android.app.Activity;
 import android.os.Handler;
 import android.view.LayoutInflater;
-import android.view.View;
 
 import org.homunculus.android.component.R;
-import org.homunculus.android.component.module.uncaughtexception.Reporter;
-import org.homunculus.android.flavor.Resource;
-import org.homunculusframework.factory.container.Container;
 import org.homunculusframework.factory.container.Request;
 import org.homunculusframework.navigation.Navigation;
 import org.homunculusframework.stereotype.UserInterfaceState;
 
-
-import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -67,7 +61,7 @@ public abstract class Splash {
         activity.setContentView(inflater.inflate(R.layout.hcf_splash, null));
 
         main.postDelayed(() -> {
-            navigation.reset(new Request(getTarget()));
+            navigation.reset(getTarget());
         }, getDuration());
 
     }
@@ -75,7 +69,7 @@ public abstract class Splash {
     /**
      * The target after the time has run out
      */
-    protected abstract Class<?> getTarget();
+    protected abstract Request getTarget();
 
     /**
      * The duration in milliseconds
