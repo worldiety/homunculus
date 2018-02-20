@@ -24,7 +24,11 @@ public class DoubleToEditTextAdapter implements ConversionAdapter<EditText, Doub
     public Double getFieldValueFromView(EditText view) {
         if (view.getText() == null)
             return null;
-        return Double.valueOf(view.getText().toString());
+        try {
+            return Double.valueOf(view.getText().toString());
+        } catch (NumberFormatException e) {
+            return 0.0;
+        }
     }
 
     @Override

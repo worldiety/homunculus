@@ -18,7 +18,7 @@ public class ObjectToBeValidated implements Serializable {
 
     @Resource(R.id.ed_test1)
     @Size(min = 8, message = "error_min_eight_chars")
-    private String test1 = "";
+    private String test1 = null;
 
     @Resource(R.id.ed_test2)
     @NotEmpty(message = "error_empty")

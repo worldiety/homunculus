@@ -25,7 +25,11 @@ public class IntegerToEditTextAdapter implements ConversionAdapter<EditText, Int
     public Integer getFieldValueFromView(EditText view) {
         if (view.getText() == null)
             return null;
-        return Integer.valueOf(view.getText().toString());
+        try {
+            return Integer.valueOf(view.getText().toString());
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 
     @Override

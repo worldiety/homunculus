@@ -31,8 +31,12 @@ public class FloatToTextInputLayoutAdapter implements ConversionAdapter<TextInpu
             //noinspection ConstantConditions
             if (view.getEditText().getText() == null)
                 return null;
-            //noinspection ConstantConditions
-            return Float.valueOf(view.getEditText().getText().toString());
+            try {
+                //noinspection ConstantConditions
+                return Float.valueOf(view.getEditText().getText().toString());
+            } catch (NumberFormatException e) {
+                return 0.0f;
+            }
         } catch (NullPointerException e) {
             throw new RuntimeException("Cannot get text, because EditText in TextInputLayout is null!: " + view.getId(), e);
         }

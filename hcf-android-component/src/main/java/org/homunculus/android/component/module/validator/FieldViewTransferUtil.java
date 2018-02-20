@@ -49,9 +49,14 @@ class FieldViewTransferUtil<M> {
      */
     boolean isFieldTypeSupported(Field field, M model, ConversionAdapter conversionAdapter) {
         Object value = getFieldValue(field, model);
+        Class valueClass;
+        if (value == null)
+            valueClass = field.getType();
+        else
+            valueClass = value.getClass();
         String className = getClassNameForGenericType(1, conversionAdapter);
         try {
-            return Class.forName(className).isAssignableFrom(value.getClass());
+            return valueClass != null && Class.forName(className).isAssignableFrom(valueClass);
         } catch (ClassNotFoundException e) {
             return false;
         }
@@ -79,7 +84,7 @@ class FieldViewTransferUtil<M> {
             throw new RuntimeException("Number of arguments in generic interface does not match ConversionAdapter(2)!");
         if (!(parameterizedType.getActualTypeArguments()[nrOfArgumentInSignature] instanceof Class))
             throw new RuntimeException("Argument " + nrOfArgumentInSignature + " is not of type Class!");
-        return ((Class) ((ParameterizedType) conversionAdapter.getClass().getGenericInterfaces()[0]).getActualTypeArguments()[nrOfArgumentInSignature]).getName();
+        return ((Class) parameterizedType.getActualTypeArguments()[nrOfArgumentInSignature]).getName();
     }
 
     private Object getFieldValue(Field field, M src) {

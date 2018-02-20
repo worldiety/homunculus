@@ -24,7 +24,11 @@ public class FloatToEditTextAdapter implements ConversionAdapter<EditText, Float
     public Float getFieldValueFromView(EditText view) {
         if (view.getText() == null)
             return null;
-        return Float.valueOf(view.getText().toString());
+        try {
+            return Float.valueOf(view.getText().toString());
+        } catch (NumberFormatException e) {
+            return 0.0f;
+        }
     }
 
     @Override

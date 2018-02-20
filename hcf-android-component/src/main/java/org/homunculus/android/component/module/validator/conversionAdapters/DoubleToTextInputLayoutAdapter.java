@@ -28,11 +28,14 @@ public class DoubleToTextInputLayoutAdapter implements ConversionAdapter<TextInp
     @Override
     public Double getFieldValueFromView(TextInputLayout view) {
         try {
-            //noinspection ConstantConditions
             if (view.getEditText().getText() == null)
                 return null;
-            //noinspection ConstantConditions
-            return Double.valueOf(view.getEditText().getText().toString());
+            try {
+                //noinspection ConstantConditions
+                return Double.valueOf(view.getEditText().getText().toString());
+            } catch (NumberFormatException e) {
+                return 0.0;
+            }
         } catch (NullPointerException e) {
             throw new RuntimeException("Cannot get text, because EditText in TextInputLayout is null!: " + view.getId(), e);
         }
