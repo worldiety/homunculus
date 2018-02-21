@@ -20,6 +20,8 @@ import org.homunculus.codegen.Project;
 import org.homunculus.codegen.SrcFile;
 import org.homunculusframework.factory.container.Request;
 import org.homunculusframework.factory.flavor.hcf.FactoryParam;
+import org.homunculusframework.navigation.ModelAndView;
+import org.homunculusframework.navigation.Navigation;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -78,36 +80,46 @@ public class GenerateRequestFactories implements Generator {
 
             List<Field> fields = new ArrayList<>();
             collectFields(project, src, dec, fields);
-            
+
             if (!fields.isEmpty()) {
+                Class[] factoryKinds = {Request.class, ModelAndView.class};
                 JDefinedClass jc = project.getCodeModel()._package(src.getPackageName())._class(src.getPrimaryClassName() + "Factory");
+                jc.javadoc().add("Contains factory methods which are generated automatically by using all members which are annotated with {@link " + FactoryParam.class.getName() + "}. Consider using {@link " + Named.class + "} to uniquely identify parameters.");
                 jc.headerComment().add(project.getDisclaimer(getClass()));
                 jc.constructor(JMod.PRIVATE);
-                JMethod meth = jc.method(JMod.PUBLIC | JMod.STATIC, Request.class, "createRequest");
-                for (Field f : fields) {
-                    String fqnType = f.file.getFullQualifiedName(f.dec.getElementType().asString());
-                    JVar var = meth.param(project.getCodeModel().ref(fqnType), f.getFieldName());
-                    if (f.isNullable) {
-                        var.annotate(Nullable.class);
+                for (Class clazz : factoryKinds) {
+                    JMethod meth = jc.method(JMod.PUBLIC | JMod.STATIC, clazz, "create" + clazz.getSimpleName());
+                    meth.javadoc().add("Creates a " + clazz.getSimpleName() + " to create a {@link " + src.getPrimaryClassName() + "}. ");
+                    if (clazz == Request.class) {
+                        meth.javadoc().add("Use this directly for navigation e.g. by calling {@link " + Navigation.class.getName() + "#forward(Request)}.");
+                    } else {
+                        meth.javadoc().add("Use this as a result from a controller method. The direction of navigation is usually determined by the appropriate Request to the controller method.");
                     }
+                    for (Field f : fields) {
+                        String fqnType = f.file.getFullQualifiedName(f.dec.getElementType().asString());
+                        JVar var = meth.param(project.getCodeModel().ref(fqnType), f.getFieldName());
+                        if (f.isNullable) {
+                            var.annotate(Nullable.class);
+                        }
+                    }
+
+                    StringBuilder tmp = new StringBuilder();
+                    tmp.append("new " + clazz.getSimpleName() + "(");
+                    if (beanName == null) {
+                        tmp.append(src.getFullQualifiedNamePrimaryClassName()).append(".class");
+                    } else {
+                        tmp.append("\"").append(beanName).append("\"");
+                    }
+
+                    tmp.append(").");
+
+                    for (Field f : fields) {
+                        tmp.append("put(\"").append(f.getFieldName()).append("\", ").append(f.getFieldName()).append(").");
+                    }
+                    tmp.setLength(tmp.length() - 1);
+                    meth.body()._return(JExpr.direct(tmp.toString()));
+
                 }
-
-                StringBuilder tmp = new StringBuilder();
-                tmp.append("new Request(");
-                if (beanName == null) {
-                    tmp.append(src.getFullQualifiedNamePrimaryClassName()).append(".class");
-                } else {
-                    tmp.append("\"").append(beanName).append("\"");
-                }
-
-                tmp.append(").");
-
-                for (Field f : fields) {
-                    tmp.append("put(\"").append(f.getFieldName()).append("\", ").append(f.getFieldName()).append(").");
-                }
-                tmp.setLength(tmp.length() - 1);
-                meth.body()._return(JExpr.direct(tmp.toString()));
-
             }
         }
     }
