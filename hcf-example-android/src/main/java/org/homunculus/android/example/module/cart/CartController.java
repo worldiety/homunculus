@@ -13,6 +13,7 @@ import javax.inject.Singleton;
 @Singleton
 @Named("/cart")
 public class CartController {
+    public final static String METHOD_LIST2 = "getMyList2";
 
     @PostConstruct
     @Execute(Container.NAME_BACKGROUND_HANDLER)
@@ -33,7 +34,7 @@ public class CartController {
         return new ModelAndView("/cart/uis/list").put("cart", cart);
     }
 
-    @Named("/list2")
+    @Named(METHOD_LIST2)
     public ModelAndView getCart2(@Named("id") int cartId) throws InterruptedException {
         //do some expensive I/O work
         Thread.sleep(2000);

@@ -19,6 +19,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nullable;
+
 /**
  * Created by Torben Schinke on 20.02.18.
  */
@@ -67,6 +69,15 @@ public class Project {
         }
     }
 
+    @Nullable
+    public SrcFile findSourceFileForType(String fqn) {
+        for (SrcFile file : units) {
+            if (file.getFullQualifiedNamePrimaryClassName().equals(fqn)) {
+                return file;
+            }
+        }
+        return null;
+    }
 
     public JCodeModel getCodeModel() {
         return codeModel;

@@ -1,5 +1,6 @@
 package org.homunculus.codegen.generator;
 
+import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
@@ -57,26 +58,8 @@ public class GenerateRequestFactories implements Generator {
                 continue;
             }
 
-            String beanName = null;
-            for (AnnotationExpr annotation : dec.getAnnotations()) {
-                String aFqn = src.getFullQualifiedName(annotation.getNameAsString());
-                if (aFqn.equals(Named.class.getName())) {
-                    if (annotation instanceof SingleMemberAnnotationExpr) {
-                        SingleMemberAnnotationExpr expr = ((SingleMemberAnnotationExpr) annotation);
-                        if (expr.getMemberValue() instanceof StringLiteralExpr) {
-                            beanName = ((StringLiteralExpr) expr.getMemberValue()).getValue();
-                        } else if (expr.getMemberValue() instanceof NameExpr) {
-                            NameExpr nameExpr = ((NameExpr) expr.getMemberValue());
-                            String value = resolveStaticFieldValue(src, nameExpr.getNameAsString());
-                            if (value == null) {
-                                LoggerFactory.getLogger(getClass()).warn("constant evaluation not supported: {}", nameExpr);
-                            } else {
-                                beanName = value;
-                            }
-                        }
-                    }
-                }
-            }
+            String beanName = resolveName(src, dec.getAnnotations());
+
 
             List<Field> fields = new ArrayList<>();
             collectFields(project, src, dec, fields);
@@ -124,10 +107,58 @@ public class GenerateRequestFactories implements Generator {
         }
     }
 
+    /**
+     * Tries to resolve the actual value of an {@link Named} annotation
+     *
+     * @param annotations
+     * @return
+     */
+    @Nullable
+    static String resolveName(SrcFile src, NodeList<AnnotationExpr> annotations) {
+        String beanName = null;
+        for (AnnotationExpr annotation : annotations) {
+            beanName = resolveName(src, annotation);
+            if (beanName != null) {
+                return beanName;
+            }
+        }
+        return null;
+    }
+
+    static String resolveName(SrcFile src, AnnotationExpr annotation) {
+        String beanName = null;
+        String aFqn = src.getFullQualifiedName(annotation.getNameAsString());
+        if (aFqn.equals(Named.class.getName())) {
+            if (annotation instanceof SingleMemberAnnotationExpr) {
+                SingleMemberAnnotationExpr expr = ((SingleMemberAnnotationExpr) annotation);
+                if (expr.getMemberValue() instanceof StringLiteralExpr) {
+                    beanName = ((StringLiteralExpr) expr.getMemberValue()).getValue();
+                    return beanName;
+                } else if (expr.getMemberValue() instanceof NameExpr) {
+                    NameExpr nameExpr = ((NameExpr) expr.getMemberValue());
+                    String value = resolveStaticFieldValue(src, nameExpr.getNameAsString());
+                    if (value == null) {
+                        LoggerFactory.getLogger(GenerateRequestFactories.class).warn("constant evaluation not supported: {}", nameExpr);
+                    } else {
+                        beanName = value;
+                        return beanName;
+                    }
+                }
+            }
+        }
+        return null;
+    }
 
     private void collectFields(Project project, SrcFile src, ClassOrInterfaceDeclaration dec, List<Field> dst) {
         if (dec.getExtendedTypes().size() > 0) {
-            LoggerFactory.getLogger(getClass()).warn("not implemented: {}", dec.getExtendedTypes());
+            String fqnSuper = src.getPackageName() + "." + dec.getExtendedTypes().get(0).getNameAsString();
+            SrcFile superFile = project.findSourceFileForType(fqnSuper);
+            if (superFile != null) {
+                LoggerFactory.getLogger(getClass()).warn("following super class: {}", fqnSuper);
+                collectFields(project, superFile, superFile.getUnit().getClassByName(superFile.getPrimaryClassName()).get(), dst);
+            } else {
+                LoggerFactory.getLogger(getClass()).warn("unable to resolve source code for: {}", fqnSuper);
+            }
         }
         for (FieldDeclaration field : dec.getFields()) {
             Field tmp = new Field(src, field);
@@ -145,19 +176,9 @@ public class GenerateRequestFactories implements Generator {
                 }
 
                 if (aFqn.equals(Named.class.getName())) {
-                    if (annotation instanceof SingleMemberAnnotationExpr) {
-                        SingleMemberAnnotationExpr expr = ((SingleMemberAnnotationExpr) annotation);
-                        if (expr.getMemberValue() instanceof StringLiteralExpr) {
-                            tmp.alternateName = ((StringLiteralExpr) expr.getMemberValue()).getValue();
-                        } else if (expr.getMemberValue() instanceof NameExpr) {
-                            NameExpr nameExpr = ((NameExpr) expr.getMemberValue());
-                            String value = resolveStaticFieldValue(src, nameExpr.getNameAsString());
-                            if (value == null) {
-                                LoggerFactory.getLogger(getClass()).warn("constant evaluation not supported: {}", nameExpr);
-                            } else {
-                                tmp.alternateName = value;
-                            }
-                        }
+                    String t = resolveName(src, annotation);
+                    if (t != null) {
+                        tmp.alternateName = t;
                     }
                 }
             }
