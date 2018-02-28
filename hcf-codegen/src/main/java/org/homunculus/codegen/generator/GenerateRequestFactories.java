@@ -5,9 +5,7 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.AnnotationExpr;
-import com.github.javaparser.ast.expr.FieldAccessExpr;
 import com.github.javaparser.ast.expr.NameExpr;
-import com.github.javaparser.ast.expr.NormalAnnotationExpr;
 import com.github.javaparser.ast.expr.SingleMemberAnnotationExpr;
 import com.github.javaparser.ast.expr.StringLiteralExpr;
 import com.helger.jcodemodel.JDefinedClass;
@@ -17,7 +15,7 @@ import com.helger.jcodemodel.JMod;
 import com.helger.jcodemodel.JVar;
 
 import org.homunculus.codegen.Generator;
-import org.homunculus.codegen.Project;
+import org.homunculus.codegen.GenProject;
 import org.homunculus.codegen.SrcFile;
 import org.homunculusframework.factory.container.Request;
 import org.homunculusframework.factory.flavor.hcf.FactoryParam;
@@ -46,8 +44,8 @@ import javax.inject.Named;
  */
 public class GenerateRequestFactories implements Generator {
     @Override
-    public void generate(Project project) throws Exception {
-        for (SrcFile src : project.getUnits()) {
+    public void generate(GenProject project) throws Exception {
+        for (SrcFile src : project.getSrcFiles()) {
             Optional<ClassOrInterfaceDeclaration> optDec = src.getUnit().getClassByName(src.getPrimaryClassName());
             if (!optDec.isPresent()) {
                 LoggerFactory.getLogger(getClass()).warn("ignored file {}", src.getFile());
@@ -149,7 +147,7 @@ public class GenerateRequestFactories implements Generator {
         return null;
     }
 
-    private void collectFields(Project project, SrcFile src, ClassOrInterfaceDeclaration dec, List<Field> dst) {
+    private void collectFields(GenProject project, SrcFile src, ClassOrInterfaceDeclaration dec, List<Field> dst) {
         if (dec.getExtendedTypes().size() > 0) {
             String fqnSuper = src.getPackageName() + "." + dec.getExtendedTypes().get(0).getNameAsString();
             SrcFile superFile = project.findSourceFileForType(fqnSuper);

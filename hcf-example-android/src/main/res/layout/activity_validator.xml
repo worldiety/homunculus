@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<!--@hcf-codegen java.org.homunculus.android.example.module.cart.MyValidatorView-->
-<!--@hcf-codegen java.org.homunculus.android.example.module.cart.MyValidatorView2-->
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:hcf="http://schemas.homunculus.io/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    hcf:class="org.homunculus.android.example.module.cart.MyValidatorView"
+    >
 
     <EditText
         android:id="@+id/ed_test1"

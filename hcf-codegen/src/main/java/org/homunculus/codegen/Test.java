@@ -1,6 +1,5 @@
 package org.homunculus.codegen;
 
-import org.homunculus.codegen.generator.GenerateAutoDiscovery;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
@@ -14,10 +13,12 @@ import java.io.IOException;
 public class Test {
 
     public static void main(String... args) throws Exception {
-        File projectDir = new File(getCwd().getParentFile(), "hcf-example-android/src/main/java");
+        File projectDir = new File(getCwd().getParentFile(), "hcf-example-android/src/main");
         LoggerFactory.getLogger(Test.class).info("dir={}", projectDir);
-        Project project = new Project();
+        GenProject project = new GenProject();
+        project.setProjectRoot(getCwd().getParentFile());
         project.addRecursive(projectDir);
+        project.setManifestPackage("org.homunculus.android.example");
         project.generate();
 
 
@@ -32,7 +33,7 @@ public class Test {
             for (File c : f.listFiles())
                 delete(c);
         }
-        if (!f.delete())
+        if (!f.delete() && f.exists())
             throw new FileNotFoundException("Failed to delete file: " + f);
     }
 

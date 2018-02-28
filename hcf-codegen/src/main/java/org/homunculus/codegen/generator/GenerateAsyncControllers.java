@@ -10,7 +10,7 @@ import com.helger.jcodemodel.JMethod;
 import com.helger.jcodemodel.JMod;
 
 import org.homunculus.codegen.Generator;
-import org.homunculus.codegen.Project;
+import org.homunculus.codegen.GenProject;
 import org.homunculus.codegen.SrcFile;
 import org.homunculus.codegen.generator.GenerateAutoDiscovery.DiscoveryKind;
 import org.homunculusframework.concurrent.Task;
@@ -33,7 +33,7 @@ public class GenerateAsyncControllers implements Generator {
 
 
     @Override
-    public void generate(Project project) throws Exception {
+    public void generate(GenProject project) throws Exception {
         for (SrcFile file : project.getDiscoveredKinds().get(DiscoveryKind.CONTROLLER)) {
             List<Method> exportedAsyncMethods = new ArrayList<>();
             List<Method> exportedModelAndViewMethods = new ArrayList<>();
@@ -120,7 +120,7 @@ public class GenerateAsyncControllers implements Generator {
                 newMeth.body()._return(JExpr.direct(tmp.toString()));
             }
 
-            LoggerFactory.getLogger(getClass()).info("created {} with {} methods", jc.fullName(), exportedAsyncMethods.size());
+            LoggerFactory.getLogger(getClass()).info("created {} with {} methods", jc.fullName(), exportedAsyncMethods.size() + exportedModelAndViewMethods.size());
 
         }
     }

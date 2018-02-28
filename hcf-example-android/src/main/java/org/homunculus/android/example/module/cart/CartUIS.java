@@ -37,7 +37,7 @@ public class CartUIS extends CartView {
     @PostConstruct()
     @Priority(10)//TODO this looks weired -> super methods with the same order should have higher priority
     private void setViewInActivity() {
-
+        int x = R.layout.hcf_splash;
         View content = ToolbarBuilder.define()
                 .setTitle(str(R.string.app_name))
                 .setTitleTextColor(R.color.colorAccent)
@@ -51,6 +51,7 @@ public class CartUIS extends CartView {
                 .addMenuItemListener(R.id.entry2, menuItem -> true)
                 .addMenuItemListener(R.id.entry3, menuItem -> {
                     mNav.forward(new Request("/cart/uis/list2"));
+//                    mNav.forward(AsyncCartController);
                     return true;
                 })
                 .create(scope, mActivity, mActivity, this, new SideMenuView(getContext(), mNav));

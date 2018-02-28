@@ -5,5 +5,5 @@ package org.homunculus.codegen;
  */
 
 public interface Generator {
-    void generate(Project project) throws Exception;
+    void generate(GenProject project) throws Exception;
 }

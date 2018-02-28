@@ -1,7 +1,7 @@
 description = "code parser and generator to improve static compilation experience"
 
 apply plugin: 'application'
-mainClassName="org.homunculus.codegen.Test"
+mainClassName = "org.homunculus.codegen.Test"
 
 dependencies {
     compile(project(":hcf-core"))
@@ -18,4 +18,7 @@ dependencies {
 
     //this is for @PostConstruct or @PreDestroy
     compile 'javax.annotation:jsr250-api:1.0'
+
+    compile gradleApi()
+    compile 'com.android.tools.build:gradle:3.0.1'
 }

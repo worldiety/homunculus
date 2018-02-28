@@ -13,13 +13,12 @@ import com.helger.jcodemodel.JPackage;
 import com.helger.jcodemodel.JVar;
 
 import org.homunculus.codegen.Generator;
-import org.homunculus.codegen.Project;
+import org.homunculus.codegen.GenProject;
 import org.homunculus.codegen.SrcFile;
 import org.homunculusframework.factory.container.Configuration;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -32,7 +31,7 @@ import java.util.Optional;
 
 public class GenerateAutoDiscovery implements Generator {
     @Override
-    public void generate(Project project) throws JClassAlreadyExistsException {
+    public void generate(GenProject project) throws JClassAlreadyExistsException {
         Map<DiscoveryKind, List<SrcFile>> discoveryKinds = discover(project);
         for (Entry<DiscoveryKind, List<SrcFile>> entry : discoveryKinds.entrySet()) {
 //            StringBuilder sb = new StringBuilder();
@@ -44,7 +43,7 @@ public class GenerateAutoDiscovery implements Generator {
         create(discoveryKinds, project);
     }
 
-    private void create(Map<DiscoveryKind, List<SrcFile>> discoveryKinds, Project project) throws JClassAlreadyExistsException {
+    private void create(Map<DiscoveryKind, List<SrcFile>> discoveryKinds, GenProject project) throws JClassAlreadyExistsException {
         JPackage jp = project.getCodeModel()._package("org.homunculus.generated");
         JDefinedClass jc = jp._class("AutoDiscovery");
         jc.headerComment().add(project.getDisclaimer(getClass()));
@@ -57,7 +56,7 @@ public class GenerateAutoDiscovery implements Generator {
             body.addSingleLineComment();
             body.addSingleLineComment("register all kinds of " + entry.getKey());
             for (SrcFile file : entry.getValue()) {
-                body.invoke(JExpr.ref(varCfg.name()), "register").arg(JExpr.direct(file.getFullQualifiedNamePrimaryClassName() + ".class"));
+                body.invoke(JExpr.ref(varCfg.name()), "add").arg(JExpr.direct(file.getFullQualifiedNamePrimaryClassName() + ".class"));
                 total++;
             }
 
@@ -67,12 +66,12 @@ public class GenerateAutoDiscovery implements Generator {
 
     }
 
-    private Map<DiscoveryKind, List<SrcFile>> discover(Project project) {
+    private Map<DiscoveryKind, List<SrcFile>> discover(GenProject project) {
         Map<DiscoveryKind, List<SrcFile>> discoveryKinds = project.getDiscoveredKinds();
         for (DiscoveryKind kind : DiscoveryKind.values()) {
             discoveryKinds.put(kind, new ArrayList<>());
         }
-        for (SrcFile src : project.getUnits()) {
+        for (SrcFile src : project.getSrcFiles()) {
             Optional<ClassOrInterfaceDeclaration> optDec = src.getUnit().getClassByName(src.getPrimaryClassName());
             if (!optDec.isPresent()) {
                 LoggerFactory.getLogger(getClass()).warn("ignored file {}", src.getFile());

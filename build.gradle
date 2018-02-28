@@ -8,7 +8,7 @@ allprojects {
         options.addStringOption('Xdoclint:none', '-quiet')
     }
 
-    version = '0.0.63'
+    version = '0.0.75'
 }
 
 buildscript {
@@ -54,7 +54,7 @@ configure(allprojects) { project ->
 
     }
 
-    def artifactProjects = ["hcf-core", "hcf-context", "hcf-api-spring"]
+    def artifactProjects = ["hcf-core", "hcf-context", "hcf-api-spring", "hcf-codegen"]
 
     if (artifactProjects.contains(project.name)) {
         group = "org.homunculusframework"
