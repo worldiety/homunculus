@@ -35,7 +35,7 @@ import java.lang.annotation.Target;
  * @author Torben Schinke
  * @since 1.0
  */
-@Target({ElementType.FIELD})
+@Target({ElementType.FIELD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.SOURCE)
 @Documented
 public @interface FactoryParam {

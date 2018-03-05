@@ -57,7 +57,9 @@ import java.util.TreeMap;
  *
  * @author Torben Schinke
  * @since 1.0
+ * @deprecated use {@link Binding}
  */
+@Deprecated
 public final class Request implements org.homunculusframework.lang.Map<String, Object>, Serializable {
     private static final long serialVersionUID = -1832452970223818787L;
 

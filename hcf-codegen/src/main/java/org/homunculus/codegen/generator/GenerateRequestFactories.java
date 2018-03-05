@@ -42,6 +42,7 @@ import javax.inject.Named;
  * <p>
  * Created by Torben Schinke on 20.02.18.
  */
+@Deprecated
 public class GenerateRequestFactories implements Generator {
     @Override
     public void generate(GenProject project) throws Exception {

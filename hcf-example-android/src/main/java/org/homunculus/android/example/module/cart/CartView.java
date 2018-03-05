@@ -36,7 +36,7 @@ import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 @Named("/cart/view/list")
 public class CartView extends LinearLayout {
 
-    public final static String MY_NAME ="asdf";
+    public final static String MY_NAME = "asdf";
 
     @FactoryParam
     @Inject

@@ -14,6 +14,7 @@
 
 
         <Spinner
+            hcf:doc="Gives the possibility to select a value from the trap record."
             android:id="@+id/uis_trap_record_trap_spinner"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -22,6 +23,7 @@
             android:layout_marginTop="16dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
+
             app:layout_constraintTop_toTopOf="parent"/>
 
         <TextView

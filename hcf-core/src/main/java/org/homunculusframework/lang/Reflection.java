@@ -16,10 +16,11 @@
 package org.homunculusframework.lang;
 
 import javax.annotation.Nullable;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.List;
+import java.util.*;
 
 /**
  * A helper class of reflection things which may be useful if they would have been in the default sdk.
@@ -60,6 +61,13 @@ public class Reflection {
      */
     public static List<Field> getFields(Class<?> clazz) {
         return Clazz.getFields(clazz);
+    }
+
+    /**
+     * See {@link Clazz#getFields(Class)}
+     */
+    public static java.util.Map<String, Field> getFieldsMap(Class<?> clazz) {
+        return Clazz.getFieldsMap(clazz);
     }
 
     /**

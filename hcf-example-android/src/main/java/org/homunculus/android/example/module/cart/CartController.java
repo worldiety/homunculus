@@ -1,10 +1,16 @@
 package org.homunculus.android.example.module.cart;
 
+import org.homunculus.android.example.module.cart.CartControllerConnection.BindCartUIS;
+import org.homunculusframework.concurrent.Task;
 import org.homunculusframework.concurrent.ThreadNotInterruptible;
+import org.homunculusframework.factory.container.MethodBinding;
+import org.homunculusframework.factory.container.ObjectBinding;
 import org.homunculusframework.factory.flavor.hcf.Execute;
 import org.homunculusframework.factory.container.Container;
 import org.homunculusframework.navigation.ModelAndView;
 import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.Future;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Named;
@@ -46,6 +52,12 @@ public class CartController {
 
         return new ModelAndView("/cart/uis/list").put("cart", cart);
     }
+
+    public ObjectBinding<?> getCart3(@Named("id") int cartId) throws InterruptedException {
+        CartModel cart = new CartModel();
+        return new BindCartUIS("blub", null, cart);
+    }
+
 
     /**
      * Requesting backend methods directly is possible as well, recommend is to use the {@link org.homunculusframework.factory.async.AsyncDelegate} pattern

@@ -16,9 +16,7 @@
 package org.homunculusframework.lang;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.IdentityHashMap;
-import java.util.List;
+import java.util.*;
 
 /**
  * The sole purpose of this class is to workaround performance issues on Java platforms like Android, where the
@@ -73,6 +71,17 @@ final class Clazz {
 
             return res;
         }
+    }
 
+    /**
+     * Returns all declared fields and returns them from a non-defensive copy cache.
+     */
+    public static java.util.Map<String, Field> getFieldsMap(Class clazz) {
+        List<Field> fields = getFields(clazz);
+        java.util.Map<String, Field> map = new HashMap<>();
+        for (Field f : fields) {
+            map.put(f.getName(), f);
+        }
+        return map;
     }
 }

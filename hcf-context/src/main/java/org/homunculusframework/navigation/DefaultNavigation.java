@@ -45,6 +45,7 @@ public class DefaultNavigation implements Navigation {
     private final Scope scope;
     @Nullable
     private UserInterfaceState currentUIS;
+    @Deprecated
     private static final AtomicInteger requestNo = new AtomicInteger();
 
     private final List<Request> stack;
@@ -378,6 +379,7 @@ public class DefaultNavigation implements Navigation {
     }
 
 
+    @Deprecated
     public static Scope createChild(Scope parent, ModelAndView modelAndView) {
         Scope scope = new Scope("inflate:" + modelAndView.getView() + "@" + requestNo.incrementAndGet(), parent);
         modelAndView.forEach(entry -> {
@@ -387,6 +389,7 @@ public class DefaultNavigation implements Navigation {
         return scope;
     }
 
+    @Deprecated
     public static Scope createChild(Scope parent, Request params) {
         Scope scope = new Scope("request:" + params.getMapping() + "@" + requestNo.incrementAndGet(), parent);
         params.forEachEntry(entry -> {

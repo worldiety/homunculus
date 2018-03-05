@@ -28,6 +28,7 @@ import java.util.TreeMap;
  * @author Torben Schinke
  * @since 1.0
  */
+@Deprecated
 public final class ModelAndView {
     private final Mapping mapping;
     private final Map<String, Object> model;

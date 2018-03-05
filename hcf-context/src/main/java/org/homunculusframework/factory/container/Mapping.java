@@ -26,7 +26,9 @@ import javax.annotation.Nullable;
  *
  * @author Torben Schinke
  * @since 1.0
+ * @deprecated replaced with {@link Binding}
  */
+@Deprecated
 public final class Mapping implements Serializable {
     private static final long serialVersionUID = -7518802539693390805L;
     @Nullable

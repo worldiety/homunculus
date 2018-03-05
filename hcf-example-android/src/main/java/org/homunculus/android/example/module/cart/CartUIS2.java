@@ -7,6 +7,7 @@ import org.homunculus.android.compat.EventAppCompatActivity;
 import org.homunculus.android.component.Str;
 import org.homunculus.android.component.ToolbarBuilder;
 import org.homunculus.android.example.R;
+import org.homunculusframework.factory.flavor.hcf.FactoryParam;
 import org.homunculusframework.factory.flavor.hcf.Priority;
 import org.homunculusframework.navigation.Navigation;
 import org.homunculusframework.scope.Scope;
@@ -29,7 +30,8 @@ public class CartUIS2 extends CartView {
     @Inject
     private Scope scope;
 
-    public CartUIS2(Context context) {
+
+    public CartUIS2(Context context, @FactoryParam String fancyFlag) {
         super(context);
     }
 

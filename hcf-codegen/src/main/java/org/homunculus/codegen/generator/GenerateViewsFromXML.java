@@ -1,3 +1,18 @@
+/*
+ * Copyright 2017 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.homunculus.codegen.generator;
 
 import com.helger.jcodemodel.AbstractJClass;
@@ -8,8 +23,8 @@ import com.helger.jcodemodel.JMethod;
 import com.helger.jcodemodel.JMod;
 import com.helger.jcodemodel.JVar;
 
-import org.homunculus.codegen.Generator;
 import org.homunculus.codegen.GenProject;
+import org.homunculus.codegen.Generator;
 import org.homunculus.codegen.XMLFile;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -20,7 +35,9 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
- * Created by Torben Schinke on 22.02.18.
+ *
+ * @author Torben Schinke
+ * @since 1.0
  */
 
 public class GenerateViewsFromXML implements Generator {
@@ -28,11 +45,12 @@ public class GenerateViewsFromXML implements Generator {
     private final static String XML_CREATE_CLASS = "class";
     private final static String XML_CREATE_CLASS_SIMPLE = "hcf:class";
     private final static String XML_ID_SIMPLE = "android:id";
+    private final static String XML_DOC_SIMPLE = "hcf:doc";
 
-    private final static Map<String,String> ALIASE = new HashMap<>();
+    private final static Map<String, String> ALIASE = new HashMap<>();
 
-    static{
-        ALIASE.put("android.widget.ImageView","ImageView");
+    static {
+        ALIASE.put("android.widget.ImageView", "ImageView");
 
     }
 
@@ -95,10 +113,15 @@ public class GenerateViewsFromXML implements Generator {
 
         for (Element element : exports) {
             String id = element.getAttribute(XML_ID_SIMPLE);
+            String doc = element.getAttribute(XML_DOC_SIMPLE);
             AbstractJClass returnType = project.getCodeModel().ref(getAndroidViewName(element.getNodeName()));
             JMethod meth = cl.method(JMod.PUBLIC, returnType, "get" + makeNiceName(id));
             String fieldName = id.substring(id.lastIndexOf("/") + 1);
             meth.body()._return(JExpr.direct("findViewById(" + project.getManifestPackage() + ".R.id." + fieldName + ")"));
+
+            if (doc != null && !doc.trim().isEmpty()) {
+                meth.javadoc().add(doc);
+            }
         }
 
 
