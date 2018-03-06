@@ -50,7 +50,6 @@ public class CartView extends LinearLayout {
 
     @FactoryParam
     @Inject
-    @Named("cart")
     private CartModel mCart;
 
     @Resource(R.string.app_name)
@@ -63,7 +62,7 @@ public class CartView extends LinearLayout {
     private Bitmap mIcon2;
 
     @Inject
-    private Navigation mNav;
+    private Navigation nav;
 
     @Inject
     private CartControllerConnection mCartController;
@@ -80,10 +79,13 @@ public class CartView extends LinearLayout {
     @Inject
     private Permissions permissions;
 
+    @Inject
+    private AsyncCartController cart;
 
     public CartView(Context context) {
         super(context);
     }
+
 
     @PostConstruct
     private void init() {
@@ -112,7 +114,7 @@ public class CartView extends LinearLayout {
         Button button = new Button(getContext());
         button.setText("/cart/list");
         button.setOnClickListener(view -> {
-            mNav.forward(new Request("/cart/list").put("id", "111111"));
+            nav.forward(new Request("/cart/list").put("id", "111111"));
         });
         addView(button, new LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
 
@@ -120,7 +122,7 @@ public class CartView extends LinearLayout {
         Button button5 = new Button(getContext());
         button5.setText("/cart/list2");
         button5.setOnClickListener(view -> {
-            mNav.forward(new Request("/cart/list2").put("id", "222222"));
+            nav.forward(new Request("/cart/list2").put("id", "222222"));
         });
         addView(button5, new LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
 
@@ -151,14 +153,14 @@ public class CartView extends LinearLayout {
             CartModel model = new CartModel();
             model.setId(7338);
             model.getEntries().add(new CartEntry("direct UIS navigation"));
-            mNav.forward(new Request("/cart/uis/list").put("cart", model));
+            nav.forward(new Request("/cart/uis/list").put("cart", model));
         });
         addView(button4, new LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
 
         Button button6 = new Button(getContext());
         button6.setText("request unconfigured");
         button6.setOnClickListener(view -> {
-            mNav.forward(new Request("/notconfigured/widget/or/controller"));
+            nav.forward(new Request("/notconfigured/widget/or/controller"));
         });
         addView(button6, new LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
 

@@ -36,16 +36,17 @@ import com.helger.jcodemodel.JVar;
 
 import org.homunculus.codegen.GenProject;
 import org.homunculus.codegen.SrcFile;
-import org.homunculusframework.factory.container.MethodBinding;
+import org.homunculusframework.factory.container.ModelAndView;
 import org.homunculusframework.factory.container.ObjectBinding;
 import org.homunculusframework.factory.flavor.hcf.FactoryParam;
+import org.homunculusframework.factory.flavor.hcf.ViewComponent;
 import org.homunculusframework.lang.Reflection;
 import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -114,11 +115,24 @@ class ObjectBindingGenerator {
         ClassOrInterfaceDeclaration ctrClass = file.getUnit().getClassByName(file.getPrimaryClassName()).get();
 
         binding.javadoc().add("A decoupled binding to {@link " + file.getFullQualifiedNamePrimaryClassName() + "} which uses a {@link " + Scope.class.getName() + "} and type safe parameters to create an instance.");
-        binding._extends(project.getCodeModel().ref(ObjectBinding.class).narrow(project.getCodeModel().ref(file.getFullQualifiedNamePrimaryClassName())));
+        Class what = file.getAnnotation(ctrClass, ViewComponent.class) != null ? ModelAndView.class : ObjectBinding.class;
+        binding._extends(project.getCodeModel().ref(what).narrow(project.getCodeModel().ref(file.getFullQualifiedNamePrimaryClassName())));
 
         //pick all available fields, including super classes
         List<Field> fields = new ArrayList<>();
         collectInjectableFields(project, file, ctrClass, fields);
+
+        HashMap<String, Field> lintFieldNames = new HashMap<>();
+        for (Field f : fields) {
+            if (lintFieldNames.containsKey(f.getFieldName())) {
+                Field other = lintFieldNames.get(f.getFieldName());
+                LintException e = new LintException("field name '" + f.getFieldName() + "' is ambiguous across inheritance", f.file, f.dec.getRange().get());
+                e.addSuppressed(new LintException("other field is", other.file, other.dec.getRange().get()));
+                throw e;
+            } else {
+                lintFieldNames.put(f.getFieldName(), f);
+            }
+        }
 
         //pick the shortest constructor
         ConstructorDeclaration bestConstructor = null;
@@ -160,11 +174,11 @@ class ObjectBindingGenerator {
 
         //second add all injectable fields which are marked as factory param
         for (Field field : fields) {
-            if (field.isFactoryParam) {
-                //the static field
-                JFieldVar thisStaticVar = binding.field(JMod.PRIVATE | JMod.STATIC, java.lang.reflect.Field.class, "field" + project.camelCase(field.getFieldName()));
-                thisStaticVar.javadoc().add("a static reflection field cache to support private member injection");
-            }
+            //the static field
+//            if (!field.isFactoryParam) {
+            JFieldVar thisStaticVar = binding.field(JMod.PRIVATE | JMod.STATIC, java.lang.reflect.Field.class, "field" + project.startUpperCase(field.getFieldName()));
+            thisStaticVar.javadoc().add("a static reflection field cache to support private member injection");
+//            }
         }
 
         for (Field field : fields) {
@@ -174,11 +188,14 @@ class ObjectBindingGenerator {
 
                 //the field
                 JFieldVar thisVar = binding.field(JMod.PRIVATE, pType, field.getFieldName());
+                if (field.isNullable) {
+                    thisVar.annotate(Nullable.class);
+                    pVar.annotate(Nullable.class);
+                }
                 thisVar.javadoc().add("introduced by @FactoryParam from a field annotation");
 
                 //the setting
                 con.body().assign(JExpr._this().ref(thisVar), pVar);
-
             }
         }
 
@@ -189,7 +206,7 @@ class ObjectBindingGenerator {
         initStatic.body().assign(varFields, project.getCodeModel().ref(Reflection.class).staticInvoke("getFieldsMap").arg(JExpr.dotclass(project.getCodeModel().ref(file.getFullQualifiedNamePrimaryClassName()))));
         for (Field field : fields) {
             if (field.isFactoryParam) {
-                initStatic.body().assign(binding.fields().get("field" + project.camelCase(field.getFieldName())), varFields.invoke("get").arg(field.getFieldName()));
+                initStatic.body().assign(binding.fields().get("field" + project.startUpperCase(field.getFieldName())), varFields.invoke("get").arg(field.getFieldName()));
             }
 
         }
@@ -231,13 +248,11 @@ class ObjectBindingGenerator {
         onExecute.body().assign(bean, _new);
 
         for (Field field : fields) {
-            if (field.isFactoryParam) {
-                //fieldSomeString.set(obj, get("someString", String.class));
-                JVar staticField = binding.fields().get("field" + project.camelCase(field.getFieldName()));
-                AbstractJClass pType = project.getCodeModel().ref(file.getFullQualifiedName(field.dec.getVariables().get(0).getType().asString()));
-                JInvocation selfGet = JExpr.invoke("get").arg(field.getFieldName()).arg(pType.dotclass());
-                onExecute.body().invoke(staticField, "set").arg(bean).arg(selfGet);
-            }
+            //fieldSomeString.set(obj, get("someString", String.class)); => better fieldSomeString.set(obj, get(fieldSomeString))
+            JVar staticField = binding.fields().get("field" + project.startUpperCase(field.getFieldName()));
+            AbstractJClass pType = project.getCodeModel().ref(file.getFullQualifiedName(field.dec.getVariables().get(0).getType().asString()));
+            JInvocation selfGet = JExpr.invoke("get").arg(staticField);
+            onExecute.body().invoke(staticField, "set").arg(bean).arg(selfGet);
         }
 
 
@@ -277,7 +292,7 @@ class ObjectBindingGenerator {
                     NameExpr nameExpr = ((NameExpr) expr.getMemberValue());
                     String value = resolveStaticFieldValue(src, nameExpr.getNameAsString());
                     if (value == null) {
-                        LoggerFactory.getLogger(GenerateRequestFactories.class).warn("constant evaluation not supported: {}", nameExpr);
+                        LoggerFactory.getLogger(ObjectBindingGenerator.class).warn("constant evaluation not supported: {}", nameExpr);
                     } else {
                         beanName = value;
                         return beanName;
@@ -324,7 +339,7 @@ class ObjectBindingGenerator {
                     throw new LintException("field '" + tmp.getFieldName() + "' must not be final", src, field.getRange().get());
                 }
             }
-            if (tmp.isInjectable && tmp.isFactoryParam) {
+            if (tmp.isInjectable) {
                 dst.add(tmp);
             }
         }

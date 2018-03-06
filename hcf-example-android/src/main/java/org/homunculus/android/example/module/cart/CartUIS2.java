@@ -9,6 +9,7 @@ import org.homunculus.android.component.ToolbarBuilder;
 import org.homunculus.android.example.R;
 import org.homunculusframework.factory.flavor.hcf.FactoryParam;
 import org.homunculusframework.factory.flavor.hcf.Priority;
+import org.homunculusframework.factory.flavor.hcf.ViewComponent;
 import org.homunculusframework.navigation.Navigation;
 import org.homunculusframework.scope.Scope;
 
@@ -18,6 +19,7 @@ import javax.inject.Named;
 
 import static org.homunculus.android.component.Str.str;
 
+@ViewComponent
 @Named("/cart/uis/list2")
 public class CartUIS2 extends CartView {
 

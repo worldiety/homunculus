@@ -32,6 +32,7 @@ import org.homunculus.codegen.Generator;
 import org.homunculus.codegen.SrcFile;
 import org.homunculus.codegen.generator.PreprocessDiscoverBeans.DiscoveryKind;
 import org.homunculusframework.factory.container.MethodBinding;
+import org.homunculusframework.factory.container.ModelAndView;
 import org.homunculusframework.factory.container.ObjectBinding;
 import org.homunculusframework.scope.Scope;
 
@@ -74,6 +75,7 @@ public class GenerateMethodBindings implements Generator {
             if (cl == null) {
                 throw new RuntimeException(ctrName + " not found in codemodel");
             }
+
             ClassOrInterfaceDeclaration ctrClass = file.getUnit().getClassByName(file.getPrimaryClassName()).get();
             for (MethodDeclaration method : ctrClass.getMethods()) {
                 //ignore everything which is neither public/package private nor instance bound
@@ -85,14 +87,22 @@ public class GenerateMethodBindings implements Generator {
                     continue;
                 }
 
-                String simpleName = ((ClassOrInterfaceType) method.getType()).getName().toString();
-                if (!file.getFullQualifiedName(simpleName).equals(ObjectBinding.class.getName())) {
+                String[] allowedReturnValues = {ObjectBinding.class.getName(), ModelAndView.class.getName()};
+                boolean allowed = false;
+                for (String a : allowedReturnValues) {
+                    if (file.getFullQualifiedName(method.getType()).equals(a)) {
+                        allowed = true;
+                        break;
+                    }
+                }
+                if (!allowed) {
                     continue;
                 }
 
                 //create the inner binding class
-                JDefinedClass binding = cl._class(JMod.STATIC | JMod.PUBLIC, "Bind" + ctrClass.getNameAsString() + project.camelCase(method.getNameAsString()));
+                JDefinedClass binding = cl._class(JMod.STATIC | JMod.PUBLIC, "Bind" + ctrClass.getNameAsString() + project.startUpperCase(method.getNameAsString()));
                 binding.javadoc().add("A decoupled binding to {@link " + project.getJavadocReference(file, method) + "} which is serializable.");
+
                 binding._extends(project.getCodeModel().ref(MethodBinding.class).narrow(Object.class));
 
                 //add the constructor for this binding
@@ -123,7 +133,7 @@ public class GenerateMethodBindings implements Generator {
                 onExecute.annotate(project.getCodeModel().ref(Override.class));
                 JVar ctr = onExecute.body().decl(project.getCodeModel().ref(file.getFullQualifiedNamePrimaryClassName()), "_ctr");
                 onExecute.body().directStatement(ctr.name() + " = get(" + file.getFullQualifiedNamePrimaryClassName() + ".class);");
-                onExecute.body().invoke("assertNotNull").arg(ctr);
+                onExecute.body().invoke("assertNotNull").arg(project.getCodeModel().ref(file.getFullQualifiedNamePrimaryClassName()).dotclass()).arg(ctr);
                 StringBuilder tmp = new StringBuilder();
                 tmp.append("(ObjectBinding<Object>) (ObjectBinding<?>)");
                 tmp.append(ctr.name()).append(".").append(method.getName()).append("(");

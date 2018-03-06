@@ -27,7 +27,13 @@ android {
     }
 
 }
-
+android {
+    sourceSets {
+        main {
+            java.srcDirs += file("${project.buildDir.path}/generated/source/hcf/")
+        }
+    }
+}
 
 
 dependencies {

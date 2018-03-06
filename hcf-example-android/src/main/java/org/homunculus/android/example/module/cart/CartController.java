@@ -58,6 +58,9 @@ public class CartController {
         return new BindCartUIS("blub", null, cart);
     }
 
+    public org.homunculusframework.factory.container.ModelAndView getCart4(@Named("id") int cartId) throws InterruptedException {
+        return new BindCartUIS2("ad", "asd", "ads", null);
+    }
 
     /**
      * Requesting backend methods directly is possible as well, recommend is to use the {@link org.homunculusframework.factory.async.AsyncDelegate} pattern

@@ -32,6 +32,7 @@ import org.homunculus.codegen.generator.PreprocessDiscoverBeans.DiscoveryKind;
 import org.homunculusframework.concurrent.Task;
 import org.homunculusframework.factory.container.Binding;
 import org.homunculusframework.factory.container.MethodBinding;
+import org.homunculusframework.factory.container.ModelAndView;
 import org.homunculusframework.factory.container.ObjectBinding;
 import org.homunculusframework.lang.Result;
 
@@ -61,8 +62,8 @@ public class GenerateTaskMethods implements Generator {
                 }
 
                 if ((method.getType() instanceof ClassOrInterfaceType)) {
-                    String fqn = file.getFullQualifiedName(((ClassOrInterfaceType) method.getType()).getName().toString());
-                    System.out.println(fqn);
+                    String fqn = file.getFullQualifiedName(method.getType());
+
                     //TODO this won't detect a class hierarchy
                     String[] disallowedTypes = {MethodBinding.class.getName(), Task.class.getName(), Future.class.getName(), Binding.class.getName()};
                     for (String c : disallowedTypes) {
@@ -73,10 +74,19 @@ public class GenerateTaskMethods implements Generator {
 
                     //TODO this won't detect a class hierarchy
                     if (fqn.equals(ObjectBinding.class.getName())) {
-                        //this is handled by GenerateObjectBindings
+                        //this is handled by GenerateMethodBinding
                         continue;
                     }
+
+                    //TODO this won't detect a class hierarchy
+                    if (fqn.equals(ModelAndView.class.getName())) {
+                        //this is handled by GenerateMethodBinding
+                        continue;
+                    }
+
+//                    System.out.println("should be task ->" + method.getType() + " " + method.getType().getClass() + " [" + fqn + "]");
                 }
+
 
                 //if we passed our checks, it is fine to assume that we want it as an async instance task method
                 String returnType = file.getFullQualifiedName(method.getType().asString());
