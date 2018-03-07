@@ -50,33 +50,41 @@ public class HomunculusValidator {
     }
 
     private HomunculusValidator(boolean buildForAndroidMessages, Context androidContext) {
-        Configuration<?> validationConfig = Validation
-                .byDefaultProvider()
-                .configure()
-                .ignoreXmlConfiguration();
+        Validator validator;
+        try {
+            Configuration<?> validationConfig = Validation
+                    .byDefaultProvider()
+                    .configure()
+                    .ignoreXmlConfiguration();
 
-        if (buildForAndroidMessages) {
-            validationConfig.messageInterpolator(new MessageInterpolator() {
-                @Override
-                public String interpolate(String messageTemplate, Context context) {
-                    try {
-                        int id = androidContext.getResources().getIdentifier(messageTemplate, "string", androidContext.getApplicationContext().getPackageName());
-                        return androidContext.getString(id);
-                    } catch (Exception e) {
-                        LoggerFactory.getLogger(this.getClass()).info("Could not find resource: " + messageTemplate);
-                        return messageTemplate;
+            if (buildForAndroidMessages) {
+                validationConfig.messageInterpolator(new MessageInterpolator() {
+                    @Override
+                    public String interpolate(String messageTemplate, Context context) {
+                        try {
+                            int id = androidContext.getResources().getIdentifier(messageTemplate, "string", androidContext.getApplicationContext().getPackageName());
+                            return androidContext.getString(id);
+                        } catch (Exception e) {
+                            LoggerFactory.getLogger(this.getClass()).info("Could not find resource: " + messageTemplate);
+                            return messageTemplate;
+                        }
                     }
-                }
 
-                @Override
-                public String interpolate(String messageTemplate, Context context, Locale locale) {
-                    return interpolate(messageTemplate, context);
-                }
-            });
+                    @Override
+                    public String interpolate(String messageTemplate, Context context, Locale locale) {
+                        return interpolate(messageTemplate, context);
+                    }
+                });
+            }
+
+            ValidatorFactory validatorFactory = validationConfig.buildValidatorFactory();
+            validator = validatorFactory.getValidator();
+        } catch (ExceptionInInitializerError e) {
+            LoggerFactory.getLogger(this.getClass()).error("Could not initialize HibernateValidator on this device! Validation via HibernateValidator will not work!", e);
+            validator = new UnsupportedDeviceValidator();
         }
 
-        ValidatorFactory validatorFactory = validationConfig.buildValidatorFactory();
-        hibernateValidator = validatorFactory.getValidator();
+        hibernateValidator = validator;
     }
 
     /**
