@@ -31,5 +31,4 @@ import javax.annotation.Nullable;
 public abstract class ObjectBinding<Type> extends Binding<Type> {
 
 
-
 }

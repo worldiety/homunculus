@@ -17,7 +17,7 @@ package org.homunculus.codegen.generator;
 
 import com.github.javaparser.Range;
 
-import org.homunculus.codegen.SrcFile;
+import org.homunculus.codegen.parse.javaparser.SrcFile;
 
 /**
  * The generator is capable of detecting some misconfigurations which is thrown as this kind of exception

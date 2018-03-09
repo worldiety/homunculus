@@ -18,6 +18,8 @@ class Methods {
 
     }
 
+
+
     /**
      * Returns a non-defensive copy from cache. Returns all declared methods recursivly. Super methods are last in list, otherwise
      * order is in reflection order (not in any particular order)

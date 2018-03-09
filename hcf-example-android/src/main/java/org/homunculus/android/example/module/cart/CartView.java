@@ -18,6 +18,7 @@ import org.homunculusframework.concurrent.Async;
 import org.homunculusframework.factory.flavor.hcf.FactoryParam;
 import org.homunculusframework.factory.flavor.hcf.Persistent;
 import org.homunculusframework.factory.container.Request;
+import org.homunculusframework.factory.flavor.hcf.Priority;
 import org.homunculusframework.lang.Reference;
 import org.homunculusframework.navigation.Navigation;
 import org.slf4j.LoggerFactory;
@@ -84,6 +85,18 @@ public class CartView extends LinearLayout {
 
     public CartView(Context context) {
         super(context);
+    }
+
+
+    @PostConstruct
+    @Priority(-1000)
+    void init2() {
+
+    }
+
+    @PostConstruct
+    private void blub() {
+
     }
 
 

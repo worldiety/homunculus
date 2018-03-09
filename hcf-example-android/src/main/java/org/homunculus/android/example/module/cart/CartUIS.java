@@ -9,8 +9,11 @@ import android.view.ViewGroup;
 import org.homunculus.android.compat.EventAppCompatActivity;
 import org.homunculus.android.component.ViewTransitionAnimator;
 import org.homunculus.android.component.ToolbarBuilder;
+import org.homunculus.android.core.Android;
 import org.homunculus.android.example.R;
+import org.homunculusframework.factory.container.Container;
 import org.homunculusframework.factory.container.Request;
+import org.homunculusframework.factory.flavor.hcf.Execute;
 import org.homunculusframework.factory.flavor.hcf.Priority;
 import org.homunculusframework.navigation.Navigation;
 import org.homunculusframework.scope.Scope;
@@ -42,6 +45,7 @@ public class CartUIS extends CartView {
 
 
     @PostConstruct()
+    @Execute(Container.NAME_BACKGROUND_HANDLER)
     @Priority(10)//TODO this looks weired -> super methods with the same order should have higher priority
     private void setViewInActivity() {
         int x = R.layout.hcf_splash;
@@ -66,5 +70,14 @@ public class CartUIS extends CartView {
         viewTransitionAnimator.setActivityContentView(content);
     }
 
+    @PostConstruct
+    @Priority(1)//TODO this looks weired -> super methods with the same order should have higher priority
+    private void setViewInActivity2() {
 
+    }
+
+    @PostConstruct
+    void blub() {
+
+    }
 }

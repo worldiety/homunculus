@@ -32,6 +32,7 @@ import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
+import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.Nullable;
@@ -63,6 +64,9 @@ public abstract class Binding<Response> implements Serializable {
      */
     @Nullable
     private transient Scope scope;
+
+    @Nullable
+    private volatile transient Response response;
 
     /**
      * This constructor is intentionally package private to force that every subtype is either a {@link MethodBinding} or a {@link ObjectBinding}
@@ -109,13 +113,25 @@ public abstract class Binding<Response> implements Serializable {
         return assertNotNull("scope", scope);
     }
 
-    protected void onPreExecute() {
+    protected void onPreExecute(SettableTask<Result<Response>> task) {
 
     }
 
-    protected void onPostExecute(@Nullable Response response, @Nullable Throwable t) {
-
+    /**
+     * You have to set the task, to finish the execution
+     */
+    protected void onPostExecute(SettableTask<Result<Response>> task, @Nullable Response response, @Nullable Throwable t) {
+        task.set(Result.create(response).setThrowable(t));
     }
+
+
+    /**
+     * You have to set the task to finish the destruction
+     */
+    protected void onPreDestroy(SettableTask<Result<Response>> task, @Nullable Response response) {
+        task.set(Result.create(response));
+    }
+
 
     /**
      * Executes this request using the given scope:
@@ -139,13 +155,11 @@ public abstract class Binding<Response> implements Serializable {
                         }
                     }
                 }
-                onPreExecute();
-                Response res = onExecute();
-                onPostExecute(res, null);
-                task.set(Result.create(res));
+                onPreExecute(task);
+                response = onExecute();
+                onPostExecute(task, response, null);
             } catch (Throwable e) {
-                onPostExecute(null, e);
-                task.set(Result.auto(e));
+                onPostExecute(task, response, e);
             }
         };
         if (backgroundThread == null) {
@@ -157,6 +171,18 @@ public abstract class Binding<Response> implements Serializable {
         return task;
     }
 
+
+    /**
+     * Destroys and tears down the associated object.
+     *
+     * @return
+     */
+    public Task<Result<Response>> destroy() {
+        SettableTask<Result<Response>> task = SettableTask.create(scope, toString());
+        onPreDestroy(task, response);
+        response = null;
+        return task;
+    }
 
     /**
      * Asserts that the given object is not null. If it is null, this situation is considered to be a programming error.
@@ -187,4 +213,25 @@ public abstract class Binding<Response> implements Serializable {
     protected <T> T get(Class<T> type) {
         return null;
     }
+
+    /**
+     * Posts the given closure into the named handler bailing out if handler is not configured
+     *
+     * @param handlerName
+     * @param closure     should not throw exception
+     */
+    protected void post(String handlerName, Runnable closure) {
+        Handler handler = get(handlerName, Handler.class);
+        if (handler == null) {
+            throw new Panic("no such handler: " + handlerName);
+        }
+        handler.post(() -> {
+            try {
+                closure.run();
+            } catch (Exception e) {
+                LoggerFactory.getLogger(getClass()).error("failed to post on " + handlerName, e);
+            }
+        });
+    }
+
 }

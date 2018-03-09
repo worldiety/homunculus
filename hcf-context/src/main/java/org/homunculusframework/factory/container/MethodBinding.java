@@ -16,7 +16,9 @@
 package org.homunculusframework.factory.container;
 
 
+import org.homunculusframework.lang.Result;
 import org.homunculusframework.scope.Scope;
+import org.homunculusframework.scope.SettableTask;
 
 import javax.annotation.Nullable;
 
@@ -36,12 +38,5 @@ public abstract class MethodBinding<T> extends Binding<ObjectBinding<T>> {
     protected void initStatic() {
 
     }
-
-
-    protected void onPostExecute(@Nullable ObjectBinding<T> tObjectBinding, @Nullable Throwable t) {
-        super.onPostExecute(tObjectBinding, t);
-        getScope().destroy();
-    }
-
 
 }

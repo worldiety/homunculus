@@ -26,26 +26,43 @@ import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.SingleMemberAnnotationExpr;
 import com.github.javaparser.ast.expr.StringLiteralExpr;
 import com.helger.jcodemodel.AbstractJClass;
+import com.helger.jcodemodel.AbstractJType;
+import com.helger.jcodemodel.JBlock;
+import com.helger.jcodemodel.JCatchBlock;
+import com.helger.jcodemodel.JCodeModel;
 import com.helger.jcodemodel.JDefinedClass;
 import com.helger.jcodemodel.JExpr;
 import com.helger.jcodemodel.JFieldVar;
 import com.helger.jcodemodel.JInvocation;
+import com.helger.jcodemodel.JLambda;
+import com.helger.jcodemodel.JLambdaBlock;
 import com.helger.jcodemodel.JMethod;
 import com.helger.jcodemodel.JMod;
+import com.helger.jcodemodel.JTryBlock;
 import com.helger.jcodemodel.JVar;
 
 import org.homunculus.codegen.GenProject;
-import org.homunculus.codegen.SrcFile;
+import org.homunculus.codegen.parse.Annotation;
+import org.homunculus.codegen.parse.FullQualifiedName;
+import org.homunculus.codegen.parse.Method;
+import org.homunculus.codegen.parse.javaparser.SrcFile;
+import org.homunculusframework.factory.container.Container;
 import org.homunculusframework.factory.container.ModelAndView;
 import org.homunculusframework.factory.container.ObjectBinding;
+import org.homunculusframework.factory.flavor.hcf.Execute;
 import org.homunculusframework.factory.flavor.hcf.FactoryParam;
+import org.homunculusframework.factory.flavor.hcf.Priority;
 import org.homunculusframework.factory.flavor.hcf.ViewComponent;
 import org.homunculusframework.lang.Reflection;
+import org.homunculusframework.lang.Result;
 import org.homunculusframework.scope.Scope;
+import org.homunculusframework.scope.SettableTask;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -53,6 +70,8 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Nullable;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -116,7 +135,8 @@ class ObjectBindingGenerator {
 
         binding.javadoc().add("A decoupled binding to {@link " + file.getFullQualifiedNamePrimaryClassName() + "} which uses a {@link " + Scope.class.getName() + "} and type safe parameters to create an instance.");
         Class what = file.getAnnotation(ctrClass, ViewComponent.class) != null ? ModelAndView.class : ObjectBinding.class;
-        binding._extends(project.getCodeModel().ref(what).narrow(project.getCodeModel().ref(file.getFullQualifiedNamePrimaryClassName())));
+        AbstractJClass delegate = project.getCodeModel().ref(file.getFullQualifiedNamePrimaryClassName());
+        binding._extends(project.getCodeModel().ref(what).narrow(delegate));
 
         //pick all available fields, including super classes
         List<Field> fields = new ArrayList<>();
@@ -259,6 +279,202 @@ class ObjectBindingGenerator {
         onExecute.body()._return(bean);
 
 
+        ObjectBindingModel objectBindingModel = new ObjectBindingModel();
+        //the postConstructs
+        List<Method> methods = project.getResolver().getMethods(new FullQualifiedName(file.getFullQualifiedNamePrimaryClassName()));
+        for (Method m : methods) {
+            Annotation postConstruct = m.getAnnotation(new FullQualifiedName(PostConstruct.class));
+            if (postConstruct != null) {
+                assertLifecycleMethod(m);
+                objectBindingModel.postConstruct.add(m);
+            }
+        }
+        sortMethodCalls(objectBindingModel.postConstruct);
+        generatePostExecute(delegate, objectBindingModel.postConstruct, project.getCodeModel(), binding);
+
+        //the preDestroys
+        for (Method m : methods) {
+            Annotation preDestroy = m.getAnnotation(new FullQualifiedName(PreDestroy.class));
+            if (preDestroy != null) {
+                assertLifecycleMethod(m);
+                objectBindingModel.preDestroy.add(m);
+            }
+        }
+        sortMethodCalls(objectBindingModel.preDestroy);
+        generatePreDestroy(delegate, objectBindingModel.preDestroy, project.getCodeModel(), binding);
+    }
+
+
+    private void assertLifecycleMethod(Method m) throws LintException {
+        if (m.isStatic()) {
+            m.throwLintException("Method must not be static");
+        }
+
+        if (m.isAbstract()) {
+            m.throwLintException("Method may not be abstract");
+        }
+
+        if (m.getParameters().size() > 0) {
+            m.throwLintException("Method is not allowed to have parameters");
+        }
+    }
+
+    /**
+     * Example:
+     * <pre>
+     * protected void onPostExecute(SettableTask<Result<CartUIS>> task, @Nullable CartUIS cartUIS, @Nullable Throwable t){
+     *   post("hallo", () -> {
+     *    delegateBlub0(cartUIS);
+     *    post("main", () -> {
+     *     delegateBlub1(cartUIS);
+     *     onPostExecuteDone();
+     *    });
+     *   });
+     * }
+     * </pre>
+     *
+     * @param methods
+     * @param code
+     * @param binding
+     */
+    private void generatePostExecute(AbstractJClass param, List<Method> methods, JCodeModel code, JDefinedClass binding) {
+        JMethod override = binding.method(JMod.PROTECTED, void.class, "onPostExecute");
+        JVar task = override.param(code.ref(SettableTask.class).narrow(code.ref(Result.class).narrow(param)), "task");
+        JVar res = override.param(param, "res");
+        JVar exception = override.param(code.ref(Throwable.class), "throwable");
+        override.annotate(Override.class);
+        if (methods.isEmpty()) {
+            return;
+        }
+
+        JBlock block = override.body();
+        JBlock errExit = block._if(exception.neNull())._then();
+        errExit.invoke(task, "set").arg(code.ref(Result.class).staticInvoke("create").arg(res).invoke("setThrowable").arg(exception));
+        errExit._return();
+
+        if (methods.isEmpty()) {
+            block.add(JExpr._super().invoke("onPostExecute").arg(task).arg(res));
+            return;
+        }
+
+        int ctr = 0;
+        for (Method m : methods) {
+            JLambda lambda = new JLambda();
+            String name = generateMethodCall(param, m, code, binding);
+            JTryBlock tryBlock = lambda.body()._try();
+            tryBlock.body().add(JExpr.invoke(name).arg(res));
+            JCatchBlock catchBlock = tryBlock._catch(code.ref(Throwable.class));
+            JVar x = catchBlock.param("e" + ctr);
+            catchBlock.body().invoke(task, "set").arg(code.ref(Result.class).staticInvoke("create").arg(res).invoke("setThrowable").arg(x));
+            catchBlock.body()._return();
+            JInvocation invoc = JExpr.invoke("post").arg(ObjectBindingModel.getExecutor(m)).arg(lambda);
+            block.add(invoc);
+            block = lambda.body();
+            ctr++;
+
+        }
+        block.addSingleLineComment("the end of the call chain: tell the task that we are done");
+        block.invoke(task, "set").arg(code.ref(Result.class).staticInvoke("create").arg(res));
+    }
+
+    /**
+     * Example:
+     * <pre>
+     * protected void onPreDestroy(SettableTask<Result<Void>> task, @Nullable CartUIS cartUIS){
+     *   post("hallo", () -> {
+     *    delegateBlub0(cartUIS);
+     *    post("main", () -> {
+     *     delegateBlub1(cartUIS);
+     *     onPostExecuteDone();
+     *    });
+     *   });
+     * }
+     * </pre>
+     *
+     * @param methods
+     * @param code
+     * @param binding
+     */
+    private void generatePreDestroy(AbstractJClass param, List<Method> methods, JCodeModel code, JDefinedClass binding) {
+        JMethod override = binding.method(JMod.PROTECTED, void.class, "onPreDestroy");
+        JVar task = override.param(code.ref(SettableTask.class).narrow(code.ref(Result.class).narrow(param)), "task");
+        JVar res = override.param(param, "res");
+        override.annotate(Override.class);
+
+        JBlock block = override.body();
+
+        if (methods.isEmpty()) {
+            block.add(JExpr._super().invoke("onPreDestroy").arg(task).arg(res));
+            return;
+        }
+
+        int ctr = 0;
+        for (Method m : methods) {
+            JLambda lambda = new JLambda();
+            String name = generateMethodCall(param, m, code, binding);
+            JTryBlock tryBlock = lambda.body()._try();
+            tryBlock.body().add(JExpr.invoke(name).arg(res));
+            JCatchBlock catchBlock = tryBlock._catch(code.ref(Throwable.class));
+            JVar x = catchBlock.param("e" + ctr);
+            catchBlock.body().invoke(task, "set").arg(code.ref(Result.class).staticInvoke("create").arg(res).invoke("setThrowable").arg(x));
+            catchBlock.body()._return();
+            JInvocation invoc = JExpr.invoke("post").arg(ObjectBindingModel.getExecutor(m)).arg(lambda);
+            block.add(invoc);
+            block = lambda.body();
+            ctr++;
+
+        }
+        block.addSingleLineComment("the end of the call chain: tell the task that we are done");
+        block.invoke(task, "set").arg(code.ref(Result.class).staticInvoke("create").arg(res));
+    }
+
+    private String generateMethodCall(AbstractJClass param, Method m, JCodeModel code, JDefinedClass binding) {
+
+        String methodName = "invoke" + GenProject.startUpperCase(m.getName());
+        int ctr = 1;
+        while (binding.getMethod(methodName, new AbstractJType[]{param}) != null) {
+            methodName = "invoke" + GenProject.startUpperCase(m.getName()) + ctr;
+            ctr++;
+        }
+        JMethod invoke = binding.method(JMod.PRIVATE, void.class, methodName);
+        invoke._throws(Exception.class);
+        JVar p = invoke.param(param, "obj");
+
+        if (m.isPublic() || (m.isDeclared() && m.isDefault())) {
+            //yeah: we can avoid reflection and link directly to the call
+            invoke.body().add(p.invoke(m.getName()));
+        } else {
+            //meh: we need reflection
+            JVar refMethod = binding.field(JMod.PRIVATE, java.lang.reflect.Method.class, "method" + GenProject.startUpperCase(methodName));
+            JBlock initBlock = invoke.body()._if(refMethod.eqNull())._then().synchronizedBlock(JExpr._this()).body()._if(refMethod.eqNull())._then();
+            initBlock.assign(refMethod, code.ref(Reflection.class).staticInvoke("getMethod").arg(param.dotclass()).arg(m.getName()).arg(JExpr.newArray(code.ref(Class.class), 0)));
+            invoke.body().invoke(refMethod, "invoke").arg(p);
+        }
+
+
+        return methodName;
+    }
+
+    private void sortMethodCalls(List<Method> methods) {
+        Collections.sort(methods, (a, b) -> {
+            Annotation aPriority = a.getAnnotation(Priority.class);
+            int aPrio = 0;
+            if (aPriority != null) {
+                Long p = aPriority.getLong("");
+                if (p != null) {
+                    aPrio = p.intValue();
+                }
+            }
+            Annotation bPriority = b.getAnnotation(Priority.class);
+            int bPrio = 0;
+            if (bPriority != null) {
+                Long p = bPriority.getLong("");
+                if (p != null) {
+                    bPrio = p.intValue();
+                }
+            }
+            return -Integer.compare(aPrio, bPrio);
+        });
     }
 
     /**
@@ -383,6 +599,20 @@ class ObjectBindingGenerator {
             } else {
                 return alternateName;
             }
+        }
+    }
+
+
+    static class ObjectBindingModel {
+        List<Method> postConstruct = new ArrayList<>();
+        List<Method> preDestroy = new ArrayList<>();
+
+        static String getExecutor(Method method) {
+            Annotation exec = method.getAnnotation(Execute.class);
+            if (exec == null) {
+                return Container.NAME_MAIN_HANDLER;
+            }
+            return exec.getString("");
         }
     }
 }

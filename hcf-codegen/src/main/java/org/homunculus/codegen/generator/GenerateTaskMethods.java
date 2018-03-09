@@ -27,7 +27,7 @@ import com.helger.jcodemodel.JMod;
 
 import org.homunculus.codegen.GenProject;
 import org.homunculus.codegen.Generator;
-import org.homunculus.codegen.SrcFile;
+import org.homunculus.codegen.parse.javaparser.SrcFile;
 import org.homunculus.codegen.generator.PreprocessDiscoverBeans.DiscoveryKind;
 import org.homunculusframework.concurrent.Task;
 import org.homunculusframework.factory.container.Binding;

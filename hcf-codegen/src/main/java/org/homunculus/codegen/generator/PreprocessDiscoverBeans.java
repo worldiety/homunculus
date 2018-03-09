@@ -21,7 +21,7 @@ import com.github.javaparser.ast.expr.AnnotationExpr;
 
 import org.homunculus.codegen.GenProject;
 import org.homunculus.codegen.Generator;
-import org.homunculus.codegen.SrcFile;
+import org.homunculus.codegen.parse.javaparser.SrcFile;
 import org.homunculus.codegen.generator.ObjectBindingGenerator.Field;
 import org.slf4j.LoggerFactory;
 

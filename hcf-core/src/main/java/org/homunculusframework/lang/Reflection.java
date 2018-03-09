@@ -57,6 +57,25 @@ public class Reflection {
     }
 
     /**
+     * Returns the method from the class or any super class which matches the given signature
+     *
+     * @param clazz
+     * @return
+     */
+    @Nullable
+    public static Method getMethod(Class<?> clazz, String name, Class[] parameterTypes) {
+        for (Method m : getMethods(clazz)) {
+            if (m.getName().equals(name)) {
+                Class[] paramA = m.getParameterTypes();
+                if (Arrays.equals(parameterTypes, paramA)) {
+                    return m;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
      * See {@link Clazz#getFields(Class)}
      */
     public static List<Field> getFields(Class<?> clazz) {
