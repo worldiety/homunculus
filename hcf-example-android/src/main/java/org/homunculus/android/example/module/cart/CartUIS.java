@@ -1,9 +1,13 @@
 package org.homunculus.android.example.module.cart;
 
 import android.content.Context;
-import android.view.View;
+import android.support.transition.Explode;
+import android.support.transition.Slide;
+import android.view.Gravity;
+import android.view.ViewGroup;
 
 import org.homunculus.android.compat.EventAppCompatActivity;
+import org.homunculus.android.component.ViewTransitionAnimator;
 import org.homunculus.android.component.ToolbarBuilder;
 import org.homunculus.android.example.R;
 import org.homunculusframework.factory.container.Request;
@@ -24,6 +28,9 @@ public class CartUIS extends CartView {
     private EventAppCompatActivity mActivity;
 
     @Inject
+    private ViewTransitionAnimator viewTransitionAnimator;
+
+    @Inject
     private Navigation mNav;
 
     @Inject
@@ -38,7 +45,7 @@ public class CartUIS extends CartView {
     @Priority(10)//TODO this looks weired -> super methods with the same order should have higher priority
     private void setViewInActivity() {
         int x = R.layout.hcf_splash;
-        View content = ToolbarBuilder.define()
+        ViewGroup content = ToolbarBuilder.define()
                 .setTitle(str(R.string.app_name))
                 .setTitleTextColor(R.color.colorAccent)
                 .setToolbarColor(R.color.colorPrimary)
@@ -55,7 +62,8 @@ public class CartUIS extends CartView {
                     return true;
                 })
                 .create(scope, mActivity, mActivity, this, new SideMenuView(getContext(), mNav));
-        mActivity.setContentView(content);
+        viewTransitionAnimator.setForwardTransition(new Explode());
+        viewTransitionAnimator.setActivityContentView(content);
     }
 
 

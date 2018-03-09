@@ -130,4 +130,11 @@ public interface Navigation extends BackActionConsumer {
      * @return the stack, never null
      */
     List<Request> getStack();
+
+    /**
+     * Checks, if the the navigation was going forward during the last state switch
+     *
+     * @return true, if the the navigation was going forward during the last state switch
+     */
+    boolean wasGoingForward();
 }

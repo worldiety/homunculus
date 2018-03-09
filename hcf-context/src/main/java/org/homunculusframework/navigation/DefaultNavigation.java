@@ -50,6 +50,7 @@ public class DefaultNavigation implements Navigation {
 
     private final List<Request> stack;
     private boolean crashOnFail = true;
+    private boolean wasGoingForward = true;
 
     public DefaultNavigation(Scope scope) {
         this.scope = scope;
@@ -90,6 +91,7 @@ public class DefaultNavigation implements Navigation {
     @Override
     public void forward(Request request) {
         synchronized (stack) {
+            wasGoingForward =true;
             stack.add(request);
         }
         applyInternal(request);
@@ -98,6 +100,7 @@ public class DefaultNavigation implements Navigation {
     @Override
     public boolean backward() {
         synchronized (stack) {
+            wasGoingForward = false;
             UserInterfaceState uis = currentUIS;
             if (uis != null && uis.getBean() instanceof BackActionConsumer) {
                 if (((BackActionConsumer) uis.getBean()).backward()) {
@@ -121,6 +124,7 @@ public class DefaultNavigation implements Navigation {
     @Override
     public void backward(Request request) {
         synchronized (stack) {
+            wasGoingForward = false;
             pop();//just pop the current entry from the stack
             while (!stack.isEmpty()) {
                 Request prior = pop();
@@ -207,6 +211,11 @@ public class DefaultNavigation implements Navigation {
     @Override
     public List<Request> getStack() {
         return stack;
+    }
+
+    @Override
+    public boolean wasGoingForward() {
+        return wasGoingForward;
     }
 
     /**
