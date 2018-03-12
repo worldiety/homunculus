@@ -15,12 +15,10 @@
  */
 package org.homunculus.codegen.generator;
 
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-
 import org.homunculus.codegen.GenProject;
 import org.homunculus.codegen.Generator;
-import org.homunculus.codegen.parse.javaparser.SrcFile;
 import org.homunculus.codegen.generator.PreprocessDiscoverBeans.DiscoveryKind;
+import org.homunculus.codegen.parse.FullQualifiedName;
 
 /**
  * See {@link ObjectBindingGenerator}
@@ -30,11 +28,8 @@ import org.homunculus.codegen.generator.PreprocessDiscoverBeans.DiscoveryKind;
 public class GenerateObjectBindings implements Generator {
     @Override
     public void generate(GenProject project) throws Exception {
-        for (SrcFile file : project.getDiscoveredKinds().get(DiscoveryKind.BEAN)) {
-            ClassOrInterfaceDeclaration ctr = file.getUnit().getClassByName(file.getPrimaryClassName()).get();
-            if (ctr.isPublic() && !ctr.isAbstract()) {
-                new ObjectBindingGenerator().create(project, file);
-            }
+        for (FullQualifiedName bean : project.getDiscoveredKinds().get(DiscoveryKind.BEAN)) {
+            new ObjectBindingGenerator().create(project, bean);
         }
 
 

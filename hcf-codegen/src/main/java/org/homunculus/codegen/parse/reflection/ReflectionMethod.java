@@ -2,8 +2,10 @@ package org.homunculus.codegen.parse.reflection;
 
 import org.homunculus.codegen.generator.LintException;
 import org.homunculus.codegen.parse.Annotation;
+import org.homunculus.codegen.parse.FullQualifiedName;
 import org.homunculus.codegen.parse.Method;
 import org.homunculus.codegen.parse.Parameter;
+import org.homunculus.codegen.parse.Type;
 
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -72,12 +74,24 @@ public class ReflectionMethod implements Method {
     }
 
     @Override
-    public void throwLintException(String msg) throws LintException {
+    public LintException newLintException(String msg) {
         throw new RuntimeException("not yet implemented");
     }
 
     @Override
     public List<Parameter> getParameters() {
+        throw new RuntimeException("not yet implemented");
+    }
+
+    @Override
+    public Type getType() {
+        //TODO this is not correct for generics
+        Type type = new Type(new FullQualifiedName(method.getReturnType()));
+        return type;
+    }
+
+    @Override
+    public FullQualifiedName getDeclaringType() {
         throw new RuntimeException("not yet implemented");
     }
 }

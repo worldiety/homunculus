@@ -15,21 +15,16 @@
  */
 package org.homunculus.codegen.generator;
 
-import com.github.javaparser.ast.NodeList;
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.javaparser.ast.expr.AnnotationExpr;
-
 import org.homunculus.codegen.GenProject;
 import org.homunculus.codegen.Generator;
-import org.homunculus.codegen.parse.javaparser.SrcFile;
-import org.homunculus.codegen.generator.ObjectBindingGenerator.Field;
-import org.slf4j.LoggerFactory;
+import org.homunculus.codegen.parse.Annotation;
+import org.homunculus.codegen.parse.Field;
+import org.homunculus.codegen.parse.FullQualifiedName;
+import org.homunculus.codegen.parse.Resolver;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -46,53 +41,53 @@ public class PreprocessDiscoverBeans implements Generator {
         discover(project);
     }
 
-    private Map<DiscoveryKind, Set<SrcFile>> discover(GenProject project) {
-        Map<DiscoveryKind, Set<SrcFile>> discoveryKinds = project.getDiscoveredKinds();
+    private boolean isAcceptableBean(Resolver resolver, FullQualifiedName fqn) {
+        return resolver.isTopLevelType(fqn) || resolver.isStatic(fqn) && (!resolver.isAbstract(fqn) && !resolver.isPrivate(fqn));
+    }
+
+    private Map<DiscoveryKind, Set<FullQualifiedName>> discover(GenProject project) throws ClassNotFoundException {
+        Map<DiscoveryKind, Set<FullQualifiedName>> discoveryKinds = project.getDiscoveredKinds();
         for (DiscoveryKind kind : DiscoveryKind.values()) {
             discoveryKinds.put(kind, new HashSet<>());
         }
+        Resolver resolver = project.getResolver();
+
         NEXT_SRC:
-        for (SrcFile src : project.getSrcFiles()) {
-            Optional<ClassOrInterfaceDeclaration> optDec = src.getUnit().getClassByName(src.getPrimaryClassName());
-            if (!optDec.isPresent()) {
-                LoggerFactory.getLogger(getClass()).warn("ignored file {}", src.getFile());
-                continue;
-            }
-            ClassOrInterfaceDeclaration dec = optDec.get();
+        for (FullQualifiedName bean : resolver.getTypes()) {
+            if (isAcceptableBean(resolver, bean)) {
+                //check type annotations to distinguish some basic behaviors, especially singleton stuff
+                List<Annotation> typeAnnotations = resolver.getAnnotations(bean);
 
-
-            NodeList<AnnotationExpr> annotations = dec.getAnnotations();
-            for (DiscoveryKind kind : DiscoveryKind.values()) {
-                for (AnnotationExpr annotation : annotations) {
-                    String symbol = src.getFullQualifiedName(annotation.getNameAsString());
-                    if (kind.match(symbol)) {
-                        discoveryKinds.get(kind).add(src);
-                        //also always ensure that a singleton is always generated as a bean
-                        if (kind == DiscoveryKind.SINGLETON) {
-                            discoveryKinds.get(DiscoveryKind.BEAN).add(src);
-                        }
-                        continue NEXT_SRC;
-                    }
-                }
-
-                //now check also our fields
-                List<Field> fields = new ArrayList<>();
-                ObjectBindingGenerator.collectInjectableFields(project, src, dec, fields);
-
-                for (Field field : fields) {
-                    NodeList<AnnotationExpr> fAnnotations = field.dec.getAnnotations();
-                    for (AnnotationExpr annotation : fAnnotations) {
-                        String symbol = src.getFullQualifiedName(annotation.getNameAsString());
-                        if (kind.match(symbol)) {
-                            discoveryKinds.get(kind).add(src);
+                for (DiscoveryKind kind : DiscoveryKind.values()) {
+                    //check if we have a type annotation to avoid parsing all fields
+                    for (Annotation annotation : typeAnnotations) {
+                        if (kind.match(annotation.getFullQualifiedName().toString())) {
+                            discoveryKinds.get(kind).add(bean);
+                            //also always ensure that a singleton is always generated as a bean
+                            if (kind == DiscoveryKind.SINGLETON) {
+                                discoveryKinds.get(DiscoveryKind.BEAN).add(bean);
+                            }
                             continue NEXT_SRC;
                         }
                     }
+
+                    //other beans may have no annotation at all, like UISs -> we can only find those if they have field annotations
+                    for (Field field : resolver.getFields(bean)) {
+                        for (Annotation annotation : field.getAnnotations())
+                            if (kind.match(annotation.getFullQualifiedName().toString())) {
+                                discoveryKinds.get(kind).add(bean);
+                                continue NEXT_SRC;
+                            }
+                    }
+
+
                 }
+
+
             }
-
-
         }
+
+
         return discoveryKinds;
     }
 

@@ -15,14 +15,31 @@ public class FullQualifiedName {
         this(c.getName());
     }
 
+    /**
+     * E.g. my.package.MyClass returns MyClass
+     */
     public String getSimpleName() {
         int idx = fullqualifiedName.lastIndexOf('.');
         if (idx < 0) {
             return fullqualifiedName;
         }
-        return fullqualifiedName.substring(idx);
+        return fullqualifiedName.substring(idx + 1);
     }
 
+    /**
+     * E.g. my.package.MyClass returns my.package
+     */
+    public String getPackageName() {
+        int idx = fullqualifiedName.lastIndexOf('.');
+        if (idx < 0) {
+            return fullqualifiedName;
+        }
+        return fullqualifiedName.substring(0, idx);
+    }
+
+    /**
+     * E.g. my.package.MyClass returns my.package.MyClass
+     */
     @Override
     public String toString() {
         return fullqualifiedName;

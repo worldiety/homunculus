@@ -15,7 +15,6 @@
  */
 package org.homunculus.codegen.generator;
 
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.JDefinedClass;
 import com.helger.jcodemodel.JDirectClass;
@@ -29,8 +28,9 @@ import com.helger.jcodemodel.JVar;
 
 import org.homunculus.codegen.GenProject;
 import org.homunculus.codegen.Generator;
-import org.homunculus.codegen.parse.javaparser.SrcFile;
 import org.homunculus.codegen.generator.PreprocessDiscoverBeans.DiscoveryKind;
+import org.homunculus.codegen.parse.FullQualifiedName;
+import org.homunculus.codegen.parse.Strings;
 import org.homunculusframework.concurrent.Async;
 import org.homunculusframework.concurrent.Task;
 import org.homunculusframework.factory.container.ObjectContainer;
@@ -57,16 +57,13 @@ public class GenerateControllerFactory implements Generator {
         container._implements(ObjectContainer.class);
 
 
-        List<SrcFile> controllers = new ArrayList<>();
-        for (SrcFile file : project.getDiscoveredKinds().get(DiscoveryKind.SINGLETON)) {
-            ClassOrInterfaceDeclaration ctr = file.getUnit().getClassByName(file.getPrimaryClassName()).get();
+        List<FullQualifiedName> controllers = new ArrayList<>();
+        for (FullQualifiedName bean : project.getDiscoveredKinds().get(DiscoveryKind.SINGLETON)) {
 
-            if (ctr.isPublic() && !ctr.isAbstract()) {
-                controllers.add(file);
-                JDefinedClass ctrBinding = project.getCodeModel()._getClass(file.getPackageName() + ".Bind" + file.getPrimaryClassName());
-                if (ctrBinding == null) {
-                    throw new InternalError("binding for " + file.getPrimaryClassName() + " not found");
-                }
+            controllers.add(bean);
+            JDefinedClass ctrBinding = project.getCodeModel()._getClass(bean.getPackageName() + ".Bind" + bean.getSimpleName());
+            if (ctrBinding == null) {
+                throw new InternalError("binding for " + bean + " not found");
             }
         }
 
@@ -100,21 +97,19 @@ public class GenerateControllerFactory implements Generator {
 
 
         //content of start and fields and implement start method
-        for (SrcFile file : controllers) {
-            JDefinedClass ctrBinding = project.getCodeModel()._getClass(file.getPackageName() + ".Bind" + file.getPrimaryClassName());
-            ClassOrInterfaceDeclaration ctr = file.getUnit().getClassByName(file.getPrimaryClassName()).get();
-            String fqnCtr = file.getPackageName() + "." + file.getPrimaryClassName();
-            AbstractJClass absCtr = project.getCodeModel().ref(fqnCtr);
+        for (FullQualifiedName bean : controllers) {
+            JDefinedClass ctrBinding = project.getCodeModel()._getClass(bean.getPackageName() + ".Bind" + bean.getSimpleName());
+            AbstractJClass absCtr = project.getCodeModel().ref(bean.toString());
 
             //add the member
-            JFieldVar varCtr = container.field(JMod.PRIVATE, project.getCodeModel().ref(fqnCtr), project.startLowerCase(ctr.getNameAsString()));
+            JFieldVar varCtr = container.field(JMod.PRIVATE, absCtr, Strings.startLowerCase(bean.getSimpleName()));
 
             //add the async member setter
             JInvocation exec = JExpr._new(ctrBinding).invoke("execute").arg(varScope);
             start.body().add(exec.invoke("whenDone").arg(JExpr.direct("res -> { " + varCtr.name() + " = inc(res);}")));
 
             //add the getter
-            JMethod getter = container.method(JMod.PUBLIC, absCtr, "get" + project.startUpperCase(varCtr.name()));
+            JMethod getter = container.method(JMod.PUBLIC, absCtr, "get" + Strings.startUpperCase(varCtr.name()));
             getter.body().invoke(awaitStart);
             getter.body()._return(varCtr);
 
@@ -122,8 +117,8 @@ public class GenerateControllerFactory implements Generator {
         start.body()._return(varRes);
     }
 
-    private void sortByDependencyGraph(List<SrcFile> files) {
+    private void sortByDependencyGraph(List<FullQualifiedName> files) {
         //TODO also detect cycles and throw
-        Collections.sort(files, (a, b) -> a.getPrimaryClassName().compareTo(b.getPrimaryClassName()));
+        Collections.sort(files, (a, b) -> a.getSimpleName().compareTo(b.getSimpleName()));
     }
 }

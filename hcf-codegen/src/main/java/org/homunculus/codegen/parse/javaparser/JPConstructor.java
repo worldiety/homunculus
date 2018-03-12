@@ -1,10 +1,12 @@
 package org.homunculus.codegen.parse.javaparser;
 
+import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 
 import org.homunculus.codegen.generator.LintException;
 import org.homunculus.codegen.parse.Annotation;
+import org.homunculus.codegen.parse.Constructor;
 import org.homunculus.codegen.parse.FullQualifiedName;
 import org.homunculus.codegen.parse.Method;
 import org.homunculus.codegen.parse.Parameter;
@@ -17,16 +19,14 @@ import java.util.List;
  * Created by Torben Schinke on 09.03.18.
  */
 
-public class JPMethod implements Method {
-    private final MethodDeclaration methodDeclaration;
+public class JPConstructor implements Constructor {
+    private final ConstructorDeclaration methodDeclaration;
     private final TypeContext ctx;
-    private final boolean isDeclared;
     private final FullQualifiedName declaringType;
 
-    public JPMethod(TypeContext ctx, FullQualifiedName declaringType, MethodDeclaration methodDeclaration, boolean isDeclared) {
+    public JPConstructor(TypeContext ctx, FullQualifiedName declaringType, ConstructorDeclaration methodDeclaration) {
         this.methodDeclaration = methodDeclaration;
         this.ctx = ctx;
-        this.isDeclared = isDeclared;
         this.declaringType = declaringType;
     }
 
@@ -50,10 +50,6 @@ public class JPMethod implements Method {
         return methodDeclaration.isProtected();
     }
 
-    @Override
-    public boolean isNative() {
-        return methodDeclaration.isNative();
-    }
 
     @Override
     public boolean isStatic() {
@@ -67,11 +63,6 @@ public class JPMethod implements Method {
 
 
     @Override
-    public boolean isDeclared() {
-        return isDeclared;
-    }
-
-    @Override
     public List<Annotation> getAnnotations() {
         //TODO this does not work with inheritation and not with reflection resolver
         List<Annotation> res = new ArrayList<>();
@@ -82,7 +73,7 @@ public class JPMethod implements Method {
     }
 
     @Override
-    public LintException newLintException(String msg)   {
+    public LintException newLintException(String msg) {
         return new LintException(msg, ctx.src, methodDeclaration.getRange().get());
     }
 
@@ -95,12 +86,6 @@ public class JPMethod implements Method {
         return res;
     }
 
-    @Override
-    public Type getType() {
-        //TODO this is not correct for generics
-        Type type = new Type(new FullQualifiedName(methodDeclaration.getType().asString()));
-        return type;
-    }
 
     @Override
     public FullQualifiedName getDeclaringType() {

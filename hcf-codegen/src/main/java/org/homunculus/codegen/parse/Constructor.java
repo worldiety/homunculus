@@ -1,8 +1,5 @@
 package org.homunculus.codegen.parse;
 
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.javaparser.ast.body.MethodDeclaration;
-
 import org.homunculus.codegen.generator.LintException;
 
 import java.util.List;
@@ -13,7 +10,7 @@ import javax.annotation.Nullable;
  * Created by Torben Schinke on 09.03.18.
  */
 
-public interface Method {
+public interface Constructor {
 
     boolean isPrivate();
 
@@ -23,18 +20,12 @@ public interface Method {
 
     boolean isProtected();
 
-    boolean isNative();
 
     boolean isStatic();
 
     default boolean isDefault() {
-        return !isNative() && !isProtected() && !isPublic() && !isPrivate();
+        return !isProtected() && !isPublic() && !isPrivate();
     }
-
-    /**
-     * True if this method is declared directly in the class
-     */
-    boolean isDeclared();
 
     String getName();
 
@@ -62,15 +53,12 @@ public interface Method {
 
     List<Parameter> getParameters();
 
-    Type getType();
 
     FullQualifiedName getDeclaringType();
 
 
     default String asJavadocAnchor() {
         StringBuilder sb = new StringBuilder();
-        sb.append(getDeclaringType()).append("#");
-        sb.append(getName());
         sb.append("(");
         for (Parameter p : getParameters()) {
             sb.append(p.getType());
@@ -82,4 +70,5 @@ public interface Method {
         sb.append(")");
         return sb.toString();
     }
+
 }

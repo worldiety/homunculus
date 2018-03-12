@@ -21,6 +21,7 @@ import com.helger.jcodemodel.JDefinedClass;
 
 import org.homunculus.codegen.GenProject;
 import org.homunculus.codegen.Generator;
+import org.homunculus.codegen.parse.FullQualifiedName;
 import org.homunculus.codegen.parse.javaparser.SrcFile;
 import org.homunculus.codegen.generator.PreprocessDiscoverBeans.DiscoveryKind;
 import org.homunculusframework.factory.async.AsyncDelegate;
@@ -36,17 +37,18 @@ import org.homunculusframework.factory.async.AsyncDelegate;
 public class GenerateAsyncControllers implements Generator {
 
 
+
     @Override
     public void generate(GenProject project) throws Exception {
-        for (SrcFile file : project.getDiscoveredKinds().get(DiscoveryKind.SINGLETON)) {
-            ClassOrInterfaceDeclaration ctr = file.getUnit().getClassByName(file.getPrimaryClassName()).get();
-            if (ctr.isPublic() && !ctr.isAbstract()) {
-                JDefinedClass jc = project.getCodeModel()._package(file.getPackageName())._class("Async" + file.getPrimaryClassName());
-                jc._extends(project.getCodeModel().ref(AsyncDelegate.class).narrow(project.getCodeModel().ref(file.getFullQualifiedNamePrimaryClassName())));
-                jc.headerComment().add(project.getDisclaimer(getClass()));
-                jc.javadoc().add("This class provides asynchronous calls for all public methods of {@link " + file.getFullQualifiedNamePrimaryClassName() + "}. \nThis should only be used from the UI and not from within other Controllers.\nIt always expects an injected Scope to determine the lifetime of the task.\nIf you need special behavior or other methods, it is fine to extend this class.");
-
-            }
+        for (FullQualifiedName bean : project.getDiscoveredKinds().get(DiscoveryKind.SINGLETON)) {
+            System.out.println(bean.getPackageName());
+            System.out.println(bean.getSimpleName());
+            JDefinedClass jc = project.getCodeModel().
+                    _package(bean.getPackageName()).
+                    _class("Async" + bean.getSimpleName());
+            jc._extends(project.getCodeModel().ref(AsyncDelegate.class).narrow(project.getCodeModel().ref(bean.toString())));
+            jc.headerComment().add(project.getDisclaimer(getClass()));
+            jc.javadoc().add("This class provides asynchronous calls for all public methods of {@link " + bean.toString() + "}. \nThis should only be used from the UI and not from within other Controllers.\nIt always expects an injected Scope to determine the lifetime of the task.\nIf you need special behavior or other methods, it is fine to extend this class.");
 
         }
     }

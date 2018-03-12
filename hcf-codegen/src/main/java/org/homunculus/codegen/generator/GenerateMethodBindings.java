@@ -15,10 +15,6 @@
  */
 package org.homunculus.codegen.generator;
 
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.body.Parameter;
-import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.JDefinedClass;
 import com.helger.jcodemodel.JExpr;
@@ -29,8 +25,11 @@ import com.helger.jcodemodel.JVar;
 
 import org.homunculus.codegen.GenProject;
 import org.homunculus.codegen.Generator;
-import org.homunculus.codegen.parse.javaparser.SrcFile;
 import org.homunculus.codegen.generator.PreprocessDiscoverBeans.DiscoveryKind;
+import org.homunculus.codegen.parse.FullQualifiedName;
+import org.homunculus.codegen.parse.Method;
+import org.homunculus.codegen.parse.Parameter;
+import org.homunculus.codegen.parse.Strings;
 import org.homunculusframework.factory.container.MethodBinding;
 import org.homunculusframework.factory.container.ModelAndView;
 import org.homunculusframework.factory.container.ObjectBinding;
@@ -68,29 +67,25 @@ import org.homunculusframework.scope.Scope;
 public class GenerateMethodBindings implements Generator {
     @Override
     public void generate(GenProject project) throws Exception {
-        for (SrcFile file : project.getDiscoveredKinds().get(DiscoveryKind.SINGLETON)) {
+        for (FullQualifiedName bean : project.getDiscoveredKinds().get(DiscoveryKind.SINGLETON)) {
             //pick up the already generated async controller class - care of invocation order
-            String ctrName = "Async" + file.getPrimaryClassName();
-            JDefinedClass cl = project.getCodeModel()._getClass(file.getPackageName() + "." + ctrName);
+            String ctrName = "Async" + bean.getSimpleName();
+            JDefinedClass cl = project.getCodeModel()._getClass(bean.getPackageName() + "." + ctrName);
             if (cl == null) {
                 throw new RuntimeException(ctrName + " not found in codemodel");
             }
 
-            ClassOrInterfaceDeclaration ctrClass = file.getUnit().getClassByName(file.getPrimaryClassName()).get();
-            for (MethodDeclaration method : ctrClass.getMethods()) {
+            for (Method method : project.getResolver().getMethods(bean)) {
                 //ignore everything which is neither public/package private nor instance bound
                 if (method.isPrivate() || method.isProtected() || method.isStatic()) {
                     continue;
                 }
 
-                if (!(method.getType() instanceof ClassOrInterfaceType)) {
-                    continue;
-                }
 
                 String[] allowedReturnValues = {ObjectBinding.class.getName(), ModelAndView.class.getName()};
                 boolean allowed = false;
                 for (String a : allowedReturnValues) {
-                    if (file.getFullQualifiedName(method.getType()).equals(a)) {
+                    if (method.getType().getFullQualifiedName().toString().equals(a)) {
                         allowed = true;
                         break;
                     }
@@ -100,21 +95,21 @@ public class GenerateMethodBindings implements Generator {
                 }
 
                 //create the inner binding class
-                JDefinedClass binding = cl._class(JMod.STATIC | JMod.PUBLIC, "Bind" + ctrClass.getNameAsString() + project.startUpperCase(method.getNameAsString()));
-                binding.javadoc().add("A decoupled binding to {@link " + project.getJavadocReference(file, method) + "} which is serializable.");
+                JDefinedClass binding = cl._class(JMod.STATIC | JMod.PUBLIC, "Bind" + bean.getSimpleName() + Strings.startUpperCase(method.getName()));
+                binding.javadoc().add("A decoupled binding to {@link " + method.asJavadocAnchor() + "} which is serializable.");
 
                 binding._extends(project.getCodeModel().ref(MethodBinding.class).narrow(Object.class));
 
                 //add the constructor for this binding
                 JMethod con = binding.constructor(JMod.PUBLIC);
                 for (Parameter p : method.getParameters()) {
-                    AbstractJClass pType = project.getCodeModel().ref(file.getFullQualifiedName(p.getType().asString()));
+                    AbstractJClass pType = project.getCodeModel().ref(p.getType().toString());
 
                     //the field
-                    JFieldVar thisVar = binding.field(JMod.PRIVATE, pType, p.getNameAsString());
+                    JFieldVar thisVar = binding.field(JMod.PRIVATE, pType, p.getName());
 
                     //the constructor param
-                    JVar pVar = con.param(pType, p.getNameAsString());
+                    JVar pVar = con.param(pType, p.getName());
 
                     //the setting
                     con.body().assign(JExpr._this().ref(thisVar), pVar);
@@ -125,15 +120,15 @@ public class GenerateMethodBindings implements Generator {
                 JVar dstVar = onBind.param(Scope.class, "dst");
                 onBind.annotate(project.getCodeModel().ref(Override.class));
                 for (Parameter p : method.getParameters()) {
-                    onBind.body().add(dstVar.invoke("put").arg(p.getNameAsString()).arg(binding.fields().get(p.getNameAsString())));
+                    onBind.body().add(dstVar.invoke("put").arg(p.getName()).arg(binding.fields().get(p.getName())));
                 }
 
                 //override onExecute which performs the actual calling
                 JMethod onExecute = binding.method(JMod.PROTECTED, project.getCodeModel().ref(ObjectBinding.class).narrow(Object.class), "onExecute")._throws(Exception.class);
                 onExecute.annotate(project.getCodeModel().ref(Override.class));
-                JVar ctr = onExecute.body().decl(project.getCodeModel().ref(file.getFullQualifiedNamePrimaryClassName()), "_ctr");
-                onExecute.body().directStatement(ctr.name() + " = get(" + file.getFullQualifiedNamePrimaryClassName() + ".class);");
-                onExecute.body().invoke("assertNotNull").arg(project.getCodeModel().ref(file.getFullQualifiedNamePrimaryClassName()).dotclass()).arg(ctr);
+                JVar ctr = onExecute.body().decl(project.getCodeModel().ref(bean.toString()), "_ctr");
+                onExecute.body().directStatement(ctr.name() + " = get(" + bean.toString() + ".class);");
+                onExecute.body().invoke("assertNotNull").arg(project.getCodeModel().ref(bean.toString()).dotclass()).arg(ctr);
                 StringBuilder tmp = new StringBuilder();
                 tmp.append("(ObjectBinding<Object>) (ObjectBinding<?>)");
                 tmp.append(ctr.name()).append(".").append(method.getName()).append("(");
