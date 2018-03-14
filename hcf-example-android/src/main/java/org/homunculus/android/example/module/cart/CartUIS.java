@@ -14,6 +14,7 @@ import org.homunculus.android.example.R;
 import org.homunculusframework.factory.container.Container;
 import org.homunculusframework.factory.container.Request;
 import org.homunculusframework.factory.flavor.hcf.Execute;
+import org.homunculusframework.factory.flavor.hcf.FactoryParam;
 import org.homunculusframework.factory.flavor.hcf.Priority;
 import org.homunculusframework.navigation.Navigation;
 import org.homunculusframework.scope.Scope;
@@ -39,7 +40,13 @@ public class CartUIS extends CartView {
     @Inject
     private Scope scope;
 
-    public CartUIS(Context context) {
+    @FactoryParam
+    String bla;
+
+    @FactoryParam
+    public String bla2;
+
+    public CartUIS(Context context, @FactoryParam String superId) {
         super(context);
     }
 

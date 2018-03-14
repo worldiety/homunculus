@@ -20,6 +20,18 @@ public interface Field {
 
     LintException newLintException(String msg);
 
+    FullQualifiedName getDeclaringType();
+
+    boolean isPublic();
+
+    boolean isProtected();
+
+    boolean isPrivate();
+
+    default boolean isDefault() {
+        return !isPublic() && !isProtected() && !isPrivate();
+    }
+
     @Nullable
     default Annotation getAnnotation(FullQualifiedName name) {
         for (Annotation annotation : getAnnotations()) {
@@ -28,6 +40,14 @@ public interface Field {
             }
         }
         return null;
+    }
+
+    default String asJavadocAnchor() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(getDeclaringType());
+        sb.append("#");
+        sb.append(getName());
+        return sb.toString();
     }
 
     @Nullable

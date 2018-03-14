@@ -85,7 +85,7 @@ public class GenerateTaskMethods implements Generator {
 
 
                 //if we passed our checks, it is fine to assume that we want it as an async instance task method
-                AbstractJClass actualReturn = project.getCodeModel().ref(method.toString());
+                AbstractJClass actualReturn = project.getCodeModel().ref(method.getType().getFullQualifiedName().toString());
                 JMethod newMeth = cl.method(JMod.PUBLIC, project.getCodeModel().ref(Task.class).narrow(project.getCodeModel().ref(Result.class).narrow(actualReturn)), method.getName());
 
                 StringBuilder ptmp = new StringBuilder();

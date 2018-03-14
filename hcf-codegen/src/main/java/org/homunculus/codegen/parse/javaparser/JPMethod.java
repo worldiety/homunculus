@@ -82,7 +82,7 @@ public class JPMethod implements Method {
     }
 
     @Override
-    public LintException newLintException(String msg)   {
+    public LintException newLintException(String msg) {
         return new LintException(msg, ctx.src, methodDeclaration.getRange().get());
     }
 
@@ -98,7 +98,7 @@ public class JPMethod implements Method {
     @Override
     public Type getType() {
         //TODO this is not correct for generics
-        Type type = new Type(new FullQualifiedName(methodDeclaration.getType().asString()));
+        Type type = new Type(new FullQualifiedName(ctx.src.getFullQualifiedName(methodDeclaration.getType().asString())));
         return type;
     }
 

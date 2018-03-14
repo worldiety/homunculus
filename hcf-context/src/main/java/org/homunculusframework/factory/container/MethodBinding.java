@@ -33,10 +33,5 @@ import javax.annotation.Nullable;
  */
 public abstract class MethodBinding<T> extends Binding<ObjectBinding<T>> {
 
-    //a method binding is not expected to have a static constructor
-    @Override
-    protected void initStatic() {
-
-    }
 
 }

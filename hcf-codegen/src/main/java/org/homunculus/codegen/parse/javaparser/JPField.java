@@ -30,15 +30,33 @@ public class JPField implements Field {
     }
 
     @Override
+    public FullQualifiedName getDeclaringType() {
+        return ctx.name;
+    }
+
+    @Override
+    public boolean isPublic() {
+        return fieldDeclaration.isPublic();
+    }
+
+    @Override
+    public boolean isProtected() {
+        return fieldDeclaration.isProtected();
+    }
+
+    @Override
+    public boolean isPrivate() {
+        return fieldDeclaration.isPrivate();
+    }
+
+    @Override
     public String getName() {
         return fieldDeclaration.getVariables().get(0).getNameAsString();
     }
 
     @Override
     public Type getType() {
-        //TODO this is not correct for generics
-        Type type = new Type(new FullQualifiedName(fieldDeclaration.getVariables().get(0).getType().asString()));
-        return type;
+        return TypeUtil.convert(ctx,fieldDeclaration.getVariables().get(0).getType());
     }
 
 
@@ -55,4 +73,6 @@ public class JPField implements Field {
     public LintException newLintException(String msg) {
         throw new LintException(msg, ctx.src, fieldDeclaration.getRange().get());
     }
+
+
 }

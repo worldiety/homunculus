@@ -66,7 +66,7 @@ public class CartView extends LinearLayout {
     private Navigation nav;
 
     @Inject
-    private CartControllerConnection mCartController;
+    private AsyncCartController mCartController;
 
     @Inject
     private CompanyController company;

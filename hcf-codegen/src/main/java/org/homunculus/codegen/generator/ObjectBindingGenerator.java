@@ -126,8 +126,9 @@ class ObjectBindingGenerator {
         binding._extends(project.getCodeModel().ref(what).narrow(delegate));
 
         ObjectBindingModel objectBindingModel = new ObjectBindingModel();
+        objectBindingModel.bean = bean;
 
-//        //pick all available fields, including super classes
+        //pick all available fields, including super classes
         List<Field> fields = resolver.getFields(bean);
         HashMap<String, Field> lintFieldNames = new HashMap<>();
         for (Field field : fields) {
@@ -157,125 +158,17 @@ class ObjectBindingGenerator {
             }
         }
 
-        //the constructor is build from the original constructor and special annotated fields
-        createTypeSafeBindingConstructor(project.getCodeModel(), binding, objectBindingModel);
+        //create stub for the onExecute method
+        OnExecuteMethod onExecuteMethod = createOnExecuteMethod(project.getCodeModel(), binding, bean);
 
-//
-//        //add the constructor for this binding
-//        JMethod con = binding.constructor(JMod.PUBLIC);
-//        Set<Parameter> dynamicConstructorParams = new HashSet<>();
-//        Set<Parameter> fieldConstructorParams = new HashSet<>();
-//        //first add the actual constructor parameters
-//        if (bestConstructor != null) {
-//            NEXT_PARAM:
-//            for (Parameter p : bestConstructor.getParameters()) {
-//                AbstractJClass pType = project.getCodeModel().ref(file.getFullQualifiedName(p.getType().asString()));
-//                for (AnnotationExpr annotation : p.getAnnotations()) {
-//                    String aFqn = file.getFullQualifiedName(annotation.getNameAsString());
-//                    if (aFqn.equals(FactoryParam.class.getName())) {
-//
-//                        JVar pVar = con.param(pType, p.getNameAsString());
-//
-//                        //the field
-//                        JFieldVar thisVar = binding.field(JMod.PRIVATE, pType, p.getNameAsString());
-//                        thisVar.javadoc().add("introduced by @FactoryParam from within the constructor");
-//
-//                        //the setting
-//                        con.body().assign(JExpr._this().ref(thisVar), pVar);
-//
-//                        fieldConstructorParams.add(p);
-//                        continue NEXT_PARAM;
-//                    }
-//                }
-//                dynamicConstructorParams.add(p);
-//            }
-//        }
-//
-//        //second add all injectable fields which are marked as factory param
-//        for (FieldLegacy field : fields) {
-//            //the static field
-////            if (!field.isFactoryParam) {
-//            JFieldVar thisStaticVar = binding.field(JMod.PRIVATE | JMod.STATIC, java.lang.reflect.Field.class, "field" + project.startUpperCase(field.getFieldName()));
-//            thisStaticVar.javadoc().add("a static reflection field cache to support private member injection");
-////            }
-//        }
-//
-//        for (FieldLegacy field : fields) {
-//            if (field.isFactoryParam) {
-//                AbstractJClass pType = project.getCodeModel().ref(file.getFullQualifiedName(field.dec.getVariables().get(0).getType().asString()));
-//                JVar pVar = con.param(pType, field.getFieldName());
-//
-//                //the field
-//                JFieldVar thisVar = binding.field(JMod.PRIVATE, pType, field.getFieldName());
-//                if (field.isNullable) {
-//                    thisVar.annotate(Nullable.class);
-//                    pVar.annotate(Nullable.class);
-//                }
-//                thisVar.javadoc().add("introduced by @FactoryParam from a field annotation");
-//
-//                //the setting
-//                con.body().assign(JExpr._this().ref(thisVar), pVar);
-//            }
-//        }
-//
-//        //the static reflection field cache to make performance pretty perfect - it is usually as fast as directly setting the value
-//        JMethod initStatic = binding.method(JMod.PROTECTED, void.class, "initStatic");
-//        initStatic.annotate(project.getCodeModel().ref(Override.class));
-//        JVar varFields = initStatic.body().decl(project.getCodeModel().ref(Map.class).narrow(String.class, java.lang.reflect.Field.class), "_fields");
-//        initStatic.body().assign(varFields, project.getCodeModel().ref(Reflection.class).staticInvoke("getFieldsMap").arg(JExpr.dotclass(project.getCodeModel().ref(file.getFullQualifiedNamePrimaryClassName()))));
-//        for (FieldLegacy field : fields) {
-//            if (field.isFactoryParam) {
-//                initStatic.body().assign(binding.fields().get("field" + project.startUpperCase(field.getFieldName())), varFields.invoke("get").arg(field.getFieldName()));
-//            }
-//
-//        }
-//
-//        //override onBind for the scope
-//        JMethod onBind = binding.method(JMod.PROTECTED, void.class, "onBind");
-//        JVar dstVar = onBind.param(Scope.class, "dst");
-//        onBind.annotate(project.getCodeModel().ref(Override.class));
-//        for (FieldLegacy field : fields) {
-//            if (field.isFactoryParam) {
-//                onBind.body().add(dstVar.invoke("put").arg(field.getFieldName()).arg(binding.fields().get(field.getFieldName())));
-//            }
-//        }
-//
-//        for (Parameter p : fieldConstructorParams) {
-//            onBind.body().add(dstVar.invoke("put").arg(p.getNameAsString()).arg(binding.fields().get(p.getNameAsString())));
-//        }
-//
-//
-////        override onExecute which performs the actual calling
-//        JMethod onExecute = binding.method(JMod.PROTECTED, project.getCodeModel().ref(file.getFullQualifiedNamePrimaryClassName()), "onExecute")._throws(Exception.class);
-//        onExecute.annotate(project.getCodeModel().ref(Override.class));
-//        JVar bean = onExecute.body().decl(project.getCodeModel().ref(file.getFullQualifiedNamePrimaryClassName()), "_bean");
-//        JInvocation _new = JExpr._new(project.getCodeModel().ref(file.getFullQualifiedNamePrimaryClassName()));
-//        //create the constructor params
-//        if (bestConstructor != null) {
-//            for (Parameter p : bestConstructor.getParameters()) {
-//                if (dynamicConstructorParams.contains(p)) {
-//                    AbstractJClass pType = project.getCodeModel().ref(file.getFullQualifiedName(p.getType().asString()));
-//                    _new.arg(JExpr.invoke("get").arg(pType.dotclass()));
-//                } else if (fieldConstructorParams.contains(p)) {
-//                    _new.arg(binding.fields().get(p.getNameAsString()));
-//                } else {
-//                    throw new InternalError();
-//                }
-//            }
-//
-//        }
-//        onExecute.body().assign(bean, _new);
-//
-//        for (FieldLegacy field : fields) {
-//            //fieldSomeString.set(obj, get("someString", String.class)); => better fieldSomeString.set(obj, get(fieldSomeString))
-//            JVar staticField = binding.fields().get("field" + project.startUpperCase(field.getFieldName()));
-//            AbstractJClass pType = project.getCodeModel().ref(file.getFullQualifiedName(field.dec.getVariables().get(0).getType().asString()));
-//            JInvocation selfGet = JExpr.invoke("get").arg(staticField);
-//            onExecute.body().invoke(staticField, "set").arg(bean).arg(selfGet);
-//        }
-//
-//
-//        onExecute.body()._return(bean);
+        //the constructor is build from the original constructor and special annotated fields
+        createTypeSafeBindingConstructor(project.getCodeModel(), onExecuteMethod, binding, objectBindingModel);
+
+        //insert other injections, pure reflection nothing special
+        createReflectionInjectSetters(project.getCodeModel(), binding, objectBindingModel, onExecuteMethod);
+
+
+        onExecuteMethod.onExecute.body()._return(onExecuteMethod.varBean);
 
 
         //the postConstructs
@@ -302,15 +195,40 @@ class ObjectBindingGenerator {
         generatePreDestroy(delegate, objectBindingModel.preDestroy, project.getCodeModel(), binding);
     }
 
-    private void createTypeSafeBindingConstructor(JCodeModel code, JDefinedClass binding, ObjectBindingModel model) {
+    private OnExecuteMethod createOnExecuteMethod(JCodeModel code, JDefinedClass binding, FullQualifiedName bean) {
+        OnExecuteMethod exec = new OnExecuteMethod();
+        //        override onExecute which performs the actual calling
+        exec.onExecute = binding.method(JMod.PROTECTED, code.ref(bean.toString()), "onExecute")._throws(Exception.class);
+        exec.onExecute.annotate(code.ref(Override.class));
+        exec.varBean = exec.onExecute.body().decl(code.ref(bean.toString()), "_bean");
+        exec.newBeanStatement = JExpr._new(code.ref(bean.toString()));
+        exec.onExecute.body().assign(exec.varBean, exec.newBeanStatement);
+        return exec;
+    }
+
+
+    private void createTypeSafeBindingConstructor(JCodeModel code, OnExecuteMethod onExecuteMethod, JDefinedClass binding, ObjectBindingModel model) {
         JMethod c = binding.constructor(JMod.PUBLIC);
+        c.javadoc().add("creates a decoupled binding to {@link " + model.bean + "}");
         if (model.constructor != null) {
             for (Parameter p : model.constructor.getParameters()) {
-                AbstractJClass cl = code.ref(p.getType().toString());
-                JVar paramVar = c.param(cl, p.getName());
-                JFieldVar fieldVar = binding.field(JMod.PRIVATE, cl, p.getName());
-                fieldVar.javadoc().add("required by {@link " + model.constructor.asJavadocAnchor() + "}");
-                c.body().assign(JExpr.refthis(fieldVar), paramVar);
+                if (p.getAnnotation(FactoryParam.class) == null) {
+                    //a "stateless" parameter, which is required to be resolved at runtime
+
+                    //add the actual param as a dynamic type
+                    onExecuteMethod.newBeanStatement.arg(JExpr.invoke("get").arg(code.ref(p.getType().toString()).dotclass()));
+                } else {
+                    //a stateful parameter, treated as a field
+                    AbstractJClass cl = code.ref(p.getType().toString());
+                    JVar paramVar = c.param(cl, p.getName());
+                    JFieldVar fieldVar = binding.field(JMod.PRIVATE, cl, p.getName());
+                    fieldVar.javadoc().add("considered as stateful, introduced by {@link " + model.constructor.asJavadocAnchor() + "}");
+                    c.body().assign(JExpr.refthis(fieldVar), paramVar);
+
+                    //add the actual param also to the constructor
+                    onExecuteMethod.newBeanStatement.arg(paramVar);
+                }
+
             }
         }
 
@@ -318,12 +236,47 @@ class ObjectBindingGenerator {
             AbstractJClass cl = code.ref(field.getType().getFullQualifiedName().toString());
             JVar paramVar = c.param(cl, field.getName());
             JFieldVar fieldVar = binding.field(JMod.PRIVATE, cl, field.getName());
+            fieldVar.javadoc().add("conceptually stateful, declared at {@link " + field.asJavadocAnchor() + "}");
             c.body().assign(JExpr.refthis(fieldVar), paramVar);
+            boolean samePackage = field.getDeclaringType().getPackageName().equals(model.bean.getPackageName());
+            if ((field.isDefault() && samePackage) || field.isPublic()) {
+                //cool, we have direct field access to avoid any reflection
+                onExecuteMethod.onExecute.body().add(JExpr.assign(onExecuteMethod.varBean.ref(fieldVar.name()), fieldVar));
+            } else {
+                //oh no, we have to add reflection for our stateful fields
+                JMethod setter = insertReflectiveFieldSetter(code, binding, onExecuteMethod, field);
+                onExecuteMethod.onExecute.body().invoke(setter).arg(onExecuteMethod.varBean).arg(fieldVar);
+            }
         }
 
 
     }
 
+    private void createReflectionInjectSetters(JCodeModel code, JDefinedClass binding, ObjectBindingModel model, OnExecuteMethod onExecuteMethod) {
+        for (Field field : model.fields) {
+            JMethod setter = insertReflectiveFieldSetter(code, binding, onExecuteMethod, field);
+            AbstractJClass type = code.ref(field.getType().getFullQualifiedName().toString());
+            onExecuteMethod.onExecute.body().invoke(setter).arg(onExecuteMethod.varBean).arg(JExpr.invoke("get").arg(field.getName()).arg(type.dotclass()));
+        }
+    }
+
+    private JMethod insertReflectiveFieldSetter(JCodeModel code, JDefinedClass binding, OnExecuteMethod onExecuteMethod, Field field) {
+        JMethod setter = binding.method(JMod.PRIVATE, void.class, "set" + Strings.startUpperCase(field.getName()))._throws(IllegalAccessException.class);
+        setter.javadoc().add("See {@link " + field.asJavadocAnchor() + "}");
+        JVar bean = setter.param(code.ref(field.getDeclaringType().toString()), "_bean");
+        JVar value = setter.param(code.ref(field.getType().getFullQualifiedName().toString()), field.getName());
+
+        JFieldVar refField = binding.field(JMod.PRIVATE | JMod.STATIC, java.lang.reflect.Field.class, "field" + Strings.startUpperCase(field.getName()));
+        refField.javadoc().add("conceptually stateless injection, declared at {@link " + field.asJavadocAnchor() + "}");
+
+        AbstractJClass fieldType = code.ref(field.getDeclaringType().toString());
+        JBlock initBlock = setter.body()._if(refField.eqNull())._then().synchronizedBlock(JExpr._this()).body()._if(refField.eqNull())._then();
+        initBlock.assign(refField, code.ref(Reflection.class).staticInvoke("getField").arg(fieldType.dotclass()).arg(field.getName()));
+        initBlock.add(refField.invoke("setAccessible").arg(true));
+        setter.body().add(refField.invoke("set").arg(bean).arg(value));
+
+        return setter;
+    }
 
     private void assertLifecycleMethod(Method m) throws LintException {
         if (m.isStatic()) {
@@ -363,9 +316,6 @@ class ObjectBindingGenerator {
         JVar res = override.param(param, "res");
         JVar exception = override.param(code.ref(Throwable.class), "throwable");
         override.annotate(Override.class);
-        if (methods.isEmpty()) {
-            return;
-        }
 
         JBlock block = override.body();
         JBlock errExit = block._if(exception.neNull())._then();
@@ -373,7 +323,7 @@ class ObjectBindingGenerator {
         errExit._return();
 
         if (methods.isEmpty()) {
-            block.add(JExpr._super().invoke("onPostExecute").arg(task).arg(res));
+            block.add(JExpr._super().invoke("onPostExecute").arg(task).arg(res).arg(exception));
             return;
         }
 
@@ -457,6 +407,7 @@ class ObjectBindingGenerator {
             ctr++;
         }
         JMethod invoke = binding.method(JMod.PRIVATE, void.class, methodName);
+        invoke.javadoc().add("See {@link " + m.asJavadocAnchor() + "}");
         invoke._throws(Exception.class);
         JVar p = invoke.param(param, "obj");
 
@@ -465,9 +416,11 @@ class ObjectBindingGenerator {
             invoke.body().add(p.invoke(m.getName()));
         } else {
             //meh: we need reflection
-            JVar refMethod = binding.field(JMod.PRIVATE, java.lang.reflect.Method.class, "method" + Strings.startUpperCase(methodName));
+            JFieldVar refMethod = binding.field(JMod.PRIVATE, java.lang.reflect.Method.class, "method" + Strings.startUpperCase(methodName));
+            refMethod.javadoc().add("declared at {@link " + m.asJavadocAnchor() + "}");
             JBlock initBlock = invoke.body()._if(refMethod.eqNull())._then().synchronizedBlock(JExpr._this()).body()._if(refMethod.eqNull())._then();
             initBlock.assign(refMethod, code.ref(Reflection.class).staticInvoke("getMethod").arg(param.dotclass()).arg(m.getName()).arg(JExpr.newArray(code.ref(Class.class), 0)));
+            initBlock.add(refMethod.invoke("setAccessible").arg(true));
             invoke.body().invoke(refMethod, "invoke").arg(p);
         }
 
@@ -497,133 +450,9 @@ class ObjectBindingGenerator {
         });
     }
 
-//    /**
-//     * Tries to resolve the actual value of an {@link Named} annotation
-//     *
-//     * @param annotations
-//     * @return
-//     */
-//    @Nullable
-//    static String resolveName(SrcFile src, NodeList<AnnotationExpr> annotations) {
-//        String beanName = null;
-//        for (AnnotationExpr annotation : annotations) {
-//            beanName = resolveName(src, annotation);
-//            if (beanName != null) {
-//                return beanName;
-//            }
-//        }
-//        return null;
-//    }
-//
-//    static String resolveName(SrcFile src, AnnotationExpr annotation) {
-//        String beanName = null;
-//        String aFqn = src.getFullQualifiedName(annotation.getNameAsString());
-//        if (aFqn.equals(Named.class.getName())) {
-//            if (annotation instanceof SingleMemberAnnotationExpr) {
-//                SingleMemberAnnotationExpr expr = ((SingleMemberAnnotationExpr) annotation);
-//                if (expr.getMemberValue() instanceof StringLiteralExpr) {
-//                    beanName = ((StringLiteralExpr) expr.getMemberValue()).getValue();
-//                    return beanName;
-//                } else if (expr.getMemberValue() instanceof NameExpr) {
-//                    NameExpr nameExpr = ((NameExpr) expr.getMemberValue());
-//                    String value = resolveStaticFieldValue(src, nameExpr.getNameAsString());
-//                    if (value == null) {
-//                        LoggerFactory.getLogger(ObjectBindingGenerator.class).warn("constant evaluation not supported: {}", nameExpr);
-//                    } else {
-//                        beanName = value;
-//                        return beanName;
-//                    }
-//                }
-//            }
-//        }
-//        return null;
-//    }
-//
-//    static void collectInjectableFields(GenProject project, SrcFile src, ClassOrInterfaceDeclaration dec, List<FieldLegacy> dst) {
-//        if (dec.getExtendedTypes().size() > 0) {
-//            String fqnSuper = src.getPackageName() + "." + dec.getExtendedTypes().get(0).getNameAsString();
-//            SrcFile superFile = project.findSourceFileForType(fqnSuper);
-//            if (superFile != null) {
-//                LoggerFactory.getLogger(ObjectBindingGenerator.class).warn("following super class: {}", fqnSuper);
-//                collectInjectableFields(project, superFile, superFile.getUnit().getClassByName(superFile.getPrimaryClassName()).get(), dst);
-//            } else {
-//                LoggerFactory.getLogger(ObjectBindingGenerator.class).warn("unable to resolve source code for: {}", fqnSuper);
-//            }
-//        }
-//        for (FieldDeclaration field : dec.getFields()) {
-//            FieldLegacy tmp = new FieldLegacy(src, field);
-//            for (AnnotationExpr annotation : field.getAnnotations()) {
-//                String aFqn = src.getFullQualifiedName(annotation.getNameAsString());
-//                if (aFqn.equals(Inject.class.getName()) || aFqn.equals(Autowired.class.getName())) {
-//                    tmp.isInjectable = true;
-//                    continue;
-//                }
-//                if (aFqn.equals(FactoryParam.class.getName())) {
-//                    tmp.isFactoryParam = true;
-//                }
-//                if (aFqn.equals(Nullable.class.getName())) {
-//                    tmp.isNullable = true;
-//                }
-//
-//                if (aFqn.equals(Named.class.getName())) {
-//                    String t = resolveName(src, annotation);
-//                    if (t != null) {
-//                        tmp.alternateName = t;
-//                    }
-//                }
-//                if (field.isFinal()) {
-//                    throw new LintException("field '" + tmp.getFieldName() + "' must not be final", src, field.getRange().get());
-//                }
-//            }
-//            if (tmp.isInjectable) {
-//                dst.add(tmp);
-//            }
-//        }
-//    }
-//
-//    @Nullable
-//    private static String resolveStaticFieldValue(SrcFile src, String fieldName) {
-//        for (FieldDeclaration f : src.getUnit().getClassByName(src.getPrimaryClassName()).get().getFields()) {
-//            if (f.getVariables().size() > 0) {
-//                VariableDeclarator var = f.getVariables().get(0);
-//                if (var.getNameAsString().equals(fieldName)) {
-//                    if (var.getInitializer().isPresent()) {
-//                        if (var.getInitializer().get() instanceof StringLiteralExpr) {
-//                            return var.getInitializer().get().asStringLiteralExpr().asString();
-//                        }
-//
-//                    }
-//                }
-//            }
-//        }
-//        return null;
-//    }
-//
-//
-//    static class FieldLegacy {
-//        final SrcFile file;
-//        final FieldDeclaration dec;
-//        boolean isInjectable = false;
-//        boolean isFactoryParam = false;
-//        boolean isNullable = false;
-//        String alternateName = null;
-//
-//        public FieldLegacy(SrcFile file, FieldDeclaration dec) {
-//            this.file = file;
-//            this.dec = dec;
-//        }
-//
-//        public String getFieldName() {
-//            if (alternateName == null) {
-//                return dec.getVariables().get(0).getNameAsString();
-//            } else {
-//                return alternateName;
-//            }
-//        }
-//    }
-
 
     static class ObjectBindingModel {
+        FullQualifiedName bean;
         List<Method> postConstruct = new ArrayList<>();
         List<Method> preDestroy = new ArrayList<>();
         List<Field> fields = new ArrayList<>();
@@ -640,5 +469,10 @@ class ObjectBindingGenerator {
         }
     }
 
+    static class OnExecuteMethod {
+        JMethod onExecute;
+        JVar varBean;
+        JInvocation newBeanStatement;
+    }
 
 }

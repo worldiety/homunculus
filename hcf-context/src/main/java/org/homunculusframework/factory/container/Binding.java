@@ -51,12 +51,6 @@ import javax.annotation.Nullable;
  * @since 1.0
  */
 public abstract class Binding<Response> implements Serializable {
-    /**
-     * Used to only init class members once, e.g. reflection fields which only needs to be grabbed once per class.
-     * For performance reasons we never want that blocking operations (talking about framedrops in the UI) happens
-     * in the constructor.
-     */
-    private static transient volatile boolean initialized;
 
     /**
      * The scope is kept as a member and only valid after {@link #onBind(Scope)}.
@@ -76,11 +70,6 @@ public abstract class Binding<Response> implements Serializable {
 
 
     /**
-     * Called only once to init this class. However it is guaranteed to called lazily by {@link #execute(Scope)}
-     */
-    protected abstract void initStatic();
-
-    /**
      * Typically executed from {@link Container#NAME_REQUEST_HANDLER}
      *
      * @return an instance of whatever the binding refers to
@@ -94,7 +83,9 @@ public abstract class Binding<Response> implements Serializable {
      *
      * @param dst the target scope to bind the variables to
      */
-    protected abstract void onBind(Scope dst);
+    protected void onBind(Scope dst) {
+
+    }
 
     /**
      * Creates a child scope within the given parent by injecting the binding parameters.
@@ -147,14 +138,6 @@ public abstract class Binding<Response> implements Serializable {
         Handler backgroundThread = actualScope.resolve(Container.NAME_REQUEST_HANDLER, Handler.class);
         Runnable job = () -> {
             try {
-                if (!initialized) {
-                    synchronized (this) {
-                        if (!initialized) {
-                            initStatic();
-                            initialized = true;
-                        }
-                    }
-                }
                 onPreExecute(task);
                 response = onExecute();
                 onPostExecute(task, response, null);
@@ -207,7 +190,7 @@ public abstract class Binding<Response> implements Serializable {
 
     @Nullable
     protected <T> T get(String name, Class<T> type) {
-        return null;
+        return scope.resolve(name, type);
     }
 
     protected <T> T get(Class<T> type) {

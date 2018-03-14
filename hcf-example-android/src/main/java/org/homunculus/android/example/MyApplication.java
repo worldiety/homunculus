@@ -30,15 +30,7 @@ public class MyApplication extends HomunculusApplication {
         //configure HCF for Android
         long start = System.currentTimeMillis();
 
-        //add each module (== controllers + views), order is unimportant
-        cfg.add(CartController.class);
-        cfg.add(CartControllerConnection.class);
-        cfg.add(CartView.class);
-        cfg.add(CartUIS.class);
-        cfg.add(CompanyController.class);
-        cfg.add(CartUIS2.class);
-        cfg.add(TestValidatorController.class);
-        cfg.add(ValidatorUIS.class);
+        super.onConfigure(cfg);
 
         //try performance on real device
 //        Register.register(cfg);

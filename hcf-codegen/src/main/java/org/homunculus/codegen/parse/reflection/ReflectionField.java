@@ -6,6 +6,7 @@ import org.homunculus.codegen.parse.Field;
 import org.homunculus.codegen.parse.FullQualifiedName;
 import org.homunculus.codegen.parse.Type;
 
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,5 +46,25 @@ public class ReflectionField implements Field {
     @Override
     public LintException newLintException(String msg) {
         throw new RuntimeException("not yet implemented");
+    }
+
+    @Override
+    public FullQualifiedName getDeclaringType() {
+        return new FullQualifiedName(field.getDeclaringClass());
+    }
+
+    @Override
+    public boolean isPublic() {
+        return Modifier.isPublic(field.getModifiers());
+    }
+
+    @Override
+    public boolean isProtected() {
+        return Modifier.isProtected(field.getModifiers());
+    }
+
+    @Override
+    public boolean isPrivate() {
+        return Modifier.isPrivate(field.getModifiers());
     }
 }

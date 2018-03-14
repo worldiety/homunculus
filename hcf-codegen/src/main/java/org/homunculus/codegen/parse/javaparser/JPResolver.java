@@ -38,7 +38,7 @@ public class JPResolver implements Resolver {
         for (SrcFile file : srcFiles) {
             for (TypeDeclaration td : file.getUnit().getTypes()) {
                 FullQualifiedName fqn = new FullQualifiedName(file.getFullQualifiedName(td.getNameAsString()));
-                typeTree.put(fqn, new TypeContext(file, td));
+                typeTree.put(fqn, new TypeContext(file, td, fqn));
 //                System.out.println(fqn);
             }
         }

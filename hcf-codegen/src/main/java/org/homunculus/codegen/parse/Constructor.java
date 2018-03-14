@@ -59,6 +59,7 @@ public interface Constructor {
 
     default String asJavadocAnchor() {
         StringBuilder sb = new StringBuilder();
+        sb.append(getDeclaringType());
         sb.append("(");
         for (Parameter p : getParameters()) {
             sb.append(p.getType());

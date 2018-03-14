@@ -51,7 +51,7 @@ public interface Resolver {
 
     @Nullable
     default Annotation getAnnotation(FullQualifiedName type, Class annotation) {
-        return getAnnotation(type, new FullQualifiedName(annotation.getClass().getName()));
+        return getAnnotation(type, new FullQualifiedName(annotation));
     }
 
     boolean isInstanceOf(FullQualifiedName which, FullQualifiedName what);

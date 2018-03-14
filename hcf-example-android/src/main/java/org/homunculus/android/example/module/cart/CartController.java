@@ -1,6 +1,5 @@
 package org.homunculus.android.example.module.cart;
 
-import org.homunculus.android.example.module.cart.CartControllerConnection.BindCartUIS;
 import org.homunculusframework.concurrent.Task;
 import org.homunculusframework.concurrent.ThreadNotInterruptible;
 import org.homunculusframework.factory.container.MethodBinding;
@@ -55,7 +54,7 @@ public class CartController {
 
     public ObjectBinding<?> getCart3(@Named("id") int cartId) throws InterruptedException {
         CartModel cart = new CartModel();
-        return new BindCartUIS("blub", null, cart);
+        return new BindCartUIS("", "", "", "", "", cart);
     }
 
     public org.homunculusframework.factory.container.ModelAndView getCart4(@Named("id") int cartId) throws InterruptedException {

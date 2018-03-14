@@ -102,4 +102,9 @@ public class JPAnnotation implements Annotation {
         }
         return null;
     }
+
+    @Override
+    public String toString() {
+        return getFullQualifiedName().toString();
+    }
 }

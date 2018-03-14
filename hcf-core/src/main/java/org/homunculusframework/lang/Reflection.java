@@ -89,6 +89,11 @@ public class Reflection {
         return Clazz.getFieldsMap(clazz);
     }
 
+    @Nullable
+    public static Field getField(Class<?> clazz, String name) {
+        return getFieldsMap(clazz).get(name);
+    }
+
     /**
      * See {@link Clazz#getName(Class)}
      */
