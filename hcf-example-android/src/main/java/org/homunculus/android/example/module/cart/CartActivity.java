@@ -1,17 +1,12 @@
 package org.homunculus.android.example.module.cart;
 
 import android.app.AlertDialog.Builder;
-import android.content.Context;
 import android.os.Bundle;
 
-import org.homunculus.android.compat.EventAppCompatActivity;
 import org.homunculus.android.component.HomunculusActivity;
-import org.homunculus.android.core.Android;
 import org.homunculus.android.example.common.ViewWait;
-import org.homunculusframework.factory.container.Request;
-import org.homunculusframework.navigation.DefaultNavigation;
-import org.homunculusframework.navigation.Navigation;
-import org.slf4j.LoggerFactory;
+import org.homunculus.android.example.module.cart.AsyncCartController.BindCartControllerGetCart;
+import org.homunculusframework.factory.container.Binding;
 
 import java.lang.Thread.UncaughtExceptionHandler;
 
@@ -26,8 +21,8 @@ public class CartActivity extends HomunculusActivity implements UncaughtExceptio
     }
 
     @Override
-    protected Request create() {
-        return new Request("/cart/list").put("id", 1234);
+    protected Binding<?> create() {
+        return new BindCartControllerGetCart(1234);
     }
 
 

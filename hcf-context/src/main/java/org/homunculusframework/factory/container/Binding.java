@@ -62,12 +62,36 @@ public abstract class Binding<Response> implements Serializable {
     @Nullable
     private volatile transient Response response;
 
+    @Nullable
+    private transient StackTraceElement[] stackTrace;
+
     /**
      * This constructor is intentionally package private to force that every subtype is either a {@link MethodBinding} or a {@link ObjectBinding}
      */
     Binding() {
+        LoggerFactory.getLogger(getClass()).info("create {}", this);
     }
 
+
+    /**
+     * Bindings are executed asynchronously and therefore always loose their creation context.
+     * One can set any custom stack trace
+     *
+     * @return
+     */
+    @Nullable
+    public StackTraceElement[] getStackTrace() {
+        return stackTrace;
+    }
+
+    /**
+     * See {@link #getStackTrace()}
+     *
+     * @param callstack the custom callstack
+     */
+    public void setStackTrace(@Nullable StackTraceElement[] callstack) {
+        this.stackTrace = callstack;
+    }
 
     /**
      * Typically executed from {@link Container#NAME_REQUEST_HANDLER}
@@ -133,6 +157,7 @@ public abstract class Binding<Response> implements Serializable {
      * </ul>
      */
     public Task<Result<Response>> execute(Scope scope) {
+        LoggerFactory.getLogger(getClass()).info("execute {}", getClass().getSimpleName());
         SettableTask<Result<Response>> task = SettableTask.create(scope, toString());
         final Scope actualScope = createSubScope(scope);
         Handler backgroundThread = actualScope.resolve(Container.NAME_REQUEST_HANDLER, Handler.class);
@@ -161,9 +186,21 @@ public abstract class Binding<Response> implements Serializable {
      * @return
      */
     public Task<Result<Response>> destroy() {
+        LoggerFactory.getLogger(getClass()).info("destroy {}", this);
         SettableTask<Result<Response>> task = SettableTask.create(scope, toString());
         onPreDestroy(task, response);
         response = null;
+
+        //destroy the scope in the next cycle, so that whenDone listeners of the returned task can work happily
+        task.whenDone(res -> {
+            scope.resolve(Handler.class).post(() -> {
+                Scope scope = this.scope;
+                if (scope != null) {
+                    scope.destroy();
+                    this.scope = null;
+                }
+            });
+        });
         return task;
     }
 
@@ -194,7 +231,7 @@ public abstract class Binding<Response> implements Serializable {
     }
 
     protected <T> T get(Class<T> type) {
-        return null;
+        return scope.resolve(type);
     }
 
     /**
@@ -204,6 +241,10 @@ public abstract class Binding<Response> implements Serializable {
      * @param closure     should not throw exception
      */
     protected void post(String handlerName, Runnable closure) {
+        //introduce a transparent alias for the main handler vs looper, which is in android the same
+        if (handlerName.equals("$mainLooper")) {
+            handlerName = Container.NAME_MAIN_HANDLER;
+        }
         Handler handler = get(handlerName, Handler.class);
         if (handler == null) {
             throw new Panic("no such handler: " + handlerName);
@@ -212,9 +253,27 @@ public abstract class Binding<Response> implements Serializable {
             try {
                 closure.run();
             } catch (Exception e) {
-                LoggerFactory.getLogger(getClass()).error("failed to post on " + handlerName, e);
+                LoggerFactory.getLogger(getClass()).error("failed to post on " + handler, e);
             }
         });
     }
 
+    /**
+     * Checks if the target of this and the other are equal. Parameters are intentionally ignored.
+     * E.g. a {@link MethodBinding} must denote the same class and method and an {@link ObjectBinding}
+     * the same class. The default implementation just checks if the classes are the same, which
+     * is in case of generated code always the correct thing.
+     *
+     * @param other the other binding
+     * @return true or false
+     */
+    public boolean equalsTarget(@Nullable Object other) {
+        if (other == null) {
+            return false;
+        }
+        if (other.getClass() == getClass()) {
+            return true;
+        }
+        return false;
+    }
 }

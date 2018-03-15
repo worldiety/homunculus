@@ -45,10 +45,6 @@ public class HomunculusApplication extends CompatApplication {
         onProvide(cfg.getRootScope());
 
 
-        //setup and start the HCF container
-        Container container = new Container(cfg);
-        container.start();
-
         new UnbreakableCrashHandler().install(this);
     }
 

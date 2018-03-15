@@ -84,8 +84,8 @@ public class GenerateMethodBindings implements Generator {
 
                 String[] allowedReturnValues = {ObjectBinding.class.getName(), ModelAndView.class.getName()};
                 boolean allowed = false;
-                for (String a : allowedReturnValues) {
-                    if (method.getType().getFullQualifiedName().toString().equals(a)) {
+                for (String c : allowedReturnValues) {
+                    if (project.getResolver().isInstanceOf(method.getType().getFullQualifiedName(), new FullQualifiedName(c))) {
                         allowed = true;
                         break;
                     }

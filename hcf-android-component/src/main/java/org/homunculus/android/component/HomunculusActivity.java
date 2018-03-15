@@ -20,11 +20,11 @@ import android.os.Bundle;
 
 import org.homunculus.android.compat.EventAppCompatActivity;
 import org.homunculus.android.component.module.uncaughtexception.UncaughtException;
+import org.homunculus.android.component.module.uncaughtexception.UncaughtException.BindUncaughtException;
 import org.homunculus.android.core.Android;
-import org.homunculusframework.factory.container.Request;
+import org.homunculusframework.factory.container.Binding;
 import org.homunculusframework.factory.serializer.Serializable;
 import org.homunculusframework.factory.serializer.Serializer;
-import org.homunculusframework.navigation.DefaultNavigation;
 import org.homunculusframework.navigation.Navigation;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +33,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.ArrayList;
-import java.util.List;
 
 import javax.annotation.Nullable;
 
@@ -134,10 +133,10 @@ public abstract class HomunculusActivity extends EventAppCompatActivity implemen
      * @param outState the target
      */
     protected void saveStackState(Bundle outState) {
-        NavigationBuilder nb = getNavigation();
+        Navigation nb = getNavigation();
         if (nb instanceof Navigation) {
             //create a defensive copy into a serializable list
-            ArrayList<Request> tmp = new ArrayList<>(((Navigation) nb).getStack());
+            ArrayList<Binding<?>> tmp = new ArrayList<>(((Navigation) nb).getStack());
             try {
                 //serialize simply into a byte array
                 ByteArrayOutputStream bout = new ByteArrayOutputStream();
@@ -165,13 +164,13 @@ public abstract class HomunculusActivity extends EventAppCompatActivity implemen
      */
     protected boolean restoreStackState(Bundle savedInstanceState) {
         byte[] serializedStack = savedInstanceState.getByteArray(HC_NAVIGATION_STACK);
-        NavigationBuilder nb = getNavigation();
+        Navigation nb = getNavigation();
         if (nb instanceof Navigation) {
             Navigation navigation = ((Navigation) nb);
             if (serializedStack != null && serializedStack.length > 0) {
                 ByteArrayInputStream bin = new ByteArrayInputStream(serializedStack);
                 try {
-                    ArrayList<Request> tmp = getInstanceStateSerializer().deserialize(bin, ArrayList.class);
+                    ArrayList<Binding<?>> tmp = getInstanceStateSerializer().deserialize(bin, ArrayList.class);
                     navigation.getStack().clear();
                     navigation.getStack().addAll(tmp);
                     return true;
@@ -206,8 +205,8 @@ public abstract class HomunculusActivity extends EventAppCompatActivity implemen
      *
      * @return the navigation builder, which is null before {@link #onCreate(Bundle)} and after {@link #onDestroy()}
      */
-    public NavigationBuilder getNavigation() {
-        return getScope().resolve(Android.NAME_NAVIGATION, NavigationBuilder.class);
+    public Navigation getNavigation() {
+        return getScope().resolve(Android.NAME_NAVIGATION, Navigation.class);
     }
 
     @Override
@@ -223,13 +222,13 @@ public abstract class HomunculusActivity extends EventAppCompatActivity implemen
      *
      * @return the request which creates the first state
      */
-    abstract protected Request create();
+    abstract protected Binding<?> create();
 
     @Override
     public void uncaughtException(Thread t, Throwable e) {
-        NavigationBuilder nav = getNavigation();
+        Navigation nav = getNavigation();
         if (nav != null) {
-            nav.redirect(UncaughtException.class).put(UncaughtException.PARAM_THROWABLE, e).start();
+            nav.redirect(new BindUncaughtException(e, null));
         } else {
             LoggerFactory.getLogger(getClass()).error("failed to handle uncaught exception, no navigation present. Uncaught Exception: ", e);
         }

@@ -17,16 +17,20 @@ package org.homunculus.android.component.module.uncaughtexception;
 
 import android.app.Activity;
 import android.app.AlertDialog.Builder;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
 
 import org.homunculus.android.component.MaterialFont.Icon;
 import org.homunculus.android.component.MaterialFontView;
 import org.homunculus.android.component.R;
+import org.homunculus.android.core.Android;
 import org.homunculus.android.flavor.Resource;
+import org.homunculusframework.factory.container.ObjectBinding;
 import org.homunculusframework.lang.Result;
 import org.homunculusframework.navigation.Navigation;
 import org.homunculusframework.scope.Scope;
+import org.homunculusframework.scope.SettableTask;
 import org.homunculusframework.stereotype.UserInterfaceState;
 
 import java.util.Map;
@@ -66,37 +70,27 @@ public class UncaughtException {
      */
     public final static String PARAM_RESULT = "result";
 
-    //we need this quirk declaration because library constants are not final anymore
-    @Resource(defType = "layout", defName = "hcf_uncaughtexception")
-    private View view;
 
     @Inject
     private Activity activity;
 
-    @Inject
-    @Named(PARAM_THROWABLE)
     @Nullable
     private Throwable throwable;
 
-    @Inject
-    @Named(PARAM_RESULT)
     @Nullable
     private Result<?> result;
 
-    @Inject
     @Nullable
     private Reporter reporter;
 
-    @Inject
     private Navigation navigation;
 
-    @Inject
     private Scope scope;
 
-    @PostConstruct
     private void apply() {
-        activity.setContentView(view);
-        View btnBack = view.findViewById(R.id.hcf_uncaughtexception_button_back);
+        View v = LayoutInflater.from(activity).inflate(R.layout.hcf_uncaughtexception, null);
+        activity.setContentView(v);
+        View btnBack = v.findViewById(R.id.hcf_uncaughtexception_button_back);
         if (navigation == null) {
             btnBack.setVisibility(View.GONE);
         } else {
@@ -107,7 +101,7 @@ public class UncaughtException {
             });
         }
 
-        View btnSend = view.findViewById(R.id.hcf_uncaughtexception_button_send);
+        View btnSend = v.findViewById(R.id.hcf_uncaughtexception_button_send);
 
         if (reporter == null) {
             btnSend.setVisibility(View.GONE);
@@ -130,9 +124,52 @@ public class UncaughtException {
             });
         }
 
-        View icon = view.findViewById(R.id.hcf_uncaughtexception_image);
+        View icon = v.findViewById(R.id.hcf_uncaughtexception_image);
         if (icon instanceof MaterialFontView) {
             ((MaterialFontView) icon).setIcon(Icon.I_ERROR_OUTLINE);
+        }
+    }
+
+    public static class BindUncaughtException extends ObjectBinding<UncaughtException> {
+
+        private Throwable throwable;
+        private Result<?> result;
+
+        public BindUncaughtException(@Nullable Throwable throwable, @Nullable Result<?> result) {
+            this.throwable = throwable;
+            this.result = result;
+        }
+
+        @Nullable
+        @Override
+        protected UncaughtException onExecute() throws Exception {
+            UncaughtException obj = new UncaughtException();
+            obj.activity = get(Activity.class);
+            obj.navigation = get(Navigation.class);
+            obj.reporter = get(Reporter.class);
+            obj.result = result;
+            obj.scope = getScope();
+            obj.throwable = throwable;
+            return obj;
+        }
+
+        @Override
+        protected void onPostExecute(SettableTask<Result<UncaughtException>> task, @Nullable UncaughtException e, @Nullable Throwable t) {
+            if (t != null) {
+                task.set(Result.create(e).setThrowable(t));
+                return;
+            }
+            post(Android.NAME_MAIN_HANDLER, () -> {
+                        try {
+                            e.apply();
+                        } catch (final Throwable e0) {
+                            task.set(Result.create(e).setThrowable(e0));
+                            return;
+                        }
+                        // the end of the call chain: tell the task that we are done
+                        task.set(Result.create(e));
+                    }
+            );
         }
     }
 }

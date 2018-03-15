@@ -78,305 +78,305 @@ public final class Container {
      */
     public final static String NAME_INFLATER_HANDLER = "$inflaterHandler";
 
-    private final Configuration configuration;
-
-    /**
-     * Controllers export methods using {@link Named} and are directly linked here
-     */
-    private final Map<String, ControllerEndpoint> controllerEndpoints;
-    private final List<Object> controllers;
-    private boolean running;
-
-    public Container(Configuration configuration) {
-        this.configuration = configuration;
-        this.controllerEndpoints = new HashMap<>();
-        this.controllers = new ArrayList<>();
-    }
-
-    public Configuration getConfiguration() {
-        return configuration;
-    }
-
-    /**
-     * Starts this container by creating all {@link ControllerEndpoint}s synchronously and inserting them into
-     * the {@link Configuration#getRootScope()}. Also inserts all dependencies of the controllers if possible.
-     * This also starts all asynchronous lifecycle methods like {@link PostConstruct}.
-     * To avoid deadlocks and hickups, a controller is never allowed to use the main thread with PostConstruct.
-     * Here you can also inspect exceptions occured while creation.
-     */
-    public List<Throwable> start() {
-        Semaphore wait = new Semaphore(0);
-        List<Throwable> throwables = new ArrayList<>();
-        startInternal((container, failures) -> {
-            throwables.addAll(failures);
-            wait.release();
-        });
-        try {
-            wait.acquire();
-        } catch (InterruptedException e) {
-            throw new Panic(e);
-        }
-        return throwables;
-    }
-
-
-    private void startInternal(@Nullable OnStartCompleteCallback onCompleteClosure) {
-        synchronized (controllerEndpoints) {
-            if (running) {
-                LoggerFactory.getLogger(getClass()).warn("already running");
-                return;
-            }
-            long start = System.currentTimeMillis();
-            LoggerFactory.getLogger(getClass()).info("HCF container starting...");
-            //create controllers first
-            ObjectCreator factory = configuration.getObjectCreator();
-            Scope containerScope = configuration.getRootScope();
-            for (AnnotatedComponent component : configuration.getControllers()) {
-                Class<?> clazz = component.getAnnotatedClass();
-                Object instance = factory.create(containerScope, clazz);
-                if (instance == null) {
-                    continue;
-                }
-                LoggerFactory.getLogger(getClass()).info("created {}", Reflection.getName(clazz));
-                controllers.add(instance);
-                containerScope.put("$" + Reflection.getName(clazz), instance);
-                for (ControllerEndpoint endpoint : ControllerEndpoint.list(component.getName(), instance, configuration.getAnnotatedRequestMappings())) {
-                    ControllerEndpoint existing = controllerEndpoints.get(endpoint.getRequestMapping());
-                    if (existing != endpoint && existing != null) {
-                        LoggerFactory.getLogger(getClass()).error("ambiguous @RequestMapping '{}' for endpoints: {} and {}", endpoint.getRequestMapping(), existing.toDebugCallString(), endpoint.toDebugCallString());
-                        LoggerFactory.getLogger(getClass()).error("endpoint ignored {}", endpoint.toDebugCallString());
-                        continue;
-                    }
-                    controllerEndpoints.put(endpoint.getRequestMapping(), endpoint);
-                    LoggerFactory.getLogger(getClass()).info(" {} -> {}", endpoint.getRequestMapping(), endpoint.getMethod().getName());
-                }
-            }
-
-            //now perform injection, this also allows cyclic dependencies between controllers
-            AtomicInteger completeCounter = new AtomicInteger();
-            List<Throwable> exceptions = new ArrayList<>();
-            final int s = controllers.size();
-            ObjectInjector injector = configuration.getObjectInjector();
-            for (Object ctr : controllers) {
-                injector.inject(containerScope, ctr, (scope1, instance1, failures) -> {
-                    synchronized (exceptions) {
-                        exceptions.addAll(failures);
-                    }
-                    if (completeCounter.incrementAndGet() == s) {
-                        LoggerFactory.getLogger(getClass()).info("...startup complete, took {} ms", System.currentTimeMillis() - start);
-                        if (onCompleteClosure != null) {
-                            onCompleteClosure.onComplete(Container.this, exceptions);
-                        }
-                    }
-                });
-            }
-            if (controllers.isEmpty()) {
-                if (onCompleteClosure != null) {
-                    onCompleteClosure.onComplete(Container.this, new ArrayList<>());
-                }
-            }
-
-
-            containerScope.put(NAME_CONTAINER, this);
-            running = true;
-        }
-    }
-
-    public RequestType getRequestType(Request request) {
-        switch (request.getMapping().getMappingType()) {
-            case NAME:
-                if (controllerEndpoints.containsKey(request.getMapping().getName())) {
-                    return RequestType.CONTROLLER_ENDPOINT;
-                }
-                if (configuration.getBeans().containsKey(request.getMapping().getName())) {
-                    return RequestType.BEAN;
-                }
-                break;
-            case CLASS:
-                return RequestType.BEAN;
-            default:
-                throw new Panic();
-        }
-
-        return RequestType.UNDEFINED;
-    }
-
-    /**
-     * Calls a configured endpoint, see also {@link ControllerEndpoint#invoke(Scope, Request)}
-     *
-     * @throws ExecutionException
-     */
-    public Object invoke(Scope scope, Request request) throws ExecutionException {
-        if (request.getMapping().getMappingType() != MappingType.NAME) {
-            throw new Panic("unsupported request-mapping-type: " + request.getMapping().getMappingType());
-        }
-        ControllerEndpoint endpoint = controllerEndpoints.get(request.getMapping().getName());
-        if (endpoint == null) {
-            throw new ExecutionException("@RequestMapping '" + request.getMapping() + "' is not defined in the current Configuration", null);
-        } else {
-            return endpoint.invoke(scope, request);
-        }
-    }
-
-    /**
-     * Creates a bean entirely , which is either
-     * <ul>
-     * <li>Something registered with {@link Named} which represents</li>
-     * <li>An Android view, like: @layout/activity_main (if the platform is android and correctly configured)</li>
-     * </ul>
-     *
-     * @param name  the name of a bean (must be configured before) e.g. as declared by {@link Named}
-     * @param scope the scope to use to define the lifetime of the bean and to resolve dependencies
-     */
-    public Task<Component<?>> createBean(Scope scope, String name) {
-        name = normalize(name);
-        Class bean = configuration.getBeans().get(name);
-        if (bean == null) {
-            List<Throwable> throwables = new ArrayList<>();
-            throwables.add(new RuntimeException("Not defined: '" + name + "'. You need to add it to the configuration first (e.g. with @Named using the EEFlavor)"));
-            SettableTask<Component<?>> task = SettableTask.create(scope, "createBean#" + name);
-            task.set(new Component<>(scope, null, throwables));
-            return task;
-        }
-        return createComponent(scope, bean);
-    }
-
-    /**
-     * Creates a bean entirely , which is either
-     * <ul>
-     * <li>Something registered with {@link Named} which represents</li>
-     * <li>An Android view, like: @layout/activity_main (if the platform is android and correctly configured)</li>
-     * </ul>
-     *
-     * @param bean  the concrete (unconfigured) type
-     * @param scope the scope to use to define the lifetime of the bean and to resolve dependencies
-     */
-    public Task<Component<?>> createBean(Scope scope, Class<?> bean) {
-        if (bean == null) {
-            List<Throwable> throwables = new ArrayList<>();
-            throwables.add(new RuntimeException("null bean class is not allowed"));
-            SettableTask<Component<?>> task = SettableTask.create(scope, "createBean#null");
-            task.set(new Component<>(scope, null, throwables));
-            return task;
-        }
-        return createComponent(scope, (Class) bean);
-    }
-
-    /**
-     * Runs all {@link ScopePrepareProcessor}s to prepare the given scope. This may be quite expensive and could involve creating
-     * a lot of proxy instance etc.
-     * <p>
-     *
-     * @deprecated this is not a good idea, because the solution to create all(!!!) proxy instances here is slow and unnecessary -> @inject + create should resolve and create that only if actually required
-     */
-    @Deprecated
-    public void prepareScope(Scope scope) {
-        final int s = getConfiguration().getScopePrepareProcessors().size();
-        for (int i = 0; i < s; i++) {
-            ScopePrepareProcessor proc = getConfiguration().getScopePrepareProcessors().get(i);
-            proc.process(getConfiguration(), scope);
-        }
-    }
-
-    private static String normalize(String text) {
-        if (text == null) {
-            return "";
-        }
-        if (text.length() == 0) {
-            return "";
-        }
-        if (text.charAt(0) != '/') {
-            text = "/" + text;
-        }
-        if (text.charAt(text.length() - 1) != '/') {
-            text = text + "/";
-        }
-        return text;
-    }
-
-    /**
-     * Creates a component asynchronously, which means
-     * <ul>
-     * <li>Create a new instance, choosing the shortest constructor</li>
-     * <li>Tries to fulfill the constructor requirements from the scope</li>
-     * <li>Tries to apply all field and method annotations, which are defined by the configuration</li>
-     * <li>Tries to ignore errors, as much as possible</li>
-     * <li>Respects {@link Execute} to execute creation and injection population (and depending on the configuration additional injectional loading operations)</li>
-     * <li>TODO does not support creating instances based on constructor parameters</li>
-     * <li>TODO does not support recursive creation</li>
-     * </ul>
-     */
-    public <T> Task<Component<T>> createComponent(Scope scope, Class<T> clazz) {
-        SettableTask<Component<T>> task = SettableTask.create(scope, "createComponent#" + clazz.getSimpleName());
-        Runnable create = () -> {
-            try {
-                T instance = configuration.getObjectCreator().create(scope, clazz);
-                if (instance == null) {
-                    throw new Panic("contract violation while creating " + clazz);
-                } else {
-                    configuration.getObjectInjector().inject(scope, instance, (scope1, instance1, failures) -> task.set(new Component<>(scope, (T) instance1, failures)));
-                }
-            } catch (Exception e) {
-                task.set(new Component<>(scope, null, e));
-            }
-        };
-        Handler handler = getHandler(scope, clazz);
-        if (handler == null) {
-            create.run();
-        } else {
-            handler.post(create);
-        }
-
-        return task;
-    }
-
-    /**
-     * Destroys the component.
-     * <ul>
-     * <li>Respects {@link Execute} to find and call {@link javax.annotation.PreDestroy} and more important also the scope destruction</li>
-     * </ul>
-     */
-    public <T> Task<Component<T>> destroyComponent(Scope scope, T instance, boolean destroyScope) {
-        SettableTask<Component<T>> task = SettableTask.create(scope.getParent(), "destroyComponent#" + instance.getClass());
-        configuration.getObjectDestroyer().destroy(scope, instance, (scope1, instance1, failures) -> {
-            try {
-                if (destroyScope) {
-                    scope.destroy();
-                }
-            } finally {
-                task.set(new Component<T>(scope, instance, failures));
-            }
-        });
-        return task;
-    }
-
-    @Nullable
-    private Handler getHandler(Scope scope, Class<?> clazz) {
-        Execute lifecycleHandler = clazz.getAnnotation(Execute.class);
-        if (lifecycleHandler == null) {
-            return null;
-        }
-        return scope.resolve(lifecycleHandler.value(), Handler.class);
-    }
-
-
-    public interface OnStartCompleteCallback {
-        void onComplete(Container container, List<Throwable> failures);
-    }
-
-
-    public enum RequestType {
-        /**
-         * Denotes a controller and an endpoint method
-         */
-        CONTROLLER_ENDPOINT,
-        /**
-         * Denotes a widget, which may be also a UIS (==applies itself to the screen)
-         */
-        BEAN,
-        /**
-         * the mapping is not configured
-         */
-        UNDEFINED
-    }
+//    private final Configuration configuration;
+//
+//    /**
+//     * Controllers export methods using {@link Named} and are directly linked here
+//     */
+//    private final Map<String, ControllerEndpoint> controllerEndpoints;
+//    private final List<Object> controllers;
+//    private boolean running;
+//
+//    public Container(Configuration configuration) {
+//        this.configuration = configuration;
+//        this.controllerEndpoints = new HashMap<>();
+//        this.controllers = new ArrayList<>();
+//    }
+//
+//    public Configuration getConfiguration() {
+//        return configuration;
+//    }
+//
+//    /**
+//     * Starts this container by creating all {@link ControllerEndpoint}s synchronously and inserting them into
+//     * the {@link Configuration#getRootScope()}. Also inserts all dependencies of the controllers if possible.
+//     * This also starts all asynchronous lifecycle methods like {@link PostConstruct}.
+//     * To avoid deadlocks and hickups, a controller is never allowed to use the main thread with PostConstruct.
+//     * Here you can also inspect exceptions occured while creation.
+//     */
+//    public List<Throwable> start() {
+//        Semaphore wait = new Semaphore(0);
+//        List<Throwable> throwables = new ArrayList<>();
+//        startInternal((container, failures) -> {
+//            throwables.addAll(failures);
+//            wait.release();
+//        });
+//        try {
+//            wait.acquire();
+//        } catch (InterruptedException e) {
+//            throw new Panic(e);
+//        }
+//        return throwables;
+//    }
+//
+//
+//    private void startInternal(@Nullable OnStartCompleteCallback onCompleteClosure) {
+//        synchronized (controllerEndpoints) {
+//            if (running) {
+//                LoggerFactory.getLogger(getClass()).warn("already running");
+//                return;
+//            }
+//            long start = System.currentTimeMillis();
+//            LoggerFactory.getLogger(getClass()).info("HCF container starting...");
+//            //create controllers first
+//            ObjectCreator factory = configuration.getObjectCreator();
+//            Scope containerScope = configuration.getRootScope();
+//            for (AnnotatedComponent component : configuration.getControllers()) {
+//                Class<?> clazz = component.getAnnotatedClass();
+//                Object instance = factory.create(containerScope, clazz);
+//                if (instance == null) {
+//                    continue;
+//                }
+//                LoggerFactory.getLogger(getClass()).info("created {}", Reflection.getName(clazz));
+//                controllers.add(instance);
+//                containerScope.put("$" + Reflection.getName(clazz), instance);
+//                for (ControllerEndpoint endpoint : ControllerEndpoint.list(component.getName(), instance, configuration.getAnnotatedRequestMappings())) {
+//                    ControllerEndpoint existing = controllerEndpoints.get(endpoint.getRequestMapping());
+//                    if (existing != endpoint && existing != null) {
+//                        LoggerFactory.getLogger(getClass()).error("ambiguous @RequestMapping '{}' for endpoints: {} and {}", endpoint.getRequestMapping(), existing.toDebugCallString(), endpoint.toDebugCallString());
+//                        LoggerFactory.getLogger(getClass()).error("endpoint ignored {}", endpoint.toDebugCallString());
+//                        continue;
+//                    }
+//                    controllerEndpoints.put(endpoint.getRequestMapping(), endpoint);
+//                    LoggerFactory.getLogger(getClass()).info(" {} -> {}", endpoint.getRequestMapping(), endpoint.getMethod().getName());
+//                }
+//            }
+//
+//            //now perform injection, this also allows cyclic dependencies between controllers
+//            AtomicInteger completeCounter = new AtomicInteger();
+//            List<Throwable> exceptions = new ArrayList<>();
+//            final int s = controllers.size();
+//            ObjectInjector injector = configuration.getObjectInjector();
+//            for (Object ctr : controllers) {
+//                injector.inject(containerScope, ctr, (scope1, instance1, failures) -> {
+//                    synchronized (exceptions) {
+//                        exceptions.addAll(failures);
+//                    }
+//                    if (completeCounter.incrementAndGet() == s) {
+//                        LoggerFactory.getLogger(getClass()).info("...startup complete, took {} ms", System.currentTimeMillis() - start);
+//                        if (onCompleteClosure != null) {
+//                            onCompleteClosure.onComplete(Container.this, exceptions);
+//                        }
+//                    }
+//                });
+//            }
+//            if (controllers.isEmpty()) {
+//                if (onCompleteClosure != null) {
+//                    onCompleteClosure.onComplete(Container.this, new ArrayList<>());
+//                }
+//            }
+//
+//
+//            containerScope.put(NAME_CONTAINER, this);
+//            running = true;
+//        }
+//    }
+//
+//    public RequestType getRequestType(Request request) {
+//        switch (request.getMapping().getMappingType()) {
+//            case NAME:
+//                if (controllerEndpoints.containsKey(request.getMapping().getName())) {
+//                    return RequestType.CONTROLLER_ENDPOINT;
+//                }
+//                if (configuration.getBeans().containsKey(request.getMapping().getName())) {
+//                    return RequestType.BEAN;
+//                }
+//                break;
+//            case CLASS:
+//                return RequestType.BEAN;
+//            default:
+//                throw new Panic();
+//        }
+//
+//        return RequestType.UNDEFINED;
+//    }
+//
+//    /**
+//     * Calls a configured endpoint, see also {@link ControllerEndpoint#invoke(Scope, Request)}
+//     *
+//     * @throws ExecutionException
+//     */
+//    public Object invoke(Scope scope, Request request) throws ExecutionException {
+//        if (request.getMapping().getMappingType() != MappingType.NAME) {
+//            throw new Panic("unsupported request-mapping-type: " + request.getMapping().getMappingType());
+//        }
+//        ControllerEndpoint endpoint = controllerEndpoints.get(request.getMapping().getName());
+//        if (endpoint == null) {
+//            throw new ExecutionException("@RequestMapping '" + request.getMapping() + "' is not defined in the current Configuration", null);
+//        } else {
+//            return endpoint.invoke(scope, request);
+//        }
+//    }
+//
+//    /**
+//     * Creates a bean entirely , which is either
+//     * <ul>
+//     * <li>Something registered with {@link Named} which represents</li>
+//     * <li>An Android view, like: @layout/activity_main (if the platform is android and correctly configured)</li>
+//     * </ul>
+//     *
+//     * @param name  the name of a bean (must be configured before) e.g. as declared by {@link Named}
+//     * @param scope the scope to use to define the lifetime of the bean and to resolve dependencies
+//     */
+//    public Task<Component<?>> createBean(Scope scope, String name) {
+//        name = normalize(name);
+//        Class bean = configuration.getBeans().get(name);
+//        if (bean == null) {
+//            List<Throwable> throwables = new ArrayList<>();
+//            throwables.add(new RuntimeException("Not defined: '" + name + "'. You need to add it to the configuration first (e.g. with @Named using the EEFlavor)"));
+//            SettableTask<Component<?>> task = SettableTask.create(scope, "createBean#" + name);
+//            task.set(new Component<>(scope, null, throwables));
+//            return task;
+//        }
+//        return createComponent(scope, bean);
+//    }
+//
+//    /**
+//     * Creates a bean entirely , which is either
+//     * <ul>
+//     * <li>Something registered with {@link Named} which represents</li>
+//     * <li>An Android view, like: @layout/activity_main (if the platform is android and correctly configured)</li>
+//     * </ul>
+//     *
+//     * @param bean  the concrete (unconfigured) type
+//     * @param scope the scope to use to define the lifetime of the bean and to resolve dependencies
+//     */
+//    public Task<Component<?>> createBean(Scope scope, Class<?> bean) {
+//        if (bean == null) {
+//            List<Throwable> throwables = new ArrayList<>();
+//            throwables.add(new RuntimeException("null bean class is not allowed"));
+//            SettableTask<Component<?>> task = SettableTask.create(scope, "createBean#null");
+//            task.set(new Component<>(scope, null, throwables));
+//            return task;
+//        }
+//        return createComponent(scope, (Class) bean);
+//    }
+//
+//    /**
+//     * Runs all {@link ScopePrepareProcessor}s to prepare the given scope. This may be quite expensive and could involve creating
+//     * a lot of proxy instance etc.
+//     * <p>
+//     *
+//     * @deprecated this is not a good idea, because the solution to create all(!!!) proxy instances here is slow and unnecessary -> @inject + create should resolve and create that only if actually required
+//     */
+//    @Deprecated
+//    public void prepareScope(Scope scope) {
+//        final int s = getConfiguration().getScopePrepareProcessors().size();
+//        for (int i = 0; i < s; i++) {
+//            ScopePrepareProcessor proc = getConfiguration().getScopePrepareProcessors().get(i);
+//            proc.process(getConfiguration(), scope);
+//        }
+//    }
+//
+//    private static String normalize(String text) {
+//        if (text == null) {
+//            return "";
+//        }
+//        if (text.length() == 0) {
+//            return "";
+//        }
+//        if (text.charAt(0) != '/') {
+//            text = "/" + text;
+//        }
+//        if (text.charAt(text.length() - 1) != '/') {
+//            text = text + "/";
+//        }
+//        return text;
+//    }
+//
+//    /**
+//     * Creates a component asynchronously, which means
+//     * <ul>
+//     * <li>Create a new instance, choosing the shortest constructor</li>
+//     * <li>Tries to fulfill the constructor requirements from the scope</li>
+//     * <li>Tries to apply all field and method annotations, which are defined by the configuration</li>
+//     * <li>Tries to ignore errors, as much as possible</li>
+//     * <li>Respects {@link Execute} to execute creation and injection population (and depending on the configuration additional injectional loading operations)</li>
+//     * <li>TODO does not support creating instances based on constructor parameters</li>
+//     * <li>TODO does not support recursive creation</li>
+//     * </ul>
+//     */
+//    public <T> Task<Component<T>> createComponent(Scope scope, Class<T> clazz) {
+//        SettableTask<Component<T>> task = SettableTask.create(scope, "createComponent#" + clazz.getSimpleName());
+//        Runnable create = () -> {
+//            try {
+//                T instance = configuration.getObjectCreator().create(scope, clazz);
+//                if (instance == null) {
+//                    throw new Panic("contract violation while creating " + clazz);
+//                } else {
+//                    configuration.getObjectInjector().inject(scope, instance, (scope1, instance1, failures) -> task.set(new Component<>(scope, (T) instance1, failures)));
+//                }
+//            } catch (Exception e) {
+//                task.set(new Component<>(scope, null, e));
+//            }
+//        };
+//        Handler handler = getHandler(scope, clazz);
+//        if (handler == null) {
+//            create.run();
+//        } else {
+//            handler.post(create);
+//        }
+//
+//        return task;
+//    }
+//
+//    /**
+//     * Destroys the component.
+//     * <ul>
+//     * <li>Respects {@link Execute} to find and call {@link javax.annotation.PreDestroy} and more important also the scope destruction</li>
+//     * </ul>
+//     */
+//    public <T> Task<Component<T>> destroyComponent(Scope scope, T instance, boolean destroyScope) {
+//        SettableTask<Component<T>> task = SettableTask.create(scope.getParent(), "destroyComponent#" + instance.getClass());
+//        configuration.getObjectDestroyer().destroy(scope, instance, (scope1, instance1, failures) -> {
+//            try {
+//                if (destroyScope) {
+//                    scope.destroy();
+//                }
+//            } finally {
+//                task.set(new Component<T>(scope, instance, failures));
+//            }
+//        });
+//        return task;
+//    }
+//
+//    @Nullable
+//    private Handler getHandler(Scope scope, Class<?> clazz) {
+//        Execute lifecycleHandler = clazz.getAnnotation(Execute.class);
+//        if (lifecycleHandler == null) {
+//            return null;
+//        }
+//        return scope.resolve(lifecycleHandler.value(), Handler.class);
+//    }
+//
+//
+//    public interface OnStartCompleteCallback {
+//        void onComplete(Container container, List<Throwable> failures);
+//    }
+//
+//
+//    public enum RequestType {
+//        /**
+//         * Denotes a controller and an endpoint method
+//         */
+//        CONTROLLER_ENDPOINT,
+//        /**
+//         * Denotes a widget, which may be also a UIS (==applies itself to the screen)
+//         */
+//        BEAN,
+//        /**
+//         * the mapping is not configured
+//         */
+//        UNDEFINED
+//    }
 }

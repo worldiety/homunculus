@@ -2,30 +2,26 @@ package org.homunculus.android.example.module.cart;
 
 import android.content.Context;
 import android.support.transition.Explode;
-import android.support.transition.Slide;
-import android.view.Gravity;
 import android.view.ViewGroup;
 
 import org.homunculus.android.compat.EventAppCompatActivity;
-import org.homunculus.android.component.ViewTransitionAnimator;
 import org.homunculus.android.component.ToolbarBuilder;
-import org.homunculus.android.core.Android;
+import org.homunculus.android.component.ViewTransitionAnimator;
 import org.homunculus.android.example.R;
+import org.homunculus.android.example.module.cart.AsyncCartController.BindCartControllerGetCart2;
 import org.homunculusframework.factory.container.Container;
-import org.homunculusframework.factory.container.Request;
 import org.homunculusframework.factory.flavor.hcf.Execute;
-import org.homunculusframework.factory.flavor.hcf.FactoryParam;
 import org.homunculusframework.factory.flavor.hcf.Priority;
+import org.homunculusframework.factory.flavor.hcf.ViewComponent;
 import org.homunculusframework.navigation.Navigation;
 import org.homunculusframework.scope.Scope;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
-import javax.inject.Named;
 
 import static org.homunculus.android.component.Str.str;
 
-@Named("/cart/uis/list")
+@ViewComponent
 public class CartUIS extends CartView {
 
     @Inject
@@ -40,13 +36,8 @@ public class CartUIS extends CartView {
     @Inject
     private Scope scope;
 
-    @FactoryParam
-    String bla;
 
-    @FactoryParam
-    public String bla2;
-
-    public CartUIS(Context context, @FactoryParam String superId) {
+    public CartUIS(Context context) {
         super(context);
     }
 
@@ -63,12 +54,12 @@ public class CartUIS extends CartView {
                 .setShowNavigationIcons(true)
                 .setMenuId(R.menu.testmenu)
                 .addMenuItemListener(R.id.entry1, menuItem -> {
-                    mNav.forward(new Request("/cart/uis/list"));
+                    mNav.forward(new BindCartUIS(null));
                     return true;
                 })
                 .addMenuItemListener(R.id.entry2, menuItem -> true)
                 .addMenuItemListener(R.id.entry3, menuItem -> {
-                    mNav.forward(new Request("/cart/uis/list2"));
+                    mNav.forward(new BindCartUIS2("", null));
 //                    mNav.forward(AsyncCartController);
                     return true;
                 })

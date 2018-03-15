@@ -13,7 +13,9 @@ import org.homunculus.android.component.module.validator.DefaultModelViewPopulat
 import org.homunculus.android.component.module.validator.FieldSpecificValidationError;
 import org.homunculus.android.component.module.validator.UnspecificValidationError;
 import org.homunculus.android.example.R;
-import org.homunculusframework.factory.container.Request;
+import org.homunculus.android.example.module.validator.AsyncTestValidatorController.BindTestValidatorControllerSave;
+import org.homunculusframework.factory.flavor.hcf.FactoryParam;
+import org.homunculusframework.factory.flavor.hcf.ViewComponent;
 import org.homunculusframework.navigation.Navigation;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +26,7 @@ import javax.inject.Named;
 /**
  * Created by aerlemann on 04.02.18.
  */
-@Named("/validator")
+@ViewComponent
 public class ValidatorUIS extends FrameLayout {
 
     @Inject
@@ -33,12 +35,10 @@ public class ValidatorUIS extends FrameLayout {
     @Inject
     Navigation navigation;
 
-    @Inject
-    @Named("viewModel")
+    @FactoryParam
     private ObjectToBeValidated viewModel;
 
-    @Inject
-    @Named("errors")
+    @FactoryParam
     private BindingResult<ObjectToBeValidated> errors;
 
     @Inject
@@ -77,7 +77,7 @@ public class ValidatorUIS extends FrameLayout {
 
         buttonValidate.setOnClickListener(view -> {
             modelViewPopulator.populateBean(layout, viewModel);
-            navigation.forward(new Request("validate/save").put("entity", viewModel));
+            navigation.forward(new BindTestValidatorControllerSave(viewModel));
         });
     }
 }

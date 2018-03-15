@@ -9,27 +9,27 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import org.homunculus.android.component.Debounce;
 import org.homunculus.android.component.Permissions;
+import org.homunculus.android.example.R;
+import org.homunculus.android.example.module.cart.AsyncCartController.BindCartControllerGetCart;
+import org.homunculus.android.example.module.cart.AsyncCartController.BindCartControllerGetCart4;
 import org.homunculus.android.example.module.company.CompanyController;
 import org.homunculus.android.flavor.Resource;
-import org.homunculus.android.example.R;
-import org.homunculus.android.component.Debounce;
 import org.homunculusframework.concurrent.Async;
 import org.homunculusframework.factory.flavor.hcf.FactoryParam;
 import org.homunculusframework.factory.flavor.hcf.Persistent;
-import org.homunculusframework.factory.container.Request;
 import org.homunculusframework.factory.flavor.hcf.Priority;
 import org.homunculusframework.lang.Reference;
 import org.homunculusframework.navigation.Navigation;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
+import java.io.Serializable;
+import java.util.UUID;
+
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Named;
-
-import java.io.Serializable;
-import java.util.UUID;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
@@ -39,15 +39,6 @@ public class CartView extends LinearLayout {
 
     public final static String MY_NAME = "asdf";
 
-    @FactoryParam
-    @Inject
-    private String someString;
-
-    @FactoryParam
-    @Inject
-    @Nullable
-    @Named(MY_NAME)
-    private String someOptionalString;
 
     @FactoryParam
     @Inject
@@ -127,7 +118,7 @@ public class CartView extends LinearLayout {
         Button button = new Button(getContext());
         button.setText("/cart/list");
         button.setOnClickListener(view -> {
-            nav.forward(new Request("/cart/list").put("id", "111111"));
+            nav.forward(new BindCartControllerGetCart(111111));
         });
         addView(button, new LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
 
@@ -135,7 +126,7 @@ public class CartView extends LinearLayout {
         Button button5 = new Button(getContext());
         button5.setText("/cart/list2");
         button5.setOnClickListener(view -> {
-            nav.forward(new Request("/cart/list2").put("id", "222222"));
+            nav.forward(new BindCartControllerGetCart4(222222));
         });
         addView(button5, new LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
 
@@ -166,16 +157,16 @@ public class CartView extends LinearLayout {
             CartModel model = new CartModel();
             model.setId(7338);
             model.getEntries().add(new CartEntry("direct UIS navigation"));
-            nav.forward(new Request("/cart/uis/list").put("cart", model));
+            nav.forward(new BindCartUIS(model));
         });
         addView(button4, new LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
 
-        Button button6 = new Button(getContext());
-        button6.setText("request unconfigured");
-        button6.setOnClickListener(view -> {
-            nav.forward(new Request("/notconfigured/widget/or/controller"));
-        });
-        addView(button6, new LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
+//        Button button6 = new Button(getContext());
+//        button6.setText("request unconfigured");
+//        button6.setOnClickListener(view -> {
+//            nav.forward(new Request("/notconfigured/widget/or/controller"));
+//        });
+//        addView(button6, new LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
 
 
         Button crashBackground = new Button(getContext());

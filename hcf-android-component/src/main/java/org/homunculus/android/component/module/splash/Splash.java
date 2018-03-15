@@ -20,13 +20,8 @@ import android.os.Handler;
 import android.view.LayoutInflater;
 
 import org.homunculus.android.component.R;
-import org.homunculusframework.factory.container.Request;
+import org.homunculusframework.factory.container.Binding;
 import org.homunculusframework.navigation.Navigation;
-import org.homunculusframework.stereotype.UserInterfaceState;
-
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
-import javax.inject.Named;
 
 /**
  * A simple splash view which is intended for extension.
@@ -34,29 +29,27 @@ import javax.inject.Named;
  * @author Torben Schinke
  * @since 1.0
  */
-@Named(Splash.NAME)
-@UserInterfaceState
 public abstract class Splash {
-    /**
-     * The bean name
-     */
-    public final static String NAME = "hcf/splash";
 
 
-    @Inject
     private Activity activity;
 
 
-    @Inject
     private Handler main;
 
-    @Inject
     private Navigation navigation;
 
-    @Inject
     private LayoutInflater inflater;
 
-    @PostConstruct
+
+    public Splash(Activity activity, Handler main, Navigation navigation, LayoutInflater inflater) {
+        this.activity = activity;
+        this.main = main;
+        this.navigation = navigation;
+        this.inflater = inflater;
+        apply();
+    }
+
     private void apply() {
         activity.setContentView(inflater.inflate(R.layout.hcf_splash, null));
 
@@ -69,7 +62,7 @@ public abstract class Splash {
     /**
      * The target after the time has run out
      */
-    protected abstract Request getTarget();
+    protected abstract Binding<?> getTarget();
 
     /**
      * The duration in milliseconds

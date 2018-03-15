@@ -2,25 +2,15 @@ package org.homunculus.android.example;
 
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.android.ContextHolder;
-import org.homunculus.android.compat.CompatApplication;
 import org.homunculus.android.component.HomunculusApplication;
-import org.homunculus.android.component.UnbreakableCrashHandler;
-import org.homunculus.android.component.module.uncaughtexception.ReporterSupportiety;
-import org.homunculus.android.component.module.uncaughtexception.Supportiety.ApplicationDetails;
-import org.homunculus.android.example.module.benchmark.Register;
-import org.homunculus.android.example.module.cart.*;
-import org.homunculus.android.example.module.company.CompanyController;
-import org.homunculus.android.example.module.validator.TestValidatorController;
-import org.homunculus.android.example.module.validator.ValidatorUIS;
 import org.homunculusframework.factory.container.Configuration;
-import org.homunculusframework.factory.container.Container;
 import org.homunculusframework.jpa.ormlite.ORMLiteEntityManager;
 import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.EntityManager;
-
 import java.io.File;
+
+import javax.persistence.EntityManager;
 
 public class MyApplication extends HomunculusApplication {
 

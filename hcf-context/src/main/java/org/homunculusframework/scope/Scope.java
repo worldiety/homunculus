@@ -23,6 +23,7 @@ import org.homunculusframework.lang.Void;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -283,19 +284,43 @@ public final class Scope implements Destroyable, org.homunculusframework.lang.Ma
      * Similar to {@link #get(String, Class)} but resolves the variable also by looking into the parents.
      * Each child of a parent may shadow the parents variable with the same name.
      * The logic performs a duck type and tries to make some reasonable casts or type conversions, e.g. between string and numbers.
+     * <p>
+     * Resolving order:
+     * <ul>
+     * <li>If there is a named value in this Scope or any parent, try to ducktype it</li>
+     * <li>If there is no such named value, try to resolve it by type matching</li>
+     * <li>Otherwise return null</li>
+     * </ul>
      */
     public <T> T resolve(String name, Class<T> type) {
         synchronized (namedValues) {
             printDestroyedWarning("resolve()");
 
+            if (!hasRecursive(name)) {
+                return resolve(type);
+            }
+
             if (!namedValues.containsKey(name) && parent != null) {
                 return parent.resolve(name, type);
             }
 
+
             Object obj = namedValues.get(name);
             return (T) Reflection.castDuck(obj, type);
         }
+    }
 
+    /**
+     * Checks if there is any named value
+     *
+     * @param name
+     * @return
+     */
+    public boolean hasRecursive(String name) {
+        if (!namedValues.containsKey(name) && parent != null) {
+            return parent.hasRecursive(name);
+        }
+        return namedValues.containsKey(name);
     }
 
     /**

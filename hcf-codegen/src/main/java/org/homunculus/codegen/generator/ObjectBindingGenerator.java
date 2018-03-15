@@ -20,6 +20,7 @@ import com.helger.jcodemodel.AbstractJType;
 import com.helger.jcodemodel.JBlock;
 import com.helger.jcodemodel.JCatchBlock;
 import com.helger.jcodemodel.JCodeModel;
+import com.helger.jcodemodel.JConditional;
 import com.helger.jcodemodel.JDefinedClass;
 import com.helger.jcodemodel.JExpr;
 import com.helger.jcodemodel.JFieldVar;
@@ -39,6 +40,7 @@ import org.homunculus.codegen.parse.Method;
 import org.homunculus.codegen.parse.Parameter;
 import org.homunculus.codegen.parse.Resolver;
 import org.homunculus.codegen.parse.Strings;
+import org.homunculusframework.factory.container.Binding;
 import org.homunculusframework.factory.container.Container;
 import org.homunculusframework.factory.container.ModelAndView;
 import org.homunculusframework.factory.container.ObjectBinding;
@@ -61,6 +63,7 @@ import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
+import javax.inject.Named;
 
 /**
  * This guy creates a type safe class to create instances of a Bean or Pojo. You can mix constructor and Field injection.
@@ -193,7 +196,10 @@ class ObjectBindingGenerator {
         }
         sortMethodCalls(objectBindingModel.preDestroy);
         generatePreDestroy(delegate, objectBindingModel.preDestroy, project.getCodeModel(), binding);
+
+
     }
+
 
     private OnExecuteMethod createOnExecuteMethod(JCodeModel code, JDefinedClass binding, FullQualifiedName bean) {
         OnExecuteMethod exec = new OnExecuteMethod();
@@ -256,7 +262,14 @@ class ObjectBindingGenerator {
         for (Field field : model.fields) {
             JMethod setter = insertReflectiveFieldSetter(code, binding, onExecuteMethod, field);
             AbstractJClass type = code.ref(field.getType().getFullQualifiedName().toString());
-            onExecuteMethod.onExecute.body().invoke(setter).arg(onExecuteMethod.varBean).arg(JExpr.invoke("get").arg(field.getName()).arg(type.dotclass()));
+            Annotation named = field.getAnnotation(Named.class);
+            if (named != null) {
+                String beanName = named.getString("");
+                onExecuteMethod.onExecute.body().invoke(setter).arg(onExecuteMethod.varBean).arg(JExpr.invoke("get").arg(beanName).arg(type.dotclass()));
+            } else {
+                onExecuteMethod.onExecute.body().invoke(setter).arg(onExecuteMethod.varBean).arg(JExpr.invoke("get").arg(type.dotclass()));
+            }
+
         }
     }
 

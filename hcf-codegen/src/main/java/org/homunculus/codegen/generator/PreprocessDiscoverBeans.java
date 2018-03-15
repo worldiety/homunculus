@@ -21,6 +21,7 @@ import org.homunculus.codegen.parse.Annotation;
 import org.homunculus.codegen.parse.Field;
 import org.homunculus.codegen.parse.FullQualifiedName;
 import org.homunculus.codegen.parse.Resolver;
+import org.homunculusframework.factory.flavor.hcf.ViewComponent;
 
 import java.util.HashSet;
 import java.util.List;
@@ -102,7 +103,7 @@ public class PreprocessDiscoverBeans implements Generator {
          * Beans without such annotations need no binding, because they have a typesafe constructor or setters. However SINGLETONs are
          * always included
          */
-        BEAN("javax.inject.Inject", "org.springframework.beans.factory.annotation.Autowired");
+        BEAN("javax.inject.Inject", "org.springframework.beans.factory.annotation.Autowired", ViewComponent.class.getName());
 
         private String[] fullQualifiedNames;
 

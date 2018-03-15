@@ -19,6 +19,7 @@ import org.homunculusframework.concurrent.Async;
 import org.homunculusframework.factory.component.DefaultFactory;
 import org.homunculusframework.factory.container.AnnotatedFieldProcessor;
 import org.homunculusframework.factory.container.Container;
+import org.homunculusframework.lang.Panic;
 import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +55,8 @@ public class SPRFieldInject implements AnnotatedFieldProcessor {
                 Container container = scope.resolve(Container.NAME_CONTAINER, Container.class);
                 if (container != null) {
                     //await has danger of deadlocks, especially for PostConstructs in main thread (which is the default case)
-                    resolvedValue = Async.await(container.createComponent(scope, field.getType())).get();
+//                    resolvedValue = Async.await(container.createComponent(scope, field.getType())).get();
+                    throw new Panic();
                 }
             }
 

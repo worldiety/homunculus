@@ -97,9 +97,7 @@ public class JPMethod implements Method {
 
     @Override
     public Type getType() {
-        //TODO this is not correct for generics
-        Type type = new Type(new FullQualifiedName(ctx.src.getFullQualifiedName(methodDeclaration.getType().asString())));
-        return type;
+        return TypeUtil.convert(ctx, methodDeclaration.getType());
     }
 
     @Override

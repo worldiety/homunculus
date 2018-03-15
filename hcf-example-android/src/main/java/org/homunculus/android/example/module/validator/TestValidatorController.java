@@ -4,10 +4,12 @@ import org.homunculus.android.component.module.validator.BindingResult;
 import org.homunculus.android.component.module.validator.FieldSpecificValidationError;
 import org.homunculus.android.component.module.validator.HomunculusValidator;
 import org.homunculus.android.component.module.validator.UnspecificValidationError;
-import org.homunculusframework.navigation.ModelAndView;
+import org.homunculusframework.factory.container.ModelAndView;
+import org.homunculusframework.lang.Panic;
 
 import java.sql.SQLException;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
@@ -16,16 +18,16 @@ import javax.inject.Singleton;
  * Created by aerlemann on 05.02.18.
  */
 @Singleton
-@Named("/validate")
 public class TestValidatorController {
 
+    @Inject
+    HomunculusValidator validator;
 
-    @Named("/save")
-    public ModelAndView save(ObjectToBeValidated entity, HomunculusValidator validator) {
+    public ModelAndView save(ObjectToBeValidated entity) {
         BindingResult<ObjectToBeValidated> errors = validator.validate(entity);
         if (errors.hasErrors()) {
             //We already have errors. Don't do db stuff.
-            return new ModelAndView("validator").put("viewModel", entity).put("errors", errors);
+            return new BindValidatorUIS(entity, errors);
         }
 
         //check db stuff
@@ -43,9 +45,10 @@ public class TestValidatorController {
         }
 
         if (!errors.hasErrors()) {
-            return new ModelAndView("navigate:#backward"); //TODO implement logical directives
+            //return new ModelAndView("navigate:#backward"); //TODO implement logical directives
+            throw new Panic("is this still required? => introduce NavigationBinding");
         } else {
-            return new ModelAndView("validator").put("viewModel", entity).put("errors", errors);
+            return new BindValidatorUIS(entity, errors);
         }
 
 

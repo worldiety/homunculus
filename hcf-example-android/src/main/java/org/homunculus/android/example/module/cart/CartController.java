@@ -3,10 +3,10 @@ package org.homunculus.android.example.module.cart;
 import org.homunculusframework.concurrent.Task;
 import org.homunculusframework.concurrent.ThreadNotInterruptible;
 import org.homunculusframework.factory.container.MethodBinding;
+import org.homunculusframework.factory.container.ModelAndView;
 import org.homunculusframework.factory.container.ObjectBinding;
 import org.homunculusframework.factory.flavor.hcf.Execute;
 import org.homunculusframework.factory.container.Container;
-import org.homunculusframework.navigation.ModelAndView;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.Future;
@@ -27,7 +27,7 @@ public class CartController {
     }
 
     @Named("/list")
-    public ModelAndView getCart(@Named("id") int cartId) throws InterruptedException {
+    public ObjectBinding<?> getCart(@Named("id") int cartId) throws InterruptedException {
         //do some expensive I/O work
         Thread.sleep(2000);
 
@@ -36,11 +36,11 @@ public class CartController {
         cart.getEntries().add(new CartEntry("The wiz in action"));
         cart.getEntries().add(new CartEntry("Jim, he is dead"));
 
-        return new ModelAndView("/cart/uis/list").put("cart", cart);
+        return new BindCartUIS(cart);
     }
 
     @Named(METHOD_LIST2)
-    public ModelAndView getCart2(@Named("id") int cartId) throws InterruptedException {
+    public ModelAndView<?> getCart2(@Named("id") int cartId) throws InterruptedException {
         //do some expensive I/O work
         Thread.sleep(2000);
 
@@ -49,21 +49,21 @@ public class CartController {
         cart.getEntries().add(new CartEntry("The wiz in action"));
         cart.getEntries().add(new CartEntry("Jim, he is dead"));
 
-        return new ModelAndView("/cart/uis/list").put("cart", cart);
+        return new BindCartUIS(cart);
     }
 
     public ObjectBinding<?> getCart3(@Named("id") int cartId) throws InterruptedException {
         CartModel cart = new CartModel();
-        return new BindCartUIS("", "", "", "", "", cart);
+        return new BindCartUIS(cart);
     }
 
     public org.homunculusframework.factory.container.ModelAndView getCart4(@Named("id") int cartId) throws InterruptedException {
-        return new BindCartUIS2("ad", "asd", "ads", null);
+        return new BindCartUIS2(null, null);
     }
 
     /**
      * Requesting backend methods directly is possible as well, recommend is to use the {@link org.homunculusframework.factory.async.AsyncDelegate} pattern
-     * as seen in {@link CartControllerConnection}
+     * as seen in {@link }
      */
     @ThreadNotInterruptible
     public CartModel getPoJoCart(int cartId) throws InterruptedException {

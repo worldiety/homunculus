@@ -16,6 +16,10 @@
 package org.homunculus.android.flavor;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
+
+import org.homunculus.android.core.Android;
 import org.homunculusframework.factory.container.Configuration;
 import org.homunculusframework.factory.container.Configurator;
 import org.homunculusframework.factory.container.Container;
@@ -30,7 +34,7 @@ import org.homunculusframework.factory.flavor.hcf.Persistent;
  * <li>Field injection support for layouts, drawables, texts etc. declared by {@link Resource}</li>
  * <li>{@link Container#NAME_MAIN_HANDLER} using the main thread (default for most things, or if undefined)</li>
  * <li>{@link Container#NAME_BACKGROUND_HANDLER} using 8 threads (for post construct and pre destroy)</li>
- * <li>{@link Container#NAME_REQUEST_HANDLER} using 8 threads (see also {@link org.homunculusframework.factory.container.Request})</li>
+ * <li>{@link Container#NAME_REQUEST_HANDLER} using 8 threads (see also {@link org.homunculusframework.factory.container.Binding})</li>
  * <li>{@link Container#NAME_INFLATER_HANDLER} using 8 threads (concurrent view inflation)</li>
  * <li>{@link AndroidScopeContext} which is used by {@link org.homunculusframework.navigation.DefaultNavigation} for UIS.
  * You should always use {@link org.homunculus.android.core.Android#NAME_CONTEXT} to create your views and to allow a proper
@@ -51,6 +55,7 @@ public class AndroidFlavor implements Configurator {
         configuration.addFieldProcessor(new ResourceAnnotationLoader());
 
         configuration.getRootScope().put(Container.NAME_MAIN_HANDLER, new AndroidMainHandler());
+        configuration.getRootScope().put(Android.NAME_MAIN_HANDLER, new Handler(Looper.getMainLooper()));
         configuration.getRootScope().put(Container.NAME_BACKGROUND_HANDLER, new AndroidBackgroundHandler(8, Container.NAME_BACKGROUND_HANDLER, Thread.MIN_PRIORITY));
         configuration.getRootScope().put(Container.NAME_REQUEST_HANDLER, new AndroidBackgroundHandler(8, Container.NAME_REQUEST_HANDLER, Thread.MIN_PRIORITY));
         configuration.getRootScope().put(Container.NAME_INFLATER_HANDLER, new AndroidInflaterHandler(8, Thread.MIN_PRIORITY));

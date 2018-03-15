@@ -126,7 +126,8 @@ public class HCFFieldPersistent implements AnnotatedFieldProcessor {
                 Container container = scope.resolve(Container.NAME_CONTAINER, Container.class);
                 if (container != null) {
                     //await has danger of deadlocks, especially for PostConstructs in main thread (which is the default case)
-                    resolvedValue = Async.await(container.createComponent(scope, typeToResolve)).get();
+//                    resolvedValue = Async.await(container.createComponent(scope, typeToResolve)).get();
+                    throw new Panic();
                 }
             }
 

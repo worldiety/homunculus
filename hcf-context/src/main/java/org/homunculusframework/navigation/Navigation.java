@@ -15,7 +15,7 @@
  */
 package org.homunculusframework.navigation;
 
-import org.homunculusframework.factory.container.Request;
+import org.homunculusframework.factory.container.Binding;
 
 import javax.annotation.Nullable;
 
@@ -42,12 +42,12 @@ public interface Navigation extends BackActionConsumer {
      *
      * @param request the request
      */
-    void reset(Request request);
+    void reset(Binding<?> request);
 
     /**
      * Goes forward the navigation (whatever that means)
      */
-    void forward(Request request);
+    void forward(Binding<?> request);
 
     /**
      * See also {@link BackActionConsumer#backward()}.
@@ -63,7 +63,7 @@ public interface Navigation extends BackActionConsumer {
      *
      * @param request the request
      */
-    void backward(Request request);
+    void backward(Binding<?> request);
 
     /**
      * Just executes and applies the given request, without modifying the current stack. This is especially useful
@@ -71,7 +71,7 @@ public interface Navigation extends BackActionConsumer {
      *
      * @param request the request
      */
-    void redirect(Request request);
+    void redirect(Binding<?> request);
 
 
     /**
@@ -87,14 +87,14 @@ public interface Navigation extends BackActionConsumer {
      * @return the last element in the stack which may be the currently visible state (but for subsequent calls this must not be the case)
      */
     @Nullable
-    Request pop();
+    Binding<?> pop();
 
     /**
      * Pushes another request on top of the navigation stack without applying anything.
      *
      * @param request the new stack entry
      */
-    void push(Request request);
+    void push(Binding<?> request);
 
 
     /**
@@ -103,7 +103,7 @@ public interface Navigation extends BackActionConsumer {
      * @return the current
      */
     @Nullable
-    Request getTop();
+    Binding<?> getTop();
 
     /**
      * The currently active request. Keep an eye on logical races. While creating/destroying the actual current state is not defined
@@ -112,7 +112,7 @@ public interface Navigation extends BackActionConsumer {
      * @return the currently applied request (stable only when not pending anymore)
      */
     @Nullable
-    Request getCurrent();
+    Binding<?> getCurrent();
 
     /**
      * Returns the request right before the top most entry.
@@ -120,7 +120,7 @@ public interface Navigation extends BackActionConsumer {
      * @return the entry before the top
      */
     @Nullable
-    Request getPriorTop();
+    Binding<?> getPriorTop();
 
     /**
      * Returns the current backing stack, which can be modified directly. The stack top is the tail (length - 1) of the list.
@@ -129,12 +129,24 @@ public interface Navigation extends BackActionConsumer {
      *
      * @return the stack, never null
      */
-    List<Request> getStack();
+    List<Binding<?>> getStack();
 
     /**
      * Checks, if the the navigation was going forward during the last state switch
      *
      * @return true, if the the navigation was going forward during the last state switch
      */
+    @Deprecated
     boolean wasGoingForward();
+
+    enum DefaultDirection implements Direction{
+        FORWARD,
+        BACKWARD,
+        UPWARD,
+        DOWNWARD
+    }
+
+    interface Direction{
+
+    }
 }

@@ -15,22 +15,21 @@
  */
 package org.homunculusframework.navigation;
 
-import org.homunculusframework.concurrent.Task;
 import org.homunculusframework.factory.component.DefaultFactory;
-import org.homunculusframework.factory.container.Component;
+import org.homunculusframework.factory.container.Binding;
 import org.homunculusframework.factory.container.Container;
-import org.homunculusframework.factory.container.Request;
+import org.homunculusframework.factory.container.MethodBinding;
+import org.homunculusframework.factory.container.ObjectBinding;
 import org.homunculusframework.lang.Panic;
 import org.homunculusframework.lang.Reflection;
 import org.homunculusframework.scope.Scope;
-import org.homunculusframework.scope.SettableTask;
 import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nullable;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.annotation.Nullable;
 
 /**
  * This default navigation implements a simple stack based navigation approach and resolves
@@ -45,10 +44,9 @@ public class DefaultNavigation implements Navigation {
     private final Scope scope;
     @Nullable
     private UserInterfaceState currentUIS;
-    @Deprecated
     private static final AtomicInteger requestNo = new AtomicInteger();
 
-    private final List<Request> stack;
+    private final List<Binding<?>> stack;
     private boolean crashOnFail = true;
     private boolean wasGoingForward = true;
 
@@ -80,7 +78,7 @@ public class DefaultNavigation implements Navigation {
     }
 
     @Override
-    public void reset(Request request) {
+    public void reset(Binding<?> request) {
         synchronized (stack) {
             stack.clear();
             stack.add(request);
@@ -89,9 +87,9 @@ public class DefaultNavigation implements Navigation {
     }
 
     @Override
-    public void forward(Request request) {
+    public void forward(Binding<?> request) {
         synchronized (stack) {
-            wasGoingForward =true;
+            wasGoingForward = true;
             stack.add(request);
         }
         applyInternal(request);
@@ -122,15 +120,14 @@ public class DefaultNavigation implements Navigation {
     }
 
     @Override
-    public void backward(Request request) {
+    public void backward(Binding<?> request) {
         synchronized (stack) {
             wasGoingForward = false;
             pop();//just pop the current entry from the stack
             while (!stack.isEmpty()) {
-                Request prior = pop();
-                if (prior.getMapping().equals(request.getMapping())) {
-                    prior.putAll(request);
-                    applyInternal(prior);
+                Binding<?> prior = pop();
+                if (prior != null && prior.equalsTarget(request)) {
+                    applyInternal(request);
                     return;
                 }
             }
@@ -140,13 +137,13 @@ public class DefaultNavigation implements Navigation {
     }
 
     @Override
-    public void redirect(Request request) {
+    public void redirect(Binding<?> request) {
         applyInternal(request);
     }
 
     @Override
     public boolean reload() {
-        Request request = getTop();
+        Binding<?> request = getTop();
         if (request != null) {
             applyInternal(request);
             return true;
@@ -157,7 +154,7 @@ public class DefaultNavigation implements Navigation {
 
     @Nullable
     @Override
-    public Request pop() {
+    public Binding<?> pop() {
         synchronized (stack) {
             while (!stack.isEmpty()) {
                 return stack.remove(stack.size() - 1);
@@ -167,7 +164,7 @@ public class DefaultNavigation implements Navigation {
     }
 
     @Override
-    public void push(Request request) {
+    public void push(Binding<?> request) {
         synchronized (stack) {
             stack.add(request);
         }
@@ -175,7 +172,7 @@ public class DefaultNavigation implements Navigation {
 
     @Nullable
     @Override
-    public Request getTop() {
+    public Binding<?> getTop() {
         synchronized (stack) {
             if (stack.isEmpty()) {
                 return null;
@@ -187,7 +184,7 @@ public class DefaultNavigation implements Navigation {
 
     @Nullable
     @Override
-    public Request getCurrent() {
+    public Binding<?> getCurrent() {
         synchronized (stack) {
             UserInterfaceState uis = currentUIS;
             if (uis != null) {
@@ -199,7 +196,7 @@ public class DefaultNavigation implements Navigation {
 
     @Nullable
     @Override
-    public Request getPriorTop() {
+    public Binding<?> getPriorTop() {
         synchronized (stack) {
             if (stack.size() > 1) {
                 return stack.get(stack.size() - 2);
@@ -209,7 +206,7 @@ public class DefaultNavigation implements Navigation {
     }
 
     @Override
-    public List<Request> getStack() {
+    public List<Binding<?>> getStack() {
         return stack;
     }
 
@@ -223,90 +220,63 @@ public class DefaultNavigation implements Navigation {
      *
      * @param request the request
      */
-    public void apply(Request request) {
+    public void apply(Binding<?> request) {
         //this double wrapping call is needed to ensure that our stack capturing always cuts at the correct depth
         applyInternal(request);
     }
 
-    private void applyInternal(Request request) {
+    private void applyInternal(Binding<?> binding) {
         UserInterfaceState uis = currentUIS;
-        Request currentRequest;
+        Binding<?> currentRequest;
         if (uis != null) {
             currentRequest = uis.getRequest();
         } else {
             currentRequest = null;
         }
-        postBeforeApply(currentRequest, request);
-        request.put(Container.NAME_CALLSTACK, DefaultFactory.getCallStack(0));
-        request.execute(scope).whenDone(res -> {
-            try {
-                final Container container = scope.resolve(Container.NAME_CONTAINER, Container.class);
-                if (container == null) {
-                    LoggerFactory.getLogger(getClass()).error("no container found in scope, request discarded");
-                    return;
-                }
-
-                Object obj = res.get();
-                if (obj instanceof ModelAndView) {
-                    ModelAndView mav = (ModelAndView) obj;
-                    Scope uisScope = createChild(scope, mav);
-                    container.prepareScope(uisScope);
-                    Task<Component<?>> task;
-                    switch (mav.getView().getMappingType()) {
-                        case CLASS:
-                            task = container.createBean(uisScope, mav.getView().getType());
-                            break;
-                        case NAME:
-                            task = container.createBean(uisScope, mav.getView().getName());
-                            break;
-                        default:
-                            throw new Panic();
-                    }
-
-                    attachComponentTask(request, uisScope, task);
-                } else if (obj instanceof Component) {
-                    Scope uisScope = ((Component) obj).getScope();
-                    SettableTask<Component<?>> task = SettableTask.create(uisScope, "execute tmp");
-                    task.set((Component) obj);
-                    attachComponentTask(request, uisScope, task);
+        postBeforeApply(currentRequest, binding);
+        binding.setStackTrace(DefaultFactory.getCallStack(0));
+        if (binding instanceof MethodBinding) {
+            //a method binding is async and always returns an object binding
+            MethodBinding<?> methodBinding = (MethodBinding<?>) binding;
+            methodBinding.execute(scope).whenDone(res -> {
+                if (res.getThrowable() != null) {
+                    postAfterApply(currentRequest, binding, res.getThrowable());
                 } else {
-                    if (obj == null) {
-                        LoggerFactory.getLogger(getClass()).error("invocation returned 'null' component, not useful for navigation: {} -> {}", request.getMapping(), obj);
-                        //remove the request silently from the stack, otherwise the behavior is weired, because one can go back "nothing"
-                        if (request == getTop()) {
-                            pop();
-                        }
-                        postAfterApply(currentRequest, request, res.getThrowable());
+                    ObjectBinding chainedBinding = res.get();
+                    if (chainedBinding == null) {
+                        postAfterApply(currentRequest, binding, new Panic("method binding is not allowed to return null"));
                     } else {
-                        LoggerFactory.getLogger(getClass()).error("expected a 'component' or 'ModelAndView' but received '{}'", obj);
-                        postAfterApply(currentRequest, request, new RuntimeException("expected a 'component' or 'ModelAndView' but received " + obj));
+                        attachTask(chainedBinding, scope);
                     }
                 }
-            } catch (RuntimeException | Error e) {
-                postAfterApply(currentRequest, request, e);
-                throw e;
-            }
-        });
+            });
+        } else if (binding instanceof ObjectBinding) {
+            //already just an object binding
+            attachTask((ObjectBinding) binding, scope);
+        } else {
+            //something unkown
+            postAfterApply(currentRequest, binding, new Panic("binding type unknown"));
+        }
     }
 
     /**
-     * Delegates to {@link #onBeforeApply(Request, Request)}
+     * Delegates to {@link #onBeforeApply(Binding, Binding)}
      */
-    protected void postBeforeApply(@Nullable Request oldRequest, Request newRequest) {
+    protected void postBeforeApply(@Nullable Binding<?> oldRequest, Binding<?> newRequest) {
         onBeforeApply(oldRequest, newRequest);
     }
 
     /**
-     * Delegates {@link #onAfterApply(Request, Request, Throwable)}
+     * Delegates {@link #onAfterApply(Binding, Binding, Throwable)}
      */
-    protected void postAfterApply(@Nullable Request currentRequest, Request nextRequest, @Nullable Throwable details) {
+    protected void postAfterApply(@Nullable Binding<?> currentRequest, Binding<?> nextRequest, @Nullable Throwable details) {
         onAfterApply(currentRequest, nextRequest, details);
     }
 
     /**
      * Called before a new state is applied or the old state has been changed. It is called directly from the same
      */
-    protected void onBeforeApply(@Nullable Request currentRequest, Request nextRequest) {
+    protected void onBeforeApply(@Nullable Binding<?> currentRequest, Binding<?> nextRequest) {
 
     }
 
@@ -314,40 +284,26 @@ public class DefaultNavigation implements Navigation {
      * Called after the state has been applied or if application has been rejected. The throwable is not null,
      * the UIS has not been applied
      */
-    protected void onAfterApply(@Nullable Request oldRequest, Request newRequest, @Nullable Throwable details) {
+    protected void onAfterApply(@Nullable Binding<?> oldRequest, Binding<?> newRequest, @Nullable Throwable details) {
 
     }
 
-    private void attachComponentTask(Request request, Scope uisScope, Task<Component<?>> task) {
+    //TODO actually it is possible that requests overpass each other, this must be avoided by the callee e.g. by locking the screen
+    private void attachTask(ObjectBinding<?> binding, Scope uisScope) {
         UserInterfaceState uis = currentUIS;
-        Request currentRequest;
+        ObjectBinding<?> currentRequest;
         if (uis != null) {
             currentRequest = uis.getRequest();
         } else {
             currentRequest = null;
         }
 
-        task.whenDone(component -> {
-            Object newUIS = component.get();
-            if (newUIS != null && component.getFailures().isEmpty()) {
-                uisScope.put("$" + System.identityHashCode(newUIS), newUIS);
-                tearDownOldAndApplyNew(new UserInterfaceState(request, uisScope, newUIS));
-            } else {
-                uisScope.destroy();
-                LoggerFactory.getLogger(getClass()).error("denied applying UIS: {}", newUIS);
 
-                if (!component.getFailures().isEmpty()) {
-                    postAfterApply(currentRequest, request, component.getFailures().get(0));
-                    if (crashOnFail) {
-                        throw new RuntimeException("failed to create bean", component.getFailures().get(0));
-                    } else {
-                        for (Throwable t : component.getFailures()) {
-                            LoggerFactory.getLogger(getClass()).error("created failed", t);
-                        }
-                    }
-                } else {
-                    postAfterApply(currentRequest, request, new RuntimeException("denied applying UIS: " + newUIS));
-                }
+        binding.execute(uisScope).whenDone(res -> {
+            if (res.getThrowable() != null) {
+                postAfterApply(currentRequest, binding, res.getThrowable());
+            } else {
+                tearDownOldAndApplyNew(new UserInterfaceState(binding, uisScope, res.get()));
             }
         });
     }
@@ -359,53 +315,17 @@ public class DefaultNavigation implements Navigation {
             postAfterApply(null, uis.getRequest(), null);
             LoggerFactory.getLogger(getClass()).info("applied UIS {}", uis);
         } else {
-            Container container = scope.resolve(Container.NAME_CONTAINER, Container.class);
-            if (container == null) {
-                LoggerFactory.getLogger(getClass()).error("no container found in scope, tearDownOldAndApplyNew discarded");
-                postAfterApply(oldUIS.getRequest(), uis.getRequest(), new RuntimeException("no container found in scope, tearDownOldAndApplyNew discarded"));
-            } else {
-                container.destroyComponent(oldUIS.scope, oldUIS.bean, true).whenDone(component -> {
-                    if (!component.getFailures().isEmpty()) {
-                        LoggerFactory.getLogger(getClass()).error("problems destroying UIS: {}", component.get());
-
-                        postAfterApply(oldUIS.getRequest(), uis.getRequest(), component.getFailures().get(0));
-                        if (crashOnFail) {
-                            throw new RuntimeException("failed to destroy bean", component.getFailures().get(0));
-                        } else {
-                            for (Throwable t : component.getFailures()) {
-                                LoggerFactory.getLogger(getClass()).error("destroy failed", t);
-                            }
-                        }
-                    }
+            oldUIS.getRequest().destroy().whenDone(res -> {
+                if (res.getThrowable() != null) {
+                    postAfterApply(oldUIS.getRequest(), uis.getRequest(), res.getThrowable());
+                } else {
                     LoggerFactory.getLogger(getClass()).info("applied UIS {}", uis);
                     currentUIS = uis;
-                    if (component.getFailures().isEmpty()) {
-                        postAfterApply(oldUIS.getRequest(), uis.getRequest(), null);
-                    }
-                });
-            }
+                    postAfterApply(oldUIS.getRequest(), uis.getRequest(), null);
+                }
+            });
+
         }
-    }
-
-
-    @Deprecated
-    public static Scope createChild(Scope parent, ModelAndView modelAndView) {
-        Scope scope = new Scope("inflate:" + modelAndView.getView() + "@" + requestNo.incrementAndGet(), parent);
-        modelAndView.forEach(entry -> {
-            scope.put(entry.getKey(), entry.getValue());
-            return true;
-        });
-        return scope;
-    }
-
-    @Deprecated
-    public static Scope createChild(Scope parent, Request params) {
-        Scope scope = new Scope("request:" + params.getMapping() + "@" + requestNo.incrementAndGet(), parent);
-        params.forEachEntry(entry -> {
-            scope.put(entry.getKey(), entry.getValue());
-            return true;
-        });
-        return scope;
     }
 
 
@@ -415,9 +335,9 @@ public class DefaultNavigation implements Navigation {
     public final static class UserInterfaceState {
         private final Scope scope;
         private final Object bean;
-        private final Request request;
+        private final ObjectBinding<?> request;
 
-        UserInterfaceState(Request request, Scope scope, Object bean) {
+        UserInterfaceState(ObjectBinding<?> request, Scope scope, Object bean) {
             this.request = request;
             this.scope = scope;
             this.bean = bean;
@@ -457,7 +377,7 @@ public class DefaultNavigation implements Navigation {
          *
          * @return the request
          */
-        public Request getRequest() {
+        public ObjectBinding<?> getRequest() {
             return request;
         }
     }

@@ -8,9 +8,8 @@ import android.graphics.Color;
 import android.widget.Button;
 import android.widget.LinearLayout;
 
-
 import org.homunculus.android.component.IntentImages;
-import org.homunculus.android.component.NavigationBuilder;
+import org.homunculusframework.navigation.Navigation;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,7 +25,7 @@ import javax.inject.Named;
 public class UISA extends LinearLayout {
 
     @Inject
-    private NavigationBuilder navigation;
+    private Navigation navigation;
 
     @Inject
     private Activity activity;
@@ -48,7 +47,7 @@ public class UISA extends LinearLayout {
         Button btnToB = new Button(getContext());
         btnToB.setText("to B");
         btnToB.setOnClickListener(view -> {
-            navigation.forward(UISB.class).start();
+            navigation.forward(new BindUISB());
         });
         addView(btnToB);
 

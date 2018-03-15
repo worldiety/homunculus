@@ -6,8 +6,8 @@ import android.graphics.Color;
 import android.widget.Button;
 import android.widget.LinearLayout;
 
-import org.homunculus.android.component.NavigationBuilder;
 import org.homunculusframework.lang.Panic;
+import org.homunculusframework.navigation.Navigation;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -20,7 +20,7 @@ import javax.inject.Named;
 public class UISB extends LinearLayout {
 
     @Inject
-    private NavigationBuilder navigation;
+    private Navigation navigation;
 
     @Inject
     private Activity activity;

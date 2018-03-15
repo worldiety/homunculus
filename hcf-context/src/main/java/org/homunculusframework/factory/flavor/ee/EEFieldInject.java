@@ -55,7 +55,8 @@ public class EEFieldInject implements AnnotatedFieldProcessor {
                 Container container = scope.resolve(Container.NAME_CONTAINER, Container.class);
                 if (container != null) {
                     //await has danger of deadlocks, especially for PostConstructs in main thread (which is the default case)
-                    resolvedValue = Async.await(container.createComponent(scope, field.getType())).get();
+//                    resolvedValue = Async.await(container.createComponent(scope, field.getType())).get();
+                    throw new Panic();
                 }
             }
 
