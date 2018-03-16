@@ -12,6 +12,7 @@ dependencies {
     compile 'com.helger:jcodemodel:3.0.1'
     compile 'org.slf4j:slf4j-simple:1.7.25'
     compile 'org.slf4j:slf4j-api:1.7.25'
+    compile 'com.google.android:android:4.1.1.4'
 
     //this is for @inject or @named
     compile 'javax.inject:javax.inject:1'

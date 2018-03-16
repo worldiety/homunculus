@@ -8,6 +8,9 @@ import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.Type;
 
+import org.homunculus.codegen.parse.FullQualifiedName;
+import org.homunculus.codegen.parse.Resolver;
+
 import java.io.File;
 
 import javax.annotation.Nullable;
@@ -19,10 +22,15 @@ import javax.annotation.Nullable;
 public class SrcFile {
     private final File file;
     private final CompilationUnit unit;
+    private Resolver resolver;
 
     public SrcFile(File file, CompilationUnit unit) {
         this.file = file;
         this.unit = unit;
+    }
+
+    public void setResolver(Resolver resolver) {
+        this.resolver = resolver;
     }
 
     public CompilationUnit getUnit() {
@@ -59,7 +67,12 @@ public class SrcFile {
             if (unit.getClassByName(name).isPresent()) {
                 return unit.getPackageDeclaration().get().getNameAsString() + "." + name;
             } else {
-                //native type
+                //need to check if it is package local
+                String tmp = unit.getPackageDeclaration().get().getName().toString() + "." + name;
+                if (resolver.has(new FullQualifiedName(tmp))) {
+                    return tmp;
+                }
+                //very likely a native type
                 return name;
             }
         } else {

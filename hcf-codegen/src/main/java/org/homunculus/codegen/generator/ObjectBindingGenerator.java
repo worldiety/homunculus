@@ -267,7 +267,12 @@ class ObjectBindingGenerator {
                 String beanName = named.getString("");
                 onExecuteMethod.onExecute.body().invoke(setter).arg(onExecuteMethod.varBean).arg(JExpr.invoke("get").arg(beanName).arg(type.dotclass()));
             } else {
-                onExecuteMethod.onExecute.body().invoke(setter).arg(onExecuteMethod.varBean).arg(JExpr.invoke("get").arg(type.dotclass()));
+                JBlock exec = onExecuteMethod.onExecute.body();
+                JInvocation getFromScope = JExpr.invoke("get").arg(type.dotclass());
+                JVar tmpVar = exec.decl(type, "_" + field.getName());
+                exec.assign(tmpVar, getFromScope);
+                exec._if(tmpVar.eqNull())._then().block().assign(tmpVar, JExpr._new(type));
+                exec.invoke(setter).arg(onExecuteMethod.varBean).arg(tmpVar);
             }
 
         }

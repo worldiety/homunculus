@@ -17,6 +17,15 @@ import java.util.List;
 
 public class ReflectionResolver implements Resolver {
 
+    @Override
+    public boolean has(FullQualifiedName name) {
+        try {
+            Class.forName(name.toString());
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
 
     @Override
     public List<Constructor> getConstructors(FullQualifiedName name) throws ClassNotFoundException {

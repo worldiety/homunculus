@@ -36,12 +36,18 @@ public class JPResolver implements Resolver {
     public JPResolver(List<SrcFile> srcFiles) {
         this.srcFiles = srcFiles;
         for (SrcFile file : srcFiles) {
+            file.setResolver(this);
             for (TypeDeclaration td : file.getUnit().getTypes()) {
                 FullQualifiedName fqn = new FullQualifiedName(file.getFullQualifiedName(td.getNameAsString()));
                 typeTree.put(fqn, new TypeContext(file, td, fqn));
 //                System.out.println(fqn);
             }
         }
+    }
+
+    @Override
+    public boolean has(FullQualifiedName name) {
+        return typeTree.containsKey(name);
     }
 
     @Override
@@ -180,16 +186,24 @@ public class JPResolver implements Resolver {
 
     @Override
     public boolean isInstanceOf(FullQualifiedName which, FullQualifiedName what) {
+        if (which.equals(what)) {
+            return true;
+        }
         TypeContext root = typeTree.get(which);
         String startingPoint = which.toString();
         while (root != null) {
+            if (root.type.asClassOrInterfaceDeclaration().getExtendedTypes().isEmpty()) {
+                root = null;
+                continue;
+            }
             String superTypeName = root.type.asClassOrInterfaceDeclaration().getExtendedTypes().get(0).getNameAsString();
-            FullQualifiedName superType = new FullQualifiedName(root.src.getPackageName() + "." + superTypeName);
+            FullQualifiedName superType = new FullQualifiedName(root.src.getFullQualifiedName(superTypeName));
             if (superType.equals(what)) {
                 return true;
             }
             root = typeTree.get(superType);
             startingPoint = superType.toString();
+//            System.out.println("??" + superType + " is a " + what);
         }
         //if we got here either "which" inherits a classpath class or is undefined
         //what contains now the class to resolve
@@ -202,7 +216,7 @@ public class JPResolver implements Resolver {
                 reflectionRoot = reflectionRoot.getSuperclass();
             }
         } catch (ClassNotFoundException e) {
-            System.out.println("IsInstanceOf cannot resolve class " + what);
+//            System.out.println("IsInstanceOf cannot resolve class " + what + " (" + which + ")");
             return false;
         }
 

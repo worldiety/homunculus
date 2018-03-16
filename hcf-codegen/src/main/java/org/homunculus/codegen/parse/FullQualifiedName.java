@@ -1,10 +1,12 @@
 package org.homunculus.codegen.parse;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Created by Torben Schinke on 09.03.18.
  */
 
-public class FullQualifiedName {
+public class FullQualifiedName implements Comparable<FullQualifiedName> {
     private final String fullqualifiedName;
 
     public FullQualifiedName(String fullqualifiedName) {
@@ -58,5 +60,10 @@ public class FullQualifiedName {
     @Override
     public int hashCode() {
         return fullqualifiedName.hashCode();
+    }
+
+    @Override
+    public int compareTo(@NotNull FullQualifiedName o) {
+        return this.compareTo(o);
     }
 }

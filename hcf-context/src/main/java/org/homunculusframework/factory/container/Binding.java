@@ -234,6 +234,7 @@ public abstract class Binding<Response> implements Serializable {
         return scope.resolve(type);
     }
 
+
     /**
      * Posts the given closure into the named handler bailing out if handler is not configured
      *

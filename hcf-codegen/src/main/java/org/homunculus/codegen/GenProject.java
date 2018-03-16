@@ -2,17 +2,10 @@ package org.homunculus.codegen;
 
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.body.Parameter;
 import com.helger.jcodemodel.JCodeModel;
 
-import org.homunculus.codegen.generator.GenerateAsyncControllers;
-import org.homunculus.codegen.generator.GenerateControllerFactory;
-import org.homunculus.codegen.generator.GenerateMethodBindings;
-import org.homunculus.codegen.generator.GenerateObjectBindings;
-import org.homunculus.codegen.generator.GenerateTaskMethods;
-import org.homunculus.codegen.generator.GenerateViewsFromXML;
+import org.homunculus.codegen.generator.GenerateBindables;
+import org.homunculus.codegen.generator.GenerateScopes;
 import org.homunculus.codegen.generator.PreprocessDiscoverBeans;
 import org.homunculus.codegen.generator.PreprocessDiscoverBeans.DiscoveryKind;
 import org.homunculus.codegen.parse.FullQualifiedName;
@@ -20,7 +13,6 @@ import org.homunculus.codegen.parse.Resolver;
 import org.homunculus.codegen.parse.javaparser.JPResolver;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 import java.io.File;
@@ -76,7 +68,7 @@ public class GenProject {
     }
 
     private void addParseXml(File file) {
-        System.out.println("found " + file);
+//        System.out.println("found " + file);
         try {
             try (FileInputStream in = new FileInputStream(file)) {
                 DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -84,10 +76,10 @@ public class GenProject {
                 InputSource is = new InputSource(in);
                 Document doc = builder.parse(is);
                 xmlFiles.add(new XMLFile(file, doc));
-                NodeList nl = doc.getChildNodes();
-                for (int i = 0; i < nl.getLength(); i++) {
-                    System.out.println(nl.item(i));
-                }
+//                NodeList nl = doc.getChildNodes();
+//                for (int i = 0; i < nl.getLength(); i++) {
+//                    System.out.println(nl.item(i));
+//                }
 
             }
         } catch (Exception e) {
@@ -182,12 +174,14 @@ public class GenProject {
     public void generate() throws Exception {
         resolver = new JPResolver(units);
         new PreprocessDiscoverBeans().generate(this);
-        new GenerateAsyncControllers().generate(this);
-        new GenerateMethodBindings().generate(this);
-        new GenerateTaskMethods().generate(this);
-        new GenerateObjectBindings().generate(this);
-        new GenerateControllerFactory().generate(this);
-        new GenerateViewsFromXML().generate(this);
+        new GenerateScopes().generate(this);
+        new GenerateBindables().generate(this);
+//        new GenerateAsyncControllers().generate(this);
+//        new GenerateMethodBindings().generate(this);
+//        new GenerateTaskMethods().generate(this);
+//        new GenerateObjectBindings().generate(this);
+//        new GenerateControllerFactory().generate(this);
+//        new GenerateViewsFromXML().generate(this);
     }
 
     public Resolver getResolver() {

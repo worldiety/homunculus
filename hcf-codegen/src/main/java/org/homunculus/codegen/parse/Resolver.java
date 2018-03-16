@@ -10,6 +10,8 @@ import javax.annotation.Nullable;
 
 public interface Resolver {
 
+    boolean has(FullQualifiedName name);
+
     List<Constructor> getConstructors(FullQualifiedName name) throws ClassNotFoundException;
 
     List<Method> getMethods(FullQualifiedName name) throws ClassNotFoundException;

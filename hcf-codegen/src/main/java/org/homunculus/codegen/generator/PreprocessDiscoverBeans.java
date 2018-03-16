@@ -21,6 +21,7 @@ import org.homunculus.codegen.parse.Annotation;
 import org.homunculus.codegen.parse.Field;
 import org.homunculus.codegen.parse.FullQualifiedName;
 import org.homunculus.codegen.parse.Resolver;
+import org.homunculusframework.factory.flavor.hcf.Bind;
 import org.homunculusframework.factory.flavor.hcf.ViewComponent;
 
 import java.util.HashSet;
@@ -59,7 +60,8 @@ public class PreprocessDiscoverBeans implements Generator {
                 //check type annotations to distinguish some basic behaviors, especially singleton stuff
                 List<Annotation> typeAnnotations = resolver.getAnnotations(bean);
 
-                for (DiscoveryKind kind : DiscoveryKind.values()) {
+                DiscoveryKind[] annotationKinds = {DiscoveryKind.SINGLETON, DiscoveryKind.BEAN, DiscoveryKind.BIND};
+                for (DiscoveryKind kind : annotationKinds) {
                     //check if we have a type annotation to avoid parsing all fields
                     for (Annotation annotation : typeAnnotations) {
                         if (kind.match(annotation.getFullQualifiedName().toString())) {
@@ -77,10 +79,19 @@ public class PreprocessDiscoverBeans implements Generator {
                         for (Annotation annotation : field.getAnnotations())
                             if (kind.match(annotation.getFullQualifiedName().toString())) {
                                 discoveryKinds.get(kind).add(bean);
-                                continue NEXT_SRC;
                             }
                     }
+                }
 
+
+                DiscoveryKind[] superTypeKinds = {DiscoveryKind.APPLICATION, DiscoveryKind.ACTIVITY};
+                for (DiscoveryKind kind : superTypeKinds) {
+                    for (String fqn : kind.fullQualifiedNames) {
+                        if (resolver.isInstanceOf(bean, new FullQualifiedName(fqn))) {
+                            discoveryKinds.get(kind).add(bean);
+                            continue NEXT_SRC;
+                        }
+                    }
 
                 }
 
@@ -103,7 +114,22 @@ public class PreprocessDiscoverBeans implements Generator {
          * Beans without such annotations need no binding, because they have a typesafe constructor or setters. However SINGLETONs are
          * always included
          */
-        BEAN("javax.inject.Inject", "org.springframework.beans.factory.annotation.Autowired", ViewComponent.class.getName());
+        BEAN("javax.inject.Inject", "org.springframework.beans.factory.annotation.Autowired", ViewComponent.class.getName()),
+
+        /**
+         * Classes annotated with @Bind will be used as Binding candidates and get each their scope with the activity scope as parent.
+         */
+        BIND(Bind.class.getName()),
+
+        /**
+         * super classes (not annotations) to be treated as app. They get their scope with singleton constructors
+         */
+        APPLICATION("org.homunculus.android.component.HomunculusApplication", "android.app.Application"),
+
+        /**
+         * Super classes (not annotations) to be treated as activity. They get each their scopes with the application scope as parent.
+         */
+        ACTIVITY("org.homunculus.android.component.HomunculusActivity", "android.app.Activity");
 
         private String[] fullQualifiedNames;
 
