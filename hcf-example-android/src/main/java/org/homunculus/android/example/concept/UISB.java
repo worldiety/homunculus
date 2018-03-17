@@ -6,6 +6,7 @@ import android.view.View;
 import org.homunculusframework.factory.flavor.hcf.Bind;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 
 /**
@@ -26,6 +27,11 @@ public class UISB extends View {
 
     @PostConstruct
     void apply() {
+
+    }
+
+    @PreDestroy
+    void destroy(){
 
     }
 }

@@ -29,6 +29,7 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 
 /**
@@ -128,12 +129,6 @@ public class GenerateBindables implements Generator {
         }
 
 
-        //call the PostConstruct methods
-        for (Method method : resolver.getMethods(bindable)) {
-            if (method.getAnnotation(PostConstruct.class) != null) {
-                createBindable.body().add(bean.invoke(method.getName()));
-            }
-        }
 
         //return the new Scope
         createBindable.body()._return(JExpr._new(bindableScope).arg(varParentScope).arg(bean));

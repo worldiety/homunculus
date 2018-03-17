@@ -24,11 +24,15 @@ import org.homunculus.codegen.parse.Parameter;
 import org.homunculus.codegen.parse.Resolver;
 import org.homunculus.codegen.parse.Strings;
 import org.homunculusframework.factory.flavor.hcf.ScopeElement;
+import org.homunculusframework.factory.scope.AbsScope;
+import org.homunculusframework.factory.scope.Scope;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 
 /**
@@ -69,11 +73,12 @@ public class GenerateScopes implements Generator {
 
         JDefinedClass create(GenProject project, FullQualifiedName bean) throws Exception {
             JCodeModel code = project.getCodeModel();
+            Resolver resolver = project.getResolver();
             //e.g. my.domain.MyApp
             AbstractJClass beanClass = code.ref(bean.toString());
 
             //e.g. my.domain.MyAppScope
-            JDefinedClass scope = code._class(bean.toString() + "Scope");
+            JDefinedClass scope = code._class(bean.toString() + "Scope")._extends(AbsScope.class);
 
             //private final my.domain.MyApp myApp;
             JFieldVar fieldBean = scope.field(JMod.PRIVATE | JMod.FINAL, beanClass, Strings.startLowerCase(bean.getSimpleName()));
@@ -110,11 +115,34 @@ public class GenerateScopes implements Generator {
                 }
             }
 
+
+            //call the PostConstruct methods
+            JMethod create = scope.method(JMod.PUBLIC, void.class, "onCreate");
+            create.body().add(JExpr._super().invoke("onCreate"));
+            create.annotate(Override.class);
+            for (Method method : resolver.getMethods(bean)) {
+                if (method.getAnnotation(PostConstruct.class) != null) {
+                    create.body().add(fieldBean.invoke(method.getName()));
+                }
+            }
+
+            //call the PreDestroy methods
+            JMethod destroy = scope.method(JMod.PUBLIC, void.class, "onDestroy");
+            destroy.body().add(JExpr._super().invoke("onCreate"));
+            for (Method method : resolver.getMethods(bean)) {
+                if (method.getAnnotation(PreDestroy.class) != null) {
+                    destroy.body().add(fieldBean.invoke(method.getName()));
+                }
+            }
+
             return scope;
         }
 
         void onConstructorDefined(JDefinedClass scope, JMethod constructor) {
-
+            //public Scope getParent(){...}
+            JMethod getParent = scope.method(JMod.PUBLIC, Scope.class, "getParent");
+            getParent.annotate(Override.class);
+            getParent.body()._return(JExpr._null());
         }
 
         /*
@@ -194,8 +222,10 @@ public class GenerateScopes implements Generator {
             //this.myApp = myApp
             constructor.body().add(JExpr._this().ref(fieldBean).assign(fieldBean));
 
-            //public MyApp getMyApp(){...}
-            scope.method(JMod.PUBLIC, parentScope, "getParent").body()._return(fieldBean);
+            //public MyApp getParent(){...}
+            JMethod getParent = scope.method(JMod.PUBLIC, parentScope, "getParent");
+            getParent.annotate(Override.class);
+            getParent.body()._return(fieldBean);
         }
     }
 
