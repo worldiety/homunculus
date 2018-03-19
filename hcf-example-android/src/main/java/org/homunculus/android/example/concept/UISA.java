@@ -1,14 +1,11 @@
 package org.homunculus.android.example.concept;
 
-import android.app.Activity;
 import android.content.Context;
 import android.view.View;
 import android.widget.Button;
 
 import org.homunculus.android.compat.EventAppCompatActivity;
-import org.homunculus.android.component.module.toolbarbuilder.SuperToolbar2;
-import org.homunculus.android.component.module.toolbarbuilder.SuperToolbarBuilder;
-import org.homunculus.android.component.module.toolbarbuilder.SuperToolbarBuilderTemplate;
+import org.homunculus.android.component.module.toolbarbuilder.templates.DefaultToolbarTemplate;
 import org.homunculus.android.example.concept.api.Binding;
 import org.homunculusframework.factory.flavor.hcf.Bind;
 import org.homunculusframework.factory.scope.Scope;
@@ -43,13 +40,12 @@ public class UISA extends View {
     Scope scope;
 
     @Inject
-    SuperToolbar2 superToolbar2;
+    DefaultToolbarTemplate toolbarTemplate;
 
     public UISA(Context context) {
         super(context);
 
-//        SuperToolbarBuilder.defineFromTemplate(new SuperToolbarBuilderTemplate())
-//                .create(scope, activity, this);
+        activity.setContentView(toolbarTemplate.create(this));
 
         Button btn = new Button(getContext());
         btn.setOnClickListener(view -> {

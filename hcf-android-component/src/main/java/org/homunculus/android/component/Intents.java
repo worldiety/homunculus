@@ -22,7 +22,6 @@ import android.os.Bundle;
 
 import org.homunculus.android.core.ActivityEventDispatcher;
 import org.homunculus.android.core.ActivityEventDispatcher.AbsActivityEventCallback;
-import org.homunculus.android.core.ActivityEventDispatcher.ActivityResult;
 import org.homunculus.android.core.ContextScope;
 import org.homunculus.android.flavor.AndroidMainHandler;
 import org.homunculusframework.concurrent.Task;

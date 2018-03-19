@@ -3,9 +3,7 @@ package org.homunculus.codegen;
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.helger.jcodemodel.JCodeModel;
-import com.helger.jcodemodel.util.JCSecureLoader;
 
-import org.homunculus.android.component.module.toolbarbuilder.SuperToolbar2;
 import org.homunculus.codegen.generator.GenerateBindables;
 import org.homunculus.codegen.generator.GenerateScopes;
 import org.homunculus.codegen.generator.PreprocessDiscoverBeans;
@@ -51,10 +49,11 @@ public class GenProject {
     private Resolver resolver;
 
 
-    public GenProject(){
-       // System.out.println(SuperToolbar2.class);
-       // JCSecureLoader.setContextClassLoader(new MyFixedContextClassLoader(Thread.currentThread().getContextClassLoader()));
+    public GenProject() {
+        // System.out.println(SuperToolbar2.class);
+        // JCSecureLoader.setContextClassLoader(new MyFixedContextClassLoader(Thread.currentThread().getContextClassLoader()));
     }
+
     public void addFile(File file) throws IOException {
         if (file.getName().toLowerCase().endsWith(".java")) {
             addParseJava(file);
@@ -228,7 +227,7 @@ public class GenProject {
 //    }
 
 
-    private static class MyFixedContextClassLoader extends ClassLoader{
+    private static class MyFixedContextClassLoader extends ClassLoader {
         private final ClassLoader delegate;
 
         public MyFixedContextClassLoader(ClassLoader delegate) {
@@ -239,12 +238,10 @@ public class GenProject {
         public Class<?> loadClass(String name) throws ClassNotFoundException {
             try {
                 return delegate.loadClass(name);
-            }catch (NoClassDefFoundError e){
-                throw new ClassNotFoundException(name+" due to "+e.getClass().getName()+": "+e.getMessage());
+            } catch (NoClassDefFoundError e) {
+                throw new ClassNotFoundException(name + " due to " + e.getClass().getName() + ": " + e.getMessage());
             }
         }
-
-
 
 
         @org.jetbrains.annotations.Nullable
@@ -257,7 +254,6 @@ public class GenProject {
         public Enumeration<URL> getResources(String name) throws IOException {
             return delegate.getResources(name);
         }
-
 
 
         @CallerSensitive
@@ -286,7 +282,6 @@ public class GenProject {
         public static ClassLoader getSystemClassLoader() {
             return ClassLoader.getSystemClassLoader();
         }
-
 
 
         @Override
