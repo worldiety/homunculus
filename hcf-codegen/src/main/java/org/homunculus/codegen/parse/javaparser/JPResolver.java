@@ -1,5 +1,7 @@
 package org.homunculus.codegen.parse.javaparser;
 
+import android.app.Activity;
+
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
@@ -9,6 +11,8 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 
+import org.homunculus.android.compat.EventAppCompatActivity;
+import org.homunculus.android.component.HomunculusActivity;
 import org.homunculus.codegen.parse.Annotation;
 import org.homunculus.codegen.parse.Constructor;
 import org.homunculus.codegen.parse.Field;
@@ -33,6 +37,16 @@ public class JPResolver implements Resolver {
     private Map<FullQualifiedName, TypeContext> typeTree = new HashMap<>();
     private ReflectionResolver reflection = new ReflectionResolver();
 
+    final static Map<FullQualifiedName,FullQualifiedName> instanceOfTable;
+
+    static{
+        instanceOfTable = new HashMap<>();
+
+
+        instanceOfTable.put(new FullQualifiedName("org.homunculus.android.component.HomunculusActivity"),new FullQualifiedName(Activity.class));
+        instanceOfTable.put(new FullQualifiedName("org.homunculus.android.compat.EventAppCompatActivity"),new FullQualifiedName(Activity.class));
+    }
+
     public JPResolver(List<SrcFile> srcFiles) {
         this.srcFiles = srcFiles;
         for (SrcFile file : srcFiles) {
@@ -47,14 +61,17 @@ public class JPResolver implements Resolver {
 
     @Override
     public boolean has(FullQualifiedName name) {
-        return typeTree.containsKey(name);
+        if (! typeTree.containsKey(name)){
+            return reflection.has(name);
+        }
+        return true;
     }
 
     @Override
     public List<Constructor> getConstructors(FullQualifiedName name) throws ClassNotFoundException {
         TypeContext tc = typeTree.get(name);
         if (tc == null) {
-            throw new ClassNotFoundException(name.toString());
+            return reflection.getConstructors(name);
         }
         ClassOrInterfaceDeclaration dec = tc.src.getUnit().getClassByName(name.getSimpleName()).get();
         List<Constructor> res = new ArrayList<>();
@@ -189,6 +206,10 @@ public class JPResolver implements Resolver {
         if (which.equals(what)) {
             return true;
         }
+        if (what.equals(instanceOfTable.get(which))){
+            return true;
+        }
+
         TypeContext root = typeTree.get(which);
         String startingPoint = which.toString();
         while (root != null) {
@@ -204,6 +225,10 @@ public class JPResolver implements Resolver {
             root = typeTree.get(superType);
             startingPoint = superType.toString();
 //            System.out.println("??" + superType + " is a " + what);
+
+            if (what.equals(instanceOfTable.get(superType))){
+                return true;
+            }
         }
         //if we got here either "which" inherits a classpath class or is undefined
         //what contains now the class to resolve
@@ -216,7 +241,11 @@ public class JPResolver implements Resolver {
                 reflectionRoot = reflectionRoot.getSuperclass();
             }
         } catch (ClassNotFoundException e) {
-//            System.out.println("IsInstanceOf cannot resolve class " + what + " (" + which + ")");
+           // System.out.println("IsInstanceOf cannot resolve class " + what + " (" + which + ")");
+            return false;
+        }catch (NoClassDefFoundError e){
+            e.printStackTrace();
+            System.out.println("NOCLASSDEF: IsInstanceOf cannot resolve class " + what + " (" + which + ")");
             return false;
         }
 

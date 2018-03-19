@@ -29,7 +29,11 @@ public class ReflectionResolver implements Resolver {
 
     @Override
     public List<Constructor> getConstructors(FullQualifiedName name) throws ClassNotFoundException {
-        throw new RuntimeException("not yet implemented");
+       List<Constructor> res = new ArrayList<>();
+       for (java.lang.reflect.Constructor c:Class.forName(name.toString()).getConstructors()){
+           res.add(new ReflectionConstructor(c,name));
+       }
+       return res;
     }
 
     @Override

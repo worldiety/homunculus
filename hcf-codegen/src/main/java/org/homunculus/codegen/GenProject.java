@@ -3,7 +3,9 @@ package org.homunculus.codegen;
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.helger.jcodemodel.JCodeModel;
+import com.helger.jcodemodel.util.JCSecureLoader;
 
+import org.homunculus.android.component.module.toolbarbuilder.SuperToolbar2;
 import org.homunculus.codegen.generator.GenerateBindables;
 import org.homunculus.codegen.generator.GenerateScopes;
 import org.homunculus.codegen.generator.PreprocessDiscoverBeans;
@@ -19,7 +21,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +33,8 @@ import java.util.Set;
 import javax.annotation.Nullable;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+
+import sun.reflect.CallerSensitive;
 
 /**
  * Created by Torben Schinke on 20.02.18.
@@ -43,6 +50,11 @@ public class GenProject {
     private String manifestPackage;
     private Resolver resolver;
 
+
+    public GenProject(){
+       // System.out.println(SuperToolbar2.class);
+       // JCSecureLoader.setContextClassLoader(new MyFixedContextClassLoader(Thread.currentThread().getContextClassLoader()));
+    }
     public void addFile(File file) throws IOException {
         if (file.getName().toLowerCase().endsWith(".java")) {
             addParseJava(file);
@@ -216,4 +228,85 @@ public class GenProject {
 //    }
 
 
+    private static class MyFixedContextClassLoader extends ClassLoader{
+        private final ClassLoader delegate;
+
+        public MyFixedContextClassLoader(ClassLoader delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public Class<?> loadClass(String name) throws ClassNotFoundException {
+            try {
+                return delegate.loadClass(name);
+            }catch (NoClassDefFoundError e){
+                throw new ClassNotFoundException(name+" due to "+e.getClass().getName()+": "+e.getMessage());
+            }
+        }
+
+
+
+
+        @org.jetbrains.annotations.Nullable
+        @Override
+        public URL getResource(String name) {
+            return delegate.getResource(name);
+        }
+
+        @Override
+        public Enumeration<URL> getResources(String name) throws IOException {
+            return delegate.getResources(name);
+        }
+
+
+
+        @CallerSensitive
+        public static boolean registerAsParallelCapable() {
+            return ClassLoader.registerAsParallelCapable();
+        }
+
+        public static URL getSystemResource(String name) {
+            return ClassLoader.getSystemResource(name);
+        }
+
+        public static Enumeration<URL> getSystemResources(String name) throws IOException {
+            return ClassLoader.getSystemResources(name);
+        }
+
+        @Override
+        public InputStream getResourceAsStream(String name) {
+            return delegate.getResourceAsStream(name);
+        }
+
+        public static InputStream getSystemResourceAsStream(String name) {
+            return ClassLoader.getSystemResourceAsStream(name);
+        }
+
+        @CallerSensitive
+        public static ClassLoader getSystemClassLoader() {
+            return ClassLoader.getSystemClassLoader();
+        }
+
+
+
+        @Override
+        public void setDefaultAssertionStatus(boolean enabled) {
+            delegate.setDefaultAssertionStatus(enabled);
+        }
+
+        @Override
+        public void setPackageAssertionStatus(String packageName, boolean enabled) {
+            delegate.setPackageAssertionStatus(packageName, enabled);
+        }
+
+        @Override
+        public void setClassAssertionStatus(String className, boolean enabled) {
+            delegate.setClassAssertionStatus(className, enabled);
+        }
+
+        @Override
+        public void clearAssertionStatus() {
+            delegate.clearAssertionStatus();
+        }
+    }
 }

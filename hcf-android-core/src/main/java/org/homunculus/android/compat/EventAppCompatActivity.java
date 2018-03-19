@@ -68,17 +68,17 @@ public class EventAppCompatActivity extends AppCompatActivity implements Activit
         }
     }
 
-    @Override
-    protected void attachBaseContext(Context base) {
-        Scope appScope = ContextScope.getScope(base.getApplicationContext());
-        if (appScope == null) {
-            throw new Panic("application is not correctly configured: ApplicationContext must provide a ContextScope (e.g. use CompatApplication)");
-        }
-        mScope = new Scope(toString(), appScope);
-        mScope.put(Android.NAME_CONTEXT, this);
-        ContextScope ctx = new ContextScope(mScope, base);
-        super.attachBaseContext(ctx);
-    }
+//    @Override
+//    protected void attachBaseContext(Context base) {
+//        Scope appScope = ContextScope.getScope(base.getApplicationContext());
+//        if (appScope == null) {
+//            throw new Panic("application is not correctly configured: ApplicationContext must provide a ContextScope (e.g. use CompatApplication)");
+//        }
+//        mScope = new Scope(toString(), appScope);
+//        mScope.put(Android.NAME_CONTEXT, this);
+//        ContextScope ctx = new ContextScope(mScope, base);
+//        super.attachBaseContext(ctx);
+//    }
 
     /**
      * Returns the scope of this activity. Equal to {@link ContextScope#getScope(Context)} on "this"
@@ -127,7 +127,7 @@ public class EventAppCompatActivity extends AppCompatActivity implements Activit
     private void init() {
         mEventDispatcher = new ActivityEventDispatcher<>(mScope, this);
         mEverCreated = true;
-        mScope.put(Android.NAME_ACTIVITY_EVENT_DISPATCHER, mEventDispatcher);
+//        mScope.put(Android.NAME_ACTIVITY_EVENT_DISPATCHER, mEventDispatcher);
     }
 
 

@@ -26,6 +26,7 @@ import org.homunculus.codegen.parse.Strings;
 import org.homunculusframework.factory.flavor.hcf.ScopeElement;
 import org.homunculusframework.factory.scope.AbsScope;
 import org.homunculusframework.factory.scope.Scope;
+import org.homunculusframework.lang.Panic;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -58,6 +59,9 @@ public class GenerateScopes implements Generator {
         JDefinedClass acScope = null;
         for (FullQualifiedName activity : project.getDiscoveredKinds().get(DiscoveryKind.ACTIVITY)) {
             acScope = new ParentScopeGeneration(appScope).create(project, activity);
+        }
+        if (acScope == null){
+            throw new Panic("you need to define exactly 1 Activity in your project");
         }
 
         for (FullQualifiedName bindable : project.getDiscoveredKinds().get(DiscoveryKind.BIND)) {
@@ -211,6 +215,9 @@ public class GenerateScopes implements Generator {
         final JDefinedClass parentScope;
 
         public ParentScopeGeneration(JDefinedClass applicationScope) {
+            if (applicationScope == null){
+                throw new Panic("applicationScope is null");
+            }
             this.parentScope = applicationScope;
         }
 

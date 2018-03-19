@@ -2,6 +2,7 @@ package org.homunculus.codegen.generator;
 
 
 import com.helger.jcodemodel.AbstractJType;
+import com.helger.jcodemodel.IJExpression;
 import com.helger.jcodemodel.JCodeModel;
 import com.helger.jcodemodel.JDefinedClass;
 import com.helger.jcodemodel.JExpr;
@@ -22,6 +23,7 @@ import org.homunculus.codegen.parse.Parameter;
 import org.homunculus.codegen.parse.Resolver;
 import org.homunculus.codegen.parse.Strings;
 import org.homunculusframework.factory.flavor.hcf.Bind;
+import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.lang.Panic;
 
 import java.util.ArrayList;
@@ -103,6 +105,8 @@ public class GenerateBindables implements Generator {
         JVar varParentScope = createBindable.param(bindableScopeParent, "scope");
         JInvocation invocCtr = JExpr._new(bindableType);
         JVar bean = createBindable.body().decl(bindableType, "bindable", invocCtr);
+        JInvocation beanScopeCtr =  JExpr._new(bindableScope).arg(varParentScope).arg(bean);
+        JVar beanScope = createBindable.body().decl(bindableScope,"bindableScope",beanScopeCtr);
 
         //satisfy the actual constructor of the bindable
         if (constructor != null) {
@@ -110,7 +114,7 @@ public class GenerateBindables implements Generator {
                 if (p.getAnnotation(Bind.class) != null) {
                     invocCtr.arg(binder.fields().get(p.getName()));
                 } else {
-                    invocCtr.arg(resolveDependencyFromScope(resolver, code, parentScope, varParentScope, code.ref(p.getType().toString())));
+                    invocCtr.arg(resolveDependencyFromScope(resolver, code,beanScope, parentScope, varParentScope, code.ref(p.getType().toString())));
                 }
             }
         }
@@ -124,17 +128,25 @@ public class GenerateBindables implements Generator {
         //inject the other values from scope
         for (Field injectParam : injectParams) {
             System.out.println("inject param type = " + injectParam.getType().getFullQualifiedName());
-            JInvocation invoc = resolveDependencyFromScope(resolver, code, parentScope, varParentScope, code.ref(injectParam.getType().getFullQualifiedName().toString()));
-            createBindable.body().add(bean.ref(injectParam.getName()).assign(invoc));
+            try {
+                IJExpression invoc = resolveDependencyFromScope(resolver, code,beanScope, parentScope, varParentScope, code.ref(injectParam.getType().getFullQualifiedName().toString()));
+                createBindable.body().add(bean.ref(injectParam.getName()).assign(invoc));
+            }catch (Panic e){
+                e.printStackTrace();
+                throw injectParam.newLintException("failed to get injection source. This is caused by using an abstract or interface type without providing an instance of @ScopeElement");
+            }
         }
 
 
 
         //return the new Scope
-        createBindable.body()._return(JExpr._new(bindableScope).arg(varParentScope).arg(bean));
+        createBindable.body()._return(beanScope);
     }
 
-    private JInvocation resolveDependencyFromScope(Resolver resolver, JCodeModel code, JDefinedClass parentScope, JVar varParentScope, AbstractJType type) throws Exception {
+    private IJExpression resolveDependencyFromScope(Resolver resolver, JCodeModel code, JVar beanScope, JDefinedClass parentScope, JVar varParentScope, AbstractJType type) throws Exception {
+        if (resolver.isInstanceOf(new FullQualifiedName(type.fullName()),new FullQualifiedName(Scope.class))){
+            return beanScope;
+        }
 
         JMethod matchingMethod = resolveMatchingMethod(resolver, parentScope, type);
         if (matchingMethod != null) {
@@ -154,7 +166,7 @@ public class GenerateBindables implements Generator {
         }
 
         //well no such dependency, so let's try to create an instance from scratch
-        return createConstructorCall(resolver, code, parentScope, varParentScope, type);
+        return createConstructorCall(resolver, code,beanScope, parentScope, varParentScope, type);
     }
 
     private JMethod resolveMatchingMethod(Resolver resolver, JDefinedClass parentScope, AbstractJType type) {
@@ -171,13 +183,13 @@ public class GenerateBindables implements Generator {
         return null;
     }
 
-    private JInvocation createConstructorCall(Resolver resolver, JCodeModel code, JDefinedClass parentScope, JVar varParentScope, AbstractJType type) throws Exception {
+    private JInvocation createConstructorCall(Resolver resolver, JCodeModel code,JVar beanScope, JDefinedClass parentScope, JVar varParentScope, AbstractJType type) throws Exception {
         //is there a scope binder?
         FullQualifiedName fqnType = new FullQualifiedName(type.fullName());
         FullQualifiedName binder = new FullQualifiedName(fqnType.getPackageName() + ".Bind" + fqnType.getSimpleName());
         if (code._getClass(binder.toString()) != null) {
             //we have to create a binder for it, very ugly
-            return resolveDependencyFromScope(resolver, code, parentScope, varParentScope, code.ref(binder.toString())).invoke("create").arg(varParentScope).invoke("get" + Strings.startUpperCase(fqnType.getSimpleName()));
+            return resolveDependencyFromScope(resolver, code, beanScope,parentScope, varParentScope, code.ref(binder.toString())).invoke("create").arg(varParentScope).invoke("get" + Strings.startUpperCase(fqnType.getSimpleName()));
         }
 
         if (resolver.has(new FullQualifiedName(type.fullName()))) {
@@ -197,16 +209,22 @@ public class GenerateBindables implements Generator {
             //the hard one
             JInvocation newCall = JExpr._new(type);
             for (Parameter p : shortestConstructor.getParameters()) {
-                newCall.arg(resolveDependencyFromScope(resolver, code, parentScope, varParentScope, code.ref(p.getType().toString())));
+                newCall.arg(resolveDependencyFromScope(resolver, code,beanScope, parentScope, varParentScope, code.ref(p.getType().toString())));
             }
             return newCall;
         } else {
             //this is the "Bind"* case
             JDefinedClass definedClass = code._getClass(type.fullName());
+            if (definedClass == null){
+                throw new Panic("no such generated class: "+type.fullName());
+            }
+            if (!definedClass.constructors().hasNext()){
+                throw new RuntimeException("cannot find any constructor for "+definedClass);
+            }
             JMethod method = definedClass.constructors().next();
             JInvocation newCall = JExpr._new(type);
             for (JVar p : method.params()) {
-                newCall.arg(resolveDependencyFromScope(resolver, code, parentScope, varParentScope, p.type()));
+                newCall.arg(resolveDependencyFromScope(resolver, code,beanScope, parentScope, varParentScope, p.type()));
             }
             return newCall;
         }

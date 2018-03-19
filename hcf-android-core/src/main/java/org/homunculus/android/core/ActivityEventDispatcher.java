@@ -76,7 +76,7 @@ public class ActivityEventDispatcher<T extends Activity> {
         mActivity = activity;
         mDispatcher = new InternalEventDispatcher();
         mBufferedActivityResults = new ArrayList<>();
-        mBaseScope = baseScope;
+        mBaseScope = baseScope==null?new Scope("asdf",null):baseScope;
     }
 
     /**

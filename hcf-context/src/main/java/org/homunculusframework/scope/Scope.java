@@ -39,6 +39,7 @@ import java.util.Map.Entry;
  * @author Torben Schinke
  * @since 1.0
  */
+@Deprecated
 public final class Scope implements Destroyable, org.homunculusframework.lang.Map<String, Object> {
     /**
      * Each scope has a unique name

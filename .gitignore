@@ -9,3 +9,5 @@ hcf-example-android.iml
 hcf-android-core.iml
 hcf-api-spring.iml
 hcf-codegen.iml
+hcf-android-bootstrap/hcf-android-bootstrap.iml
+hcf-android-component/hcf-android-component.iml
