@@ -19,8 +19,9 @@ import org.homunculus.android.component.module.uncaughtexception.Supportiety.App
 import org.homunculus.android.component.module.uncaughtexception.Supportiety.Ticket;
 import org.homunculusframework.concurrent.Async;
 import org.homunculusframework.concurrent.Task;
+import org.homunculusframework.factory.scope.Scope;
+import org.homunculusframework.lang.Panic;
 import org.homunculusframework.lang.Result;
-import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
@@ -62,48 +63,49 @@ public class ReporterSupportiety implements Reporter {
 
     @Override
     public Task<Result<String>> report(Scope scope, Map<String, Object> crashData) {
-        return Async.inThread(scope, ctx -> {
-            try {
-                Supportiety client = Supportiety.createCustom(endpoint, clientId, clientSecret);
-                Ticket ticket = client.createTicket(details);
-                for (Entry<String, Object> entry : crashData.entrySet()) {
-                    if (entry.getKey() != null && entry.getValue() != null) {
-                        try {
-                            if (entry.getValue() instanceof Throwable) {
-                                client.appendTrace(ticket, (Throwable) entry.getValue());
-                            }
-                        } catch (Exception e) {
-                            LoggerFactory.getLogger(getClass()).error("failed to write throwable", e);
-                        }
-
-                        try {
-                            if (entry.getValue() instanceof File) {
-                                try (FileInputStream fin = new FileInputStream((File) entry.getValue())) {
-                                    client.appendBlob(ticket, entry.getKey(), fin);
-                                }
-                            }
-                        } catch (Throwable t) {
-                            LoggerFactory.getLogger(getClass()).error("failed to write file", t);
-                        }
-
-                        try {
-                            if (entry.getValue() instanceof InputStream) {
-                                try (InputStream in = (InputStream) entry.getValue()) {
-                                    client.appendBlob(ticket, entry.getKey(), in);
-                                }
-                            }
-                        } catch (Exception t) {
-                            LoggerFactory.getLogger(getClass()).error("failed to write file", t);
-                        }
-
-                    }
-                }
-                insertCustomData(client, ticket, crashData);
-                return Result.create(ticket.getId());
-            } catch (Throwable t) {
-                return Result.auto(t);
-            }
-        });
+//        return Async.inThread(scope, ctx -> {
+//            try {
+//                Supportiety client = Supportiety.createCustom(endpoint, clientId, clientSecret);
+//                Ticket ticket = client.createTicket(details);
+//                for (Entry<String, Object> entry : crashData.entrySet()) {
+//                    if (entry.getKey() != null && entry.getValue() != null) {
+//                        try {
+//                            if (entry.getValue() instanceof Throwable) {
+//                                client.appendTrace(ticket, (Throwable) entry.getValue());
+//                            }
+//                        } catch (Exception e) {
+//                            LoggerFactory.getLogger(getClass()).error("failed to write throwable", e);
+//                        }
+//
+//                        try {
+//                            if (entry.getValue() instanceof File) {
+//                                try (FileInputStream fin = new FileInputStream((File) entry.getValue())) {
+//                                    client.appendBlob(ticket, entry.getKey(), fin);
+//                                }
+//                            }
+//                        } catch (Throwable t) {
+//                            LoggerFactory.getLogger(getClass()).error("failed to write file", t);
+//                        }
+//
+//                        try {
+//                            if (entry.getValue() instanceof InputStream) {
+//                                try (InputStream in = (InputStream) entry.getValue()) {
+//                                    client.appendBlob(ticket, entry.getKey(), in);
+//                                }
+//                            }
+//                        } catch (Exception t) {
+//                            LoggerFactory.getLogger(getClass()).error("failed to write file", t);
+//                        }
+//
+//                    }
+//                }
+//                insertCustomData(client, ticket, crashData);
+//                return Result.create(ticket.getId());
+//            } catch (Throwable t) {
+//                return Result.auto(t);
+//            }
+//        });
+        throw new Panic("Not yet implemented");
     }
 
     protected void insertCustomData(Supportiety server, Ticket ticket, Map<String, Object> crashData) {

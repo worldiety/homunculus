@@ -46,7 +46,7 @@ public class DefaultNavigation implements Navigation {
     private UserInterfaceState currentUIS;
     private static final AtomicInteger requestNo = new AtomicInteger();
 
-    private final List<Binding<?>> stack;
+    private final List<Binding<?,?,?>> stack;
     private boolean crashOnFail = true;
     private boolean wasGoingForward = true;
 
@@ -78,7 +78,7 @@ public class DefaultNavigation implements Navigation {
     }
 
     @Override
-    public void reset(Binding<?> request) {
+    public void reset(Binding<?,?,?> request) {
         synchronized (stack) {
             stack.clear();
             stack.add(request);
@@ -87,7 +87,7 @@ public class DefaultNavigation implements Navigation {
     }
 
     @Override
-    public void forward(Binding<?> request) {
+    public void forward(Binding<?,?,?> request) {
         synchronized (stack) {
             wasGoingForward = true;
             stack.add(request);
@@ -120,30 +120,30 @@ public class DefaultNavigation implements Navigation {
     }
 
     @Override
-    public void backward(Binding<?> request) {
-        synchronized (stack) {
-            wasGoingForward = false;
-            pop();//just pop the current entry from the stack
-            while (!stack.isEmpty()) {
-                Binding<?> prior = pop();
-                if (prior != null && prior.equalsTarget(request)) {
-                    applyInternal(request);
-                    return;
-                }
-            }
-            stack.add(request);
-            applyInternal(request);
-        }
+    public void backward(Binding<?,?,?> request) {
+//        synchronized (stack) {
+//            wasGoingForward = false;
+//            pop();//just pop the current entry from the stack
+//            while (!stack.isEmpty()) {
+//                Binding<?,?,?> prior = pop();
+//                if (prior != null && prior.equalsTarget(request)) {
+//                    applyInternal(request);
+//                    return;
+//                }
+//            }
+//            stack.add(request);
+//            applyInternal(request);
+//        }
     }
 
     @Override
-    public void redirect(Binding<?> request) {
+    public void redirect(Binding<?,?,?> request) {
         applyInternal(request);
     }
 
     @Override
     public boolean reload() {
-        Binding<?> request = getTop();
+        Binding<?,?,?> request = getTop();
         if (request != null) {
             applyInternal(request);
             return true;
@@ -154,7 +154,7 @@ public class DefaultNavigation implements Navigation {
 
     @Nullable
     @Override
-    public Binding<?> pop() {
+    public Binding<?,?,?> pop() {
         synchronized (stack) {
             while (!stack.isEmpty()) {
                 return stack.remove(stack.size() - 1);
@@ -164,7 +164,7 @@ public class DefaultNavigation implements Navigation {
     }
 
     @Override
-    public void push(Binding<?> request) {
+    public void push(Binding<?,?,?> request) {
         synchronized (stack) {
             stack.add(request);
         }
@@ -172,7 +172,7 @@ public class DefaultNavigation implements Navigation {
 
     @Nullable
     @Override
-    public Binding<?> getTop() {
+    public Binding<?,?,?> getTop() {
         synchronized (stack) {
             if (stack.isEmpty()) {
                 return null;
@@ -184,7 +184,7 @@ public class DefaultNavigation implements Navigation {
 
     @Nullable
     @Override
-    public Binding<?> getCurrent() {
+    public Binding<?,?,?> getCurrent() {
         synchronized (stack) {
             UserInterfaceState uis = currentUIS;
             if (uis != null) {
@@ -196,7 +196,7 @@ public class DefaultNavigation implements Navigation {
 
     @Nullable
     @Override
-    public Binding<?> getPriorTop() {
+    public Binding<?,?,?> getPriorTop() {
         synchronized (stack) {
             if (stack.size() > 1) {
                 return stack.get(stack.size() - 2);
@@ -206,7 +206,7 @@ public class DefaultNavigation implements Navigation {
     }
 
     @Override
-    public List<Binding<?>> getStack() {
+    public List<Binding<?,?,?>> getStack() {
         return stack;
     }
 
@@ -220,36 +220,36 @@ public class DefaultNavigation implements Navigation {
      *
      * @param request the request
      */
-    public void apply(Binding<?> request) {
+    public void apply(Binding<?,?,?> request) {
         //this double wrapping call is needed to ensure that our stack capturing always cuts at the correct depth
         applyInternal(request);
     }
 
-    private void applyInternal(Binding<?> binding) {
+    private void applyInternal(Binding<?,?,?> binding) {
         UserInterfaceState uis = currentUIS;
-        Binding<?> currentRequest;
+        Binding<?,?,?> currentRequest;
         if (uis != null) {
             currentRequest = uis.getRequest();
         } else {
             currentRequest = null;
         }
         postBeforeApply(currentRequest, binding);
-        binding.setStackTrace(DefaultFactory.getCallStack(0));
+//        binding.setStackTrace(DefaultFactory.getCallStack(0));
         if (binding instanceof MethodBinding) {
             //a method binding is async and always returns an object binding
-            MethodBinding<?> methodBinding = (MethodBinding<?>) binding;
-            methodBinding.execute(scope).whenDone(res -> {
-                if (res.getThrowable() != null) {
-                    postAfterApply(currentRequest, binding, res.getThrowable());
-                } else {
-                    ObjectBinding chainedBinding = res.get();
-                    if (chainedBinding == null) {
-                        postAfterApply(currentRequest, binding, new Panic("method binding is not allowed to return null"));
-                    } else {
-                        attachTask(chainedBinding, scope);
-                    }
-                }
-            });
+            MethodBinding<?,?,?> methodBinding = (MethodBinding<?,?,?>) binding;
+//            methodBinding.execute(scope).whenDone(res -> {
+//                if (res.getThrowable() != null) {
+//                    postAfterApply(currentRequest, binding, res.getThrowable());
+//                } else {
+//                    ObjectBinding chainedBinding = res.get();
+//                    if (chainedBinding == null) {
+//                        postAfterApply(currentRequest, binding, new Panic("method binding is not allowed to return null"));
+//                    } else {
+//                        attachTask(chainedBinding, scope);
+//                    }
+//                }
+//            });
         } else if (binding instanceof ObjectBinding) {
             //already just an object binding
             attachTask((ObjectBinding) binding, scope);
@@ -262,21 +262,21 @@ public class DefaultNavigation implements Navigation {
     /**
      * Delegates to {@link #onBeforeApply(Binding, Binding)}
      */
-    protected void postBeforeApply(@Nullable Binding<?> oldRequest, Binding<?> newRequest) {
+    protected void postBeforeApply(@Nullable Binding<?,?,?> oldRequest, Binding<?,?,?> newRequest) {
         onBeforeApply(oldRequest, newRequest);
     }
 
     /**
      * Delegates {@link #onAfterApply(Binding, Binding, Throwable)}
      */
-    protected void postAfterApply(@Nullable Binding<?> currentRequest, Binding<?> nextRequest, @Nullable Throwable details) {
+    protected void postAfterApply(@Nullable Binding<?,?,?> currentRequest, Binding<?,?,?> nextRequest, @Nullable Throwable details) {
         onAfterApply(currentRequest, nextRequest, details);
     }
 
     /**
      * Called before a new state is applied or the old state has been changed. It is called directly from the same
      */
-    protected void onBeforeApply(@Nullable Binding<?> currentRequest, Binding<?> nextRequest) {
+    protected void onBeforeApply(@Nullable Binding<?,?,?> currentRequest, Binding<?,?,?> nextRequest) {
 
     }
 
@@ -284,48 +284,48 @@ public class DefaultNavigation implements Navigation {
      * Called after the state has been applied or if application has been rejected. The throwable is not null,
      * the UIS has not been applied
      */
-    protected void onAfterApply(@Nullable Binding<?> oldRequest, Binding<?> newRequest, @Nullable Throwable details) {
+    protected void onAfterApply(@Nullable Binding<?,?,?> oldRequest, Binding<?,?,?> newRequest, @Nullable Throwable details) {
 
     }
 
     //TODO actually it is possible that requests overpass each other, this must be avoided by the callee e.g. by locking the screen
-    private void attachTask(ObjectBinding<?> binding, Scope uisScope) {
-        UserInterfaceState uis = currentUIS;
-        ObjectBinding<?> currentRequest;
-        if (uis != null) {
-            currentRequest = uis.getRequest();
-        } else {
-            currentRequest = null;
-        }
-
-
-        binding.execute(uisScope).whenDone(res -> {
-            if (res.getThrowable() != null) {
-                postAfterApply(currentRequest, binding, res.getThrowable());
-            } else {
-                tearDownOldAndApplyNew(new UserInterfaceState(binding, uisScope, res.get()));
-            }
-        });
+    private void attachTask(ObjectBinding<?,?,?> binding, Scope uisScope) {
+//        UserInterfaceState uis = currentUIS;
+//        ObjectBinding<?,?,?> currentRequest;
+//        if (uis != null) {
+//            currentRequest = uis.getRequest();
+//        } else {
+//            currentRequest = null;
+//        }
+//
+//
+//        binding.execute(uisScope).whenDone(res -> {
+//            if (res.getThrowable() != null) {
+//                postAfterApply(currentRequest, binding, res.getThrowable());
+//            } else {
+//                tearDownOldAndApplyNew(new UserInterfaceState(binding, uisScope, res.get()));
+//            }
+//        });
     }
 
     private void tearDownOldAndApplyNew(UserInterfaceState uis) {
-        UserInterfaceState oldUIS = currentUIS;
-        if (oldUIS == null) {
-            currentUIS = uis;
-            postAfterApply(null, uis.getRequest(), null);
-            LoggerFactory.getLogger(getClass()).info("applied UIS {}", uis);
-        } else {
-            oldUIS.getRequest().destroy().whenDone(res -> {
-                if (res.getThrowable() != null) {
-                    postAfterApply(oldUIS.getRequest(), uis.getRequest(), res.getThrowable());
-                } else {
-                    LoggerFactory.getLogger(getClass()).info("applied UIS {}", uis);
-                    currentUIS = uis;
-                    postAfterApply(oldUIS.getRequest(), uis.getRequest(), null);
-                }
-            });
-
-        }
+//        UserInterfaceState oldUIS = currentUIS;
+//        if (oldUIS == null) {
+//            currentUIS = uis;
+//            postAfterApply(null, uis.getRequest(), null);
+//            LoggerFactory.getLogger(getClass()).info("applied UIS {}", uis);
+//        } else {
+//            oldUIS.getRequest().destroy().whenDone(res -> {
+//                if (res.getThrowable() != null) {
+//                    postAfterApply(oldUIS.getRequest(), uis.getRequest(), res.getThrowable());
+//                } else {
+//                    LoggerFactory.getLogger(getClass()).info("applied UIS {}", uis);
+//                    currentUIS = uis;
+//                    postAfterApply(oldUIS.getRequest(), uis.getRequest(), null);
+//                }
+//            });
+//
+//        }
     }
 
 
@@ -335,9 +335,9 @@ public class DefaultNavigation implements Navigation {
     public final static class UserInterfaceState {
         private final Scope scope;
         private final Object bean;
-        private final ObjectBinding<?> request;
+        private final ObjectBinding<?,?,?> request;
 
-        UserInterfaceState(ObjectBinding<?> request, Scope scope, Object bean) {
+        UserInterfaceState(ObjectBinding<?,?,?> request, Scope scope, Object bean) {
             this.request = request;
             this.scope = scope;
             this.bean = bean;
@@ -377,7 +377,7 @@ public class DefaultNavigation implements Navigation {
          *
          * @return the request
          */
-        public ObjectBinding<?> getRequest() {
+        public ObjectBinding<?,?,?> getRequest() {
             return request;
         }
     }

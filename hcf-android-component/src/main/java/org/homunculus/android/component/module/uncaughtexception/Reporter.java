@@ -16,8 +16,8 @@
 package org.homunculus.android.component.module.uncaughtexception;
 
 import org.homunculusframework.concurrent.Task;
+import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.lang.Result;
-import org.homunculusframework.scope.Scope;
 
 import java.util.Map;
 

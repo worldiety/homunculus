@@ -27,9 +27,11 @@ import org.homunculus.android.component.R;
 import org.homunculus.android.core.Android;
 import org.homunculus.android.flavor.Resource;
 import org.homunculusframework.factory.container.ObjectBinding;
+import org.homunculusframework.factory.scope.AbsScope;
+import org.homunculusframework.factory.scope.Scope;
+import org.homunculusframework.factory.scope.ScopedValue;
 import org.homunculusframework.lang.Result;
 import org.homunculusframework.navigation.Navigation;
-import org.homunculusframework.scope.Scope;
 import org.homunculusframework.scope.SettableTask;
 import org.homunculusframework.stereotype.UserInterfaceState;
 
@@ -130,7 +132,7 @@ public class UncaughtException {
         }
     }
 
-    public static class BindUncaughtException extends ObjectBinding<UncaughtException> {
+    public static class BindUncaughtException<S extends Scope & ScopedValue<?>> extends ObjectBinding<UncaughtException, UncaughtExceptionScope, S> {
 
         private Throwable throwable;
         private Result<?> result;
@@ -140,36 +142,45 @@ public class UncaughtException {
             this.result = result;
         }
 
-        @Nullable
+
         @Override
-        protected UncaughtException onExecute() throws Exception {
+        public UncaughtExceptionScope create(S scope) throws Exception {
             UncaughtException obj = new UncaughtException();
-            obj.activity = get(Activity.class);
-            obj.navigation = get(Navigation.class);
-            obj.reporter = get(Reporter.class);
+            UncaughtExceptionScope eScope = new UncaughtExceptionScope(scope, obj);
+            obj.activity = scope.resolve(Activity.class);
+            obj.navigation = scope.resolve(Navigation.class);
+            obj.reporter = scope.resolve(Reporter.class);
             obj.result = result;
-            obj.scope = getScope();
+            obj.scope = eScope;
             obj.throwable = throwable;
-            return obj;
+            return eScope;
+        }
+    }
+
+    public static class UncaughtExceptionScope extends AbsScope implements ScopedValue<UncaughtException> {
+
+        private org.homunculusframework.factory.scope.Scope parent;
+        private UncaughtException value;
+
+        public UncaughtExceptionScope(org.homunculusframework.factory.scope.Scope parent, UncaughtException value) {
+            this.parent = parent;
+            this.value = value;
         }
 
         @Override
-        protected void onPostExecute(SettableTask<Result<UncaughtException>> task, @Nullable UncaughtException e, @Nullable Throwable t) {
-            if (t != null) {
-                task.set(Result.create(e).setThrowable(t));
-                return;
-            }
-            post(Android.NAME_MAIN_HANDLER, () -> {
-                        try {
-                            e.apply();
-                        } catch (final Throwable e0) {
-                            task.set(Result.create(e).setThrowable(e0));
-                            return;
-                        }
-                        // the end of the call chain: tell the task that we are done
-                        task.set(Result.create(e));
-                    }
-            );
+        public org.homunculusframework.factory.scope.Scope getParent() {
+            return parent;
+        }
+
+        @Override
+        public UncaughtException getScopedValue() {
+            return value;
+        }
+
+        @Nullable
+        @Override
+        public <T> T resolve(Class<T> type) {
+            return null;
         }
     }
 }

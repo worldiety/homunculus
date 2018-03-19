@@ -56,7 +56,7 @@ public class DefaultAndroidNavigation extends DefaultNavigation implements Navig
 
 
     @Override
-    public void forward(Binding<?> request) {
+    public void forward(Binding<?, ?, ?> request) {
         super.forward(request);
     }
 
@@ -72,13 +72,13 @@ public class DefaultAndroidNavigation extends DefaultNavigation implements Navig
     }
 
     @Override
-    public void backward(Binding<?> request) {
+    public void backward(Binding<?, ?, ?> request) {
         super.backward(request);
     }
 
 
     @Override
-    protected void onBeforeApply(@Nullable Binding<?> currentRequest, Binding<?> nextRequest) {
+    protected void onBeforeApply(@Nullable Binding<?, ?, ?> currentRequest, Binding<?, ?, ?> nextRequest) {
         super.onBeforeApply(currentRequest, nextRequest);
 
         NavigationBlockingDialog dlg = blockingIndicatorDialog;
@@ -93,7 +93,7 @@ public class DefaultAndroidNavigation extends DefaultNavigation implements Navig
     }
 
     @Override
-    protected void onAfterApply(@Nullable Binding<?> currentRequest, Binding<?> nextRequest, @Nullable Throwable details) {
+    protected void onAfterApply(@Nullable Binding<?, ?, ?> currentRequest, Binding<?, ?, ?> nextRequest, @Nullable Throwable details) {
         super.onAfterApply(currentRequest, nextRequest, details);
 
         NavigationBlockingDialog dlg = blockingIndicatorDialog;
@@ -114,7 +114,7 @@ public class DefaultAndroidNavigation extends DefaultNavigation implements Navig
      * @param nextRequest
      * @return
      */
-    protected Binding<?> onError(Throwable details, @Nullable Binding<?> currentRequest, Binding<?> nextRequest) {
+    protected Binding<?, ?, ?> onError(Throwable details, @Nullable Binding<?, ?, ?> currentRequest, Binding<?, ?, ?> nextRequest) {
         details.printStackTrace();
         return new BindUncaughtException(details, null);
     }

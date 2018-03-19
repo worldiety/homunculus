@@ -62,7 +62,7 @@ public abstract class Splash {
     /**
      * The target after the time has run out
      */
-    protected abstract Binding<?> getTarget();
+    protected abstract Binding<?,?,?> getTarget();
 
     /**
      * The duration in milliseconds

@@ -11,6 +11,7 @@ import com.github.javaparser.ast.expr.StringLiteralExpr;
 import com.github.javaparser.ast.expr.UnaryExpr;
 
 import org.gradle.internal.impldep.aQute.bnd.build.Run;
+import org.homunculus.codegen.generator.LintException;
 import org.homunculus.codegen.parse.Annotation;
 import org.homunculus.codegen.parse.FullQualifiedName;
 import org.slf4j.LoggerFactory;
@@ -106,5 +107,29 @@ public class JPAnnotation implements Annotation {
     @Override
     public String toString() {
         return getFullQualifiedName().toString();
+    }
+
+    @Nullable
+    @Override
+    public FullQualifiedName getConstant(String key) {
+        if (annotationDeclaration instanceof SingleMemberAnnotationExpr) {
+            SingleMemberAnnotationExpr expr = ((SingleMemberAnnotationExpr) annotationDeclaration);
+            if (expr.getMemberValue() instanceof FieldAccessExpr) {
+                FieldAccessExpr fae = (FieldAccessExpr) expr.getMemberValue();
+                //this is something like R.string
+                String tmp = fae.getScope().toString();
+                int fIdxDot = tmp.indexOf('.');
+                if (fIdxDot > 0) {
+                    tmp = ctx.src.getFullQualifiedName(tmp.substring(0, fIdxDot)) + tmp.substring(fIdxDot);
+                }
+                return new FullQualifiedName(tmp + "." + fae.getNameAsString());
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public LintException newLintException(String msg) {
+        return new LintException(msg, ctx.src, annotationDeclaration.getRange().get());
     }
 }

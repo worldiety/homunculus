@@ -5,12 +5,14 @@ import com.helger.jcodemodel.JAssignment;
 import com.helger.jcodemodel.JBlock;
 import com.helger.jcodemodel.JCodeModel;
 import com.helger.jcodemodel.JDefinedClass;
+import com.helger.jcodemodel.JDirectClass;
 import com.helger.jcodemodel.JExpr;
 import com.helger.jcodemodel.JFieldVar;
 import com.helger.jcodemodel.JInvocation;
 import com.helger.jcodemodel.JMethod;
 import com.helger.jcodemodel.JMod;
 import com.helger.jcodemodel.JSynchronizedBlock;
+import com.helger.jcodemodel.JTypeVar;
 import com.helger.jcodemodel.JVar;
 
 import org.homunculus.codegen.GenProject;
@@ -27,6 +29,7 @@ import org.homunculusframework.factory.flavor.hcf.ScopeElement;
 import org.homunculusframework.factory.scope.AbsScope;
 import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.lang.Panic;
+import org.homunculusframework.factory.scope.ScopedValue;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -86,6 +89,7 @@ public class GenerateScopes implements Generator {
 
             //private final my.domain.MyApp myApp;
             JFieldVar fieldBean = scope.field(JMod.PRIVATE | JMod.FINAL, beanClass, Strings.startLowerCase(bean.getSimpleName()));
+            scope._implements(code.ref(ScopedValue.class).narrow(fieldBean.type()));
 
             //public MyAppScope(my.domain.MyApp myApp)
             JMethod constructor = scope.constructor(JMod.PUBLIC);
@@ -132,14 +136,50 @@ public class GenerateScopes implements Generator {
 
             //call the PreDestroy methods
             JMethod destroy = scope.method(JMod.PUBLIC, void.class, "onDestroy");
-            destroy.body().add(JExpr._super().invoke("onCreate"));
+            destroy.body().add(JExpr._super().invoke("onDestroy"));
+            destroy.annotate(Override.class);
             for (Method method : resolver.getMethods(bean)) {
                 if (method.getAnnotation(PreDestroy.class) != null) {
                     destroy.body().add(fieldBean.invoke(method.getName()));
                 }
             }
 
+            //getScopedValue()
+            JMethod getScopedValue = scope.method(JMod.PUBLIC, fieldBean.type(), "getScopedValue");
+            getScopedValue.annotate(Override.class);
+            getScopedValue.body()._return(fieldBean);
+
+            //<T> T resolve(Class<T> type)
+            createResolveMethod(code, scope);
+
             return scope;
+        }
+
+        void createResolveMethod(JCodeModel code, JDefinedClass scope) {
+            JDirectClass genericT = code.directClass("T");
+            JMethod resolve = scope.method(JMod.PUBLIC, genericT, "resolve");
+            resolve.generify("T");
+            resolve.annotate(Override.class);
+            JVar typeVar = resolve.param(code.ref(Class.class).narrow(genericT), "type");
+
+            resolve.body()._if(typeVar.eqNull())._then()._return(JExpr._null());
+
+            //this.getClass().isAssignableFrom(type)
+            resolve.body()._if(JExpr._this().invoke("getClass").invoke("isAssignableFrom").arg(typeVar))._then()._return(JExpr.cast(genericT, JExpr._this()));
+
+            //loop every member
+            for (JMethod method : scope.methods()) {
+                if (method.name().startsWith("get")) {
+                    JVar tmpVar = resolve.body().decl(method.type(), "_" + Strings.startLowerCase(method.name().substring(3)), JExpr._this().invoke(method));
+                    JInvocation assignable = tmpVar.invoke("getClass").invoke("isAssignableFrom").arg(typeVar);
+                    resolve.body()._if(tmpVar.neNull().band(assignable))._then()._return(JExpr.cast(genericT, tmpVar));
+                }
+            }
+
+            //delegate to parent, if any
+            JVar tmpScope = resolve.body().decl(code.ref(Scope.class), "parent", JExpr._this().invoke("getParent"));
+            resolve.body()._if(tmpScope.eqNull())._then()._return(JExpr._null());
+            resolve.body()._return(tmpScope.invoke("resolve").arg(typeVar));
         }
 
         void onConstructorDefined(JDefinedClass scope, JMethod constructor) {

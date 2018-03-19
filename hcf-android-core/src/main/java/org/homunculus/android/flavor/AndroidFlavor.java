@@ -52,7 +52,6 @@ public class AndroidFlavor implements Configurator {
     @Override
     public void apply(Configuration configuration) {
 
-        configuration.addFieldProcessor(new ResourceAnnotationLoader());
 
         configuration.getRootScope().put(Container.NAME_MAIN_HANDLER, new AndroidMainHandler());
         configuration.getRootScope().put(Android.NAME_MAIN_HANDLER, new Handler(Looper.getMainLooper()));

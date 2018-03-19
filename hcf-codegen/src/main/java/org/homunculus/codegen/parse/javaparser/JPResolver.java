@@ -11,8 +11,6 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 
-import org.homunculus.android.compat.EventAppCompatActivity;
-import org.homunculus.android.component.HomunculusActivity;
 import org.homunculus.codegen.parse.Annotation;
 import org.homunculus.codegen.parse.Constructor;
 import org.homunculus.codegen.parse.Field;

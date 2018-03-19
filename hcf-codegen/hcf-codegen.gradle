@@ -23,5 +23,6 @@ dependencies {
     compile gradleApi()
     compile 'com.android.tools.build:gradle:3.0.1'
 
+    //if you have a cyclic compilation dependency problem uncomment the following line and do a "make"
     compile fileTree(dir: 'libs', include: ['*.jar'])
 }

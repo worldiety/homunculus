@@ -1,8 +1,12 @@
 package org.homunculus.android.example.concept;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.view.View;
 
+import org.homunculus.android.example.R;
+import org.homunculus.android.flavor.Resource;
 import org.homunculusframework.factory.flavor.hcf.Bind;
 
 import javax.annotation.PostConstruct;
@@ -21,6 +25,18 @@ public class UISB extends View {
     @Bind
     UISBModel model;
 
+    @Resource(R.string.app_name)
+    String myAndroidResource;
+
+    @Resource(R.layout.activity_cart)
+    View myView;
+
+    @Resource(R.drawable.ic_launcher)
+    Drawable blub;
+
+    @Resource(R.drawable.ic_launcher)
+    Bitmap bmp;
+
     public UISB(Context context, MyCustomDatabase fishyDb) {
         super(context);
     }
@@ -31,7 +47,7 @@ public class UISB extends View {
     }
 
     @PreDestroy
-    void destroy(){
+    void destroy() {
 
     }
 }

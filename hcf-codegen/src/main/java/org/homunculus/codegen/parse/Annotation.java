@@ -1,5 +1,7 @@
 package org.homunculus.codegen.parse;
 
+import org.homunculus.codegen.generator.LintException;
+
 import javax.annotation.Nullable;
 
 /**
@@ -32,4 +34,15 @@ public interface Annotation {
         }
         return null;
     }
+
+    /**
+     * Tries to return the constant expression
+     *
+     * @param key
+     * @return
+     */
+    @Nullable
+    FullQualifiedName getConstant(String key);
+
+    LintException newLintException(String msg);
 }

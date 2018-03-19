@@ -15,11 +15,8 @@
  */
 package org.homunculusframework.factory.container;
 
-import org.homunculusframework.scope.Scope;
-
-import java.lang.reflect.Field;
-
-import javax.annotation.Nullable;
+import org.homunculusframework.factory.scope.Scope;
+import org.homunculusframework.factory.scope.ScopedValue;
 
 /**
  * A binding to an object of a specific type. This is typically used as an object factory.
@@ -28,7 +25,7 @@ import javax.annotation.Nullable;
  * @since 1.0
  */
 
-public abstract class ObjectBinding<Type> extends Binding<Type> {
+public abstract class ObjectBinding<T, BindResultScope extends Scope & ScopedValue<T>, ParentScope extends Scope & ScopedValue<?>> implements Binding<T, BindResultScope, ParentScope> {
 
 
 }

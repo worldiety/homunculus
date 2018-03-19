@@ -1,5 +1,6 @@
 package org.homunculus.codegen.parse.reflection;
 
+import org.homunculus.codegen.generator.LintException;
 import org.homunculus.codegen.parse.Annotation;
 import org.homunculus.codegen.parse.FullQualifiedName;
 
@@ -25,6 +26,17 @@ public class ReflectionAnnotation implements Annotation {
     @Nullable
     @Override
     public String getString(String key) {
+        throw new RuntimeException("not yet implemented");
+    }
+
+    @Nullable
+    @Override
+    public FullQualifiedName getConstant(String key) {
+        throw new RuntimeException("not yet implemented");
+    }
+
+    @Override
+    public LintException newLintException(String msg) {
         throw new RuntimeException("not yet implemented");
     }
 }

@@ -6,7 +6,6 @@ import android.widget.Button;
 
 import org.homunculus.android.compat.EventAppCompatActivity;
 import org.homunculus.android.component.module.toolbarbuilder.templates.DefaultToolbarTemplate;
-import org.homunculus.android.example.concept.api.Binding;
 import org.homunculusframework.factory.flavor.hcf.Bind;
 import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.navigation.Navigation;
@@ -55,8 +54,4 @@ public class UISA extends View {
     }
 
 
-    private void navigation_forward(Binding<?, ?> blub) {
-        //fakenavigation contract for visual completeness
-        //blub.apply(activityScope) <- by definition this would be always the activity scope, however no typesafety here
-    }
 }
