@@ -83,10 +83,10 @@ class ToolbarCreator {
     private final static String NGID = "toolbarBuilderGenerationId";
     private AtomicInteger nextGeneratedId;
 
-    private ToolbarTemplate mToolbarTemplate;
+    private ToolbarConfiguration mToolbarConfiguration;
 
-    ToolbarCreator(ToolbarTemplate template) {
-        mToolbarTemplate = template;
+    ToolbarCreator(ToolbarConfiguration template) {
+        mToolbarConfiguration = template;
     }
 
     /**
@@ -238,12 +238,12 @@ class ToolbarCreator {
         toolbar.setMinimumHeight(barSize);
         toolbar.setId(Widget.generateViewId());
 
-        if (mToolbarTemplate.mToolbarColor != null) {
-            toolbar.setBackgroundColor(ContextCompat.getColor(activity, mToolbarTemplate.mToolbarColor));
+        if (mToolbarConfiguration.mToolbarColor != null) {
+            toolbar.setBackgroundColor(ContextCompat.getColor(activity, mToolbarConfiguration.mToolbarColor));
         }
 
-        if (mToolbarTemplate.mTitleTextColor != null) {
-            toolbar.setTitleTextColor(ContextCompat.getColor(activity, mToolbarTemplate.mTitleTextColor));
+        if (mToolbarConfiguration.mTitleTextColor != null) {
+            toolbar.setTitleTextColor(ContextCompat.getColor(activity, mToolbarConfiguration.mTitleTextColor));
         }
 
 
@@ -254,22 +254,22 @@ class ToolbarCreator {
             throw new Panic("should not happen! actionBar was just set");
         }
 
-        if (mToolbarTemplate.mBackgroundDrawable != null) {
-            ab.setBackgroundDrawable(mToolbarTemplate.mBackgroundDrawable);
+        if (mToolbarConfiguration.mBackgroundDrawable != null) {
+            ab.setBackgroundDrawable(mToolbarConfiguration.mBackgroundDrawable);
         }
 
-        if (mToolbarTemplate.mCustomView != null) {
-            ab.setCustomView(mToolbarTemplate.mCustomView);
+        if (mToolbarConfiguration.mCustomView != null) {
+            ab.setCustomView(mToolbarConfiguration.mCustomView);
         }
 
-        if (mToolbarTemplate.mTitleRes != null) {
-            ab.setTitle(mToolbarTemplate.mTitleRes.getString(activity));
+        if (mToolbarConfiguration.mTitleRes != null) {
+            ab.setTitle(mToolbarConfiguration.mTitleRes.getString(activity));
             ab.setDisplayShowTitleEnabled(true);
         } else {
             ab.setDisplayShowTitleEnabled(false);
         }
 
-        ab.setDisplayHomeAsUpEnabled(mToolbarTemplate.mShowNavigationIcons);
+        ab.setDisplayHomeAsUpEnabled(mToolbarConfiguration.mShowNavigationIcons);
 
 
         ToolbarHolder holder = new ToolbarHolder(activity);
@@ -281,22 +281,22 @@ class ToolbarCreator {
         holder.mChild = mContentView;
 
 
-        if (mToolbarTemplate.mToolbarTitleTextAppearance != null) {
-            Context ctx = mToolbarTemplate.mToolbarTitleTextAppearanceContext != null ? mToolbarTemplate.mToolbarTitleTextAppearanceContext : activity;
-            toolbar.setTitleTextAppearance(ctx, mToolbarTemplate.mToolbarTitleTextAppearance);
+        if (mToolbarConfiguration.mToolbarTitleTextAppearance != null) {
+            Context ctx = mToolbarConfiguration.mToolbarTitleTextAppearanceContext != null ? mToolbarConfiguration.mToolbarTitleTextAppearanceContext : activity;
+            toolbar.setTitleTextAppearance(ctx, mToolbarConfiguration.mToolbarTitleTextAppearance);
         }
 
-        if (mToolbarTemplate.mToolbarSubTitleTextAppearance != null) {
-            Context ctx = mToolbarTemplate.mToolbarSubTitleTextAppearanceContext != null ? mToolbarTemplate.mToolbarSubTitleTextAppearanceContext : activity;
-            toolbar.setTitleTextAppearance(ctx, mToolbarTemplate.mToolbarSubTitleTextAppearance);
+        if (mToolbarConfiguration.mToolbarSubTitleTextAppearance != null) {
+            Context ctx = mToolbarConfiguration.mToolbarSubTitleTextAppearanceContext != null ? mToolbarConfiguration.mToolbarSubTitleTextAppearanceContext : activity;
+            toolbar.setTitleTextAppearance(ctx, mToolbarConfiguration.mToolbarSubTitleTextAppearance);
         }
         return holder;
     }
 
 
     private ContentViewHolder<ToolbarHolder<?>, ?, ?> initDrawerLayout(AppCompatActivity activity, ToolbarHolder<View> contentLayout) {
-        if (mToolbarTemplate.mUpAction != null) {
-            contentLayout.getToolbar().setNavigationOnClickListener(v -> mToolbarTemplate.mUpAction.run());
+        if (mToolbarConfiguration.mUpAction != null) {
+            contentLayout.getToolbar().setNavigationOnClickListener(v -> mToolbarConfiguration.mUpAction.run());
         }
         mDrawerLayout = new ContentViewHolder(activity, contentLayout);
 
@@ -337,10 +337,10 @@ class ToolbarCreator {
             toggle.syncState();
         }
 
-        if (mToolbarTemplate.mToolbarLogoAsResource != null) {
-            contentLayout.getToolbar().setLogo(mToolbarTemplate.mToolbarLogoAsResource);
-        } else if (mToolbarTemplate.mToolbarLogoAsDrawable != null) {
-            contentLayout.getToolbar().setLogo(mToolbarTemplate.mToolbarLogoAsDrawable);
+        if (mToolbarConfiguration.mToolbarLogoAsResource != null) {
+            contentLayout.getToolbar().setLogo(mToolbarConfiguration.mToolbarLogoAsResource);
+        } else if (mToolbarConfiguration.mToolbarLogoAsDrawable != null) {
+            contentLayout.getToolbar().setLogo(mToolbarConfiguration.mToolbarLogoAsDrawable);
         }
 
 

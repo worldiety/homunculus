@@ -5,7 +5,7 @@ import android.view.View;
 import android.widget.Button;
 
 import org.homunculus.android.compat.EventAppCompatActivity;
-import org.homunculus.android.component.module.toolbarbuilder.templates.DefaultToolbarTemplate;
+import org.homunculus.android.component.module.toolbarbuilder.templates.DefaultToolbarConfiguration;
 import org.homunculusframework.factory.flavor.hcf.Bind;
 import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.navigation.Navigation;
@@ -39,12 +39,12 @@ public class UISA extends View {
     Scope scope;
 
     @Inject
-    DefaultToolbarTemplate toolbarTemplate;
+    DefaultToolbarConfiguration toolbarTemplate;
 
     public UISA(Context context) {
         super(context);
 
-        activity.setContentView(toolbarTemplate.create(this));
+        activity.setContentView(toolbarTemplate.createToolbar(this));
 
         Button btn = new Button(getContext());
         btn.setOnClickListener(view -> {

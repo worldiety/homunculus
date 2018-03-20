@@ -23,7 +23,7 @@ import java.util.TreeMap;
  * Created by aerlemann on 16.03.18.
  */
 
-public abstract class ToolbarTemplate {
+public abstract class ToolbarConfiguration {
     private EventAppCompatActivity mAppCompatActivity;
     private Scope mScope;
 
@@ -68,15 +68,15 @@ public abstract class ToolbarTemplate {
      */
     Map<Integer, MenuItemClickListener> mItems = new TreeMap<>();
 
-    public ToolbarTemplate(EventAppCompatActivity activity, Scope scope) {
+    public ToolbarConfiguration(EventAppCompatActivity activity, Scope scope) {
         mAppCompatActivity = activity;
         mScope = scope;
-        configureTemplate(this);
+        configure();
     }
 
-    protected abstract void configureTemplate(ToolbarTemplate toolbarTemplate);
+    protected abstract void configure();
 
-    public <ContentView extends View, LeftDrawer extends View, RightDrawer extends View> ContentViewHolder<ToolbarHolder<ContentView>, LeftDrawer, RightDrawer> create(ContentView contentView) {
+    public <ContentView extends View, LeftDrawer extends View, RightDrawer extends View> ContentViewHolder<ToolbarHolder<ContentView>, LeftDrawer, RightDrawer> createToolbar(ContentView contentView) {
         return new ToolbarCreator(this).create(mScope, mAppCompatActivity, contentView);
     }
 
@@ -86,7 +86,7 @@ public abstract class ToolbarTemplate {
      * @param context the context to derive the appearance
      * @param resId   the text appearance resource
      */
-    public ToolbarTemplate setTitleTextAppearance(Context context, @StyleRes int resId) {
+    public ToolbarConfiguration setTitleTextAppearance(Context context, @StyleRes int resId) {
         this.mToolbarTitleTextAppearanceContext = mToolbarTitleTextAppearanceContext;
         this.mToolbarTitleTextAppearance = mToolbarTitleTextAppearance;
         return this;
@@ -98,7 +98,7 @@ public abstract class ToolbarTemplate {
      * @param context the context to derive the appearance
      * @param resId   the text appearance resource
      */
-    public ToolbarTemplate setSubTitleTextAppearance(Context context, @StyleRes int resId) {
+    public ToolbarConfiguration setSubTitleTextAppearance(Context context, @StyleRes int resId) {
         this.mToolbarSubTitleTextAppearanceContext = mToolbarSubTitleTextAppearanceContext;
         this.mToolbarSubTitleTextAppearance = mToolbarSubTitleTextAppearance;
         return this;
@@ -110,7 +110,7 @@ public abstract class ToolbarTemplate {
      * @param drawable the drawable
      * @return the builder
      */
-    public ToolbarTemplate setLogo(Drawable drawable) {
+    public ToolbarConfiguration setLogo(Drawable drawable) {
         mToolbarLogoAsDrawable = drawable;
         mToolbarLogoAsResource = null;
         return this;
@@ -122,7 +122,7 @@ public abstract class ToolbarTemplate {
      * @param drawable the drawable
      * @return the builder
      */
-    public ToolbarTemplate setLogo(@DrawableRes int drawable) {
+    public ToolbarConfiguration setLogo(@DrawableRes int drawable) {
         mToolbarLogoAsDrawable = null;
         mToolbarLogoAsResource = drawable;
         return this;
@@ -134,7 +134,7 @@ public abstract class ToolbarTemplate {
      * @param toolbarColor the color value
      * @return the builder
      */
-    public ToolbarTemplate setToolbarColor(@ColorRes Integer toolbarColor) {
+    public ToolbarConfiguration setToolbarColor(@ColorRes Integer toolbarColor) {
         mToolbarColor = toolbarColor;
         return this;
     }
@@ -144,12 +144,12 @@ public abstract class ToolbarTemplate {
      *
      * @param textColor The new text color
      */
-    public ToolbarTemplate setTitleTextColor(@ColorRes Integer textColor) {
+    public ToolbarConfiguration setTitleTextColor(@ColorRes Integer textColor) {
         mTitleTextColor = textColor;
         return this;
     }
 
-    public ToolbarTemplate setTitle(Str textRes) {
+    public ToolbarConfiguration setTitle(Str textRes) {
         mTitleRes = textRes;
         return this;
     }
@@ -159,12 +159,12 @@ public abstract class ToolbarTemplate {
      *
      * @param backgroundDrawable Background drawable
      */
-    public ToolbarTemplate setBackgroundDrawable(Drawable backgroundDrawable) {
+    public ToolbarConfiguration setBackgroundDrawable(Drawable backgroundDrawable) {
         mBackgroundDrawable = backgroundDrawable;
         return this;
     }
 
-    public ToolbarTemplate setCustomView(View customView) {
+    public ToolbarConfiguration setCustomView(View customView) {
         mCustomView = customView;
         return this;
     }
@@ -175,7 +175,7 @@ public abstract class ToolbarTemplate {
      * @param showNavigationIcons
      * @return
      */
-    public ToolbarTemplate setShowNavigationIcons(boolean showNavigationIcons) {
+    public ToolbarConfiguration setShowNavigationIcons(boolean showNavigationIcons) {
         mShowNavigationIcons = showNavigationIcons;
         return this;
     }
@@ -186,7 +186,7 @@ public abstract class ToolbarTemplate {
      * @param menuId resource ID of the menu (defined in /res/menu/)
      * @return
      */
-    public ToolbarTemplate setMenuId(Integer menuId) {
+    public ToolbarConfiguration setMenuId(Integer menuId) {
         mMenuId = menuId;
         return this;
     }
@@ -197,7 +197,7 @@ public abstract class ToolbarTemplate {
      * @param upAction Runnable defining the navigating up action
      * @return The corresponding ToolBarContentConfigurator
      */
-    public ToolbarTemplate setUpAction(Runnable upAction) {
+    public ToolbarConfiguration setUpAction(Runnable upAction) {
         mUpAction = upAction;
         return this;
     }
@@ -210,7 +210,7 @@ public abstract class ToolbarTemplate {
      * @param clickListener The clickOnce listener for the menu item
      * @return The corresponding ToolBarContentConfigurator
      */
-    public ToolbarTemplate addMenuItemListener(Integer id, MenuItemClickListener clickListener) {
+    public ToolbarConfiguration addMenuItemListener(Integer id, MenuItemClickListener clickListener) {
         mItems.put(id, clickListener);
         return this;
     }
@@ -222,7 +222,7 @@ public abstract class ToolbarTemplate {
      * @param clicklistener Map containing resource IDs for menu items as keys and clicklistener for those items as values
      * @return
      */
-    public ToolbarTemplate setMenu(Integer menuId, Map<Integer, MenuItemClickListener> clicklistener) {
+    public ToolbarConfiguration setMenu(Integer menuId, Map<Integer, MenuItemClickListener> clicklistener) {
         mMenuId = menuId;
         mItems.putAll(clicklistener);
         return this;
