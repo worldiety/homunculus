@@ -16,7 +16,7 @@
 package org.homunculusframework.factory.container;
 
 import org.homunculusframework.factory.scope.Scope;
-import org.homunculusframework.factory.scope.ScopedValue;
+import org.homunculusframework.factory.scope.ContextScope;
 
 import java.io.Serializable;
 
@@ -34,7 +34,7 @@ import java.io.Serializable;
  * @author Torben Schinke
  * @since 1.0
  */
-public interface Binding<Bean, BindResultScope extends Scope & ScopedValue<Bean>, ParentScope extends Scope & ScopedValue<?>> extends Serializable {
+public interface Binding<Out, In> extends Serializable {
 
     /**
      * Executes this binding, which typically means at least one object creation
@@ -42,5 +42,5 @@ public interface Binding<Bean, BindResultScope extends Scope & ScopedValue<Bean>
      * @param scope the scope to apply
      * @return the result
      */
-    BindResultScope create(ParentScope scope) throws Exception;
+    Out create(In scope) throws Exception;
 }

@@ -7,9 +7,9 @@ package org.homunculusframework.factory.scope;
  * Created by Torben Schinke on 19.03.18.
  */
 
-public interface ScopedValue<T> {
+public interface ContextScope<T> extends Scope {
     /**
      * Returns the "main" value of a scope.
      */
-    T getScopedValue();
+    T getContext();
 }

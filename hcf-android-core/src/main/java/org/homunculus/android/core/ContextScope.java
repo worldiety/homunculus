@@ -36,6 +36,7 @@ import javax.annotation.Nullable;
  * @author Torben Schinke
  * @since 1.0
  */
+@Deprecated
 public class ContextScope extends ContextWrapper {
     private final Scope mScope;
 

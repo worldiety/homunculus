@@ -17,11 +17,7 @@ package org.homunculusframework.factory.container;
 
 
 import org.homunculusframework.factory.scope.Scope;
-import org.homunculusframework.factory.scope.ScopedValue;
-import org.homunculusframework.lang.Result;
-import org.homunculusframework.scope.SettableTask;
-
-import javax.annotation.Nullable;
+import org.homunculusframework.factory.scope.ContextScope;
 
 /**
  * A binding to a method which returns an {@link ObjectBinding} of a specific type. This is typically used
@@ -32,7 +28,7 @@ import javax.annotation.Nullable;
  * @author Torben Schinke
  * @since 1.0
  */
-public abstract class MethodBinding<T extends ObjectBinding, BindResultScope extends Scope & ScopedValue<T>, ParentScope extends Scope & ScopedValue<?>> implements Binding<T, BindResultScope, ParentScope> {
+public abstract class MethodBinding<In extends ContextScope<?>> implements Binding<ObjectBinding<?, ?>, In> {
 
 
 }

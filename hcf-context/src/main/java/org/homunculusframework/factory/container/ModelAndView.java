@@ -15,8 +15,8 @@
  */
 package org.homunculusframework.factory.container;
 
+import org.homunculusframework.factory.scope.ContextScope;
 import org.homunculusframework.factory.scope.Scope;
-import org.homunculusframework.factory.scope.ScopedValue;
 
 /**
  * This is just a convenience class to make the purpose of an ObjectBinding clearer.
@@ -25,5 +25,5 @@ import org.homunculusframework.factory.scope.ScopedValue;
  * @since 1.0
  */
 
-public abstract class ModelAndView<T, BindResultScope extends Scope & ScopedValue<T>, ParentScope extends Scope & ScopedValue<?>> implements Binding<T, BindResultScope, ParentScope> {
+public abstract class ModelAndView<BindResultScope extends ContextScope<?>, ParentScope extends ContextScope<?>> extends ObjectBinding<BindResultScope, ParentScope> {
 }

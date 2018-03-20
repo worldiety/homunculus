@@ -1,6 +1,7 @@
 package org.homunculus.codegen.generator;
 
 import com.helger.jcodemodel.AbstractJClass;
+import com.helger.jcodemodel.EClassType;
 import com.helger.jcodemodel.JAssignment;
 import com.helger.jcodemodel.JBlock;
 import com.helger.jcodemodel.JCodeModel;
@@ -12,7 +13,6 @@ import com.helger.jcodemodel.JInvocation;
 import com.helger.jcodemodel.JMethod;
 import com.helger.jcodemodel.JMod;
 import com.helger.jcodemodel.JSynchronizedBlock;
-import com.helger.jcodemodel.JTypeVar;
 import com.helger.jcodemodel.JVar;
 
 import org.homunculus.codegen.GenProject;
@@ -29,11 +29,14 @@ import org.homunculusframework.factory.flavor.hcf.ScopeElement;
 import org.homunculusframework.factory.scope.AbsScope;
 import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.lang.Panic;
-import org.homunculusframework.factory.scope.ScopedValue;
+import org.homunculusframework.factory.scope.ContextScope;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -45,7 +48,7 @@ import javax.inject.Inject;
  * <ul>
  * <li>Application scopes contain the singletons</li>
  * <li>Activity scopes refer to the application (assuming only one) => TODO this means you cannot use the same Activity scope with different applications</li>
- * <li>Bindable scopes refer to the activity scope (assuming only one) as their parent => TODO this means you cannot use the same Bindable with different activities</li>
+ * <li>Bindable scopes refer to the activity scope (assuming only one) as their parent. A common superset of methods for all activities is expected. </li>
  * <li>Each base class can provide factory methods for their scope by using @ScopeElement on their public or package private members</li>
  * </ul>
  * <p>
@@ -54,22 +57,96 @@ import javax.inject.Inject;
 public class GenerateScopes implements Generator {
     @Override
     public void generate(GenProject project) throws Exception {
-        JDefinedClass appScope = null;
+        List<JDefinedClass> appScopes = new ArrayList<>();
         for (FullQualifiedName app : project.getDiscoveredKinds().get(DiscoveryKind.APPLICATION)) {
-            appScope = new ApplicationScopeGeneration().create(project, app);
+            appScopes.add(new ApplicationScopeGeneration().create(project, app));
         }
 
-        JDefinedClass acScope = null;
-        for (FullQualifiedName activity : project.getDiscoveredKinds().get(DiscoveryKind.ACTIVITY)) {
-            acScope = new ParentScopeGeneration(appScope).create(project, activity);
+        if (appScopes.isEmpty()) {
+            throw new Panic("you need to have exactly one application, but you currently have none");
         }
-        if (acScope == null){
-            throw new Panic("you need to define exactly 1 Activity in your project");
+
+        if (appScopes.size() > 1) {
+            throw new Panic("you need to have exactly one application, but you currently have " + appScopes.size());
+        }
+
+        JDefinedClass appScope = appScopes.get(0);
+        List<JDefinedClass> acScopes = new ArrayList<>();
+        List<FullQualifiedName> activities = new ArrayList<>(project.getDiscoveredKinds().get(DiscoveryKind.ACTIVITY));
+        for (FullQualifiedName activity : activities) {
+            acScopes.add(new ParentScopeGeneration(appScope).create(project, activity));
+        }
+
+        if (acScopes.isEmpty()) {
+            throw new Panic("you need to have at least one activity");
+        }
+
+        JDefinedClass activitySuperSet = createCommonActivitiesScopeInterface(project.getResolver(), project.getCodeModel(), appScope, acScopes);
+        for (int i = 0; i < acScopes.size(); i++) {
+            JDefinedClass acScope = acScopes.get(i);
+            acScope._implements(activitySuperSet.narrow(project.getCodeModel().ref(activities.get(i).toString())));
         }
 
         for (FullQualifiedName bindable : project.getDiscoveredKinds().get(DiscoveryKind.BIND)) {
-            new ParentScopeGeneration(acScope).create(project, bindable);
+            JDefinedClass bindScope = new ParentScopeGeneration(activitySuperSet).create(project, bindable);
         }
+
+    }
+
+    /**
+     * Creates a super set interface for the given activities. This avoids castings
+     */
+    private JDefinedClass createCommonActivitiesScopeInterface(Resolver resolver, JCodeModel code, JDefinedClass appScope, List<JDefinedClass> activityScopes) throws Exception {
+        Map<String, List<JMethod>> methods = new HashMap<>();
+        for (JDefinedClass activityScope : activityScopes) {
+            for (JMethod method : activityScope.methods()) {
+                if (method.name().startsWith("get") && method.params().isEmpty()) {
+                    List<JMethod> list = methods.get(method.name());
+                    if (list == null) {
+                        list = new ArrayList<>();
+                        methods.put(method.name(), list);
+                    }
+                    //add all method disregarding their return type, we introduce polymorphism later
+                    list.add(method);
+                }
+            }
+        }
+
+        JDefinedClass superSet = code._class(new FullQualifiedName(appScope.fullName()).getPackageName() + ".ActivityScope", EClassType.INTERFACE);
+
+        superSet.javadoc().add("This interface contains all scope resources which are equal to all activities. This is the contract which is used by all other bindings.");
+
+        JMethod getContext = null;
+        //now just add those methods which are equal to all
+        for (Entry<String, List<JMethod>> entry : methods.entrySet()) {
+            if (entry.getValue().size() == activityScopes.size()) {
+                //every one has such a named method, so try to infer common type
+
+                List<FullQualifiedName> returnTypes = new ArrayList<>();
+                for (JMethod meth : entry.getValue()) {
+                    returnTypes.add(new FullQualifiedName(meth.type().fullName()));
+                }
+                List<FullQualifiedName> superTypes = resolver.resolveCommonSuperTypes(returnTypes);
+
+                JMethod commonMethod = superSet.method(JMod.PUBLIC, code.ref(superTypes.get(0).toString()), entry.getKey());
+                //capture the context method, to indicate if we can implement the proper interface later
+                if (entry.getKey().equals("getContext")) {
+                    getContext = commonMethod;
+                }
+            }
+        }
+
+        if (getContext != null) {
+            superSet._implements(code.ref(ContextScope.class).narrow(code.directClass("T")));
+            //e.g. T extends EventAppCompatActivity
+            superSet.generify("T").bound(code.ref(getContext.type().fullName()));
+            getContext.type(code.directClass("T"));
+        } else {
+            superSet._implements(Scope.class);
+        }
+
+
+        return superSet;
     }
 
     /**
@@ -77,10 +154,14 @@ public class GenerateScopes implements Generator {
      * For the bean itself and each @ScopeElement an accessor is created.
      */
     private static class ScopeGenerator {
+        JCodeModel code;
 
         JDefinedClass create(GenProject project, FullQualifiedName bean) throws Exception {
             JCodeModel code = project.getCodeModel();
+            this.code = code;
             Resolver resolver = project.getResolver();
+            onStartGeneration(code);
+
             //e.g. my.domain.MyApp
             AbstractJClass beanClass = code.ref(bean.toString());
 
@@ -89,7 +170,7 @@ public class GenerateScopes implements Generator {
 
             //private final my.domain.MyApp myApp;
             JFieldVar fieldBean = scope.field(JMod.PRIVATE | JMod.FINAL, beanClass, Strings.startLowerCase(bean.getSimpleName()));
-            scope._implements(code.ref(ScopedValue.class).narrow(fieldBean.type()));
+            scope._implements(code.ref(ContextScope.class).narrow(fieldBean.type()));
 
             //public MyAppScope(my.domain.MyApp myApp)
             JMethod constructor = scope.constructor(JMod.PUBLIC);
@@ -144,8 +225,8 @@ public class GenerateScopes implements Generator {
                 }
             }
 
-            //getScopedValue()
-            JMethod getScopedValue = scope.method(JMod.PUBLIC, fieldBean.type(), "getScopedValue");
+            //getContext()
+            JMethod getScopedValue = scope.method(JMod.PUBLIC, fieldBean.type(), "getContext");
             getScopedValue.annotate(Override.class);
             getScopedValue.body()._return(fieldBean);
 
@@ -153,6 +234,10 @@ public class GenerateScopes implements Generator {
             createResolveMethod(code, scope);
 
             return scope;
+        }
+
+        void onStartGeneration(JCodeModel code) throws Exception {
+
         }
 
         void createResolveMethod(JCodeModel code, JDefinedClass scope) {
@@ -253,16 +338,31 @@ public class GenerateScopes implements Generator {
 
     private static class ParentScopeGeneration extends ScopeGenerator {
         final JDefinedClass parentScope;
+        JDefinedClass commonParentInterface;
 
-        public ParentScopeGeneration(JDefinedClass applicationScope) {
-            if (applicationScope == null){
-                throw new Panic("applicationScope is null");
+        public ParentScopeGeneration(JDefinedClass parentScope) {
+            if (parentScope == null) {
+                throw new Panic("parent scope is null");
             }
-            this.parentScope = applicationScope;
+            this.parentScope = parentScope;
+        }
+
+        @Override
+        void onStartGeneration(JCodeModel code) throws Exception {
+            //create common parent interface, if necessary
+            String commonInterfaceName = parentScope.fullName() + "Child";
+            commonParentInterface = code._getClass(commonInterfaceName);
+            if (commonParentInterface == null) {
+                commonParentInterface = code._class(JMod.PUBLIC, commonInterfaceName, EClassType.INTERFACE);
+                commonParentInterface._implements(code.ref(Scope.class));
+                commonParentInterface.method(JMod.PUBLIC, parentScope, "getParent");
+            }
+
         }
 
         @Override
         void onConstructorDefined(JDefinedClass scope, JMethod constructor) {
+            scope._implements(commonParentInterface);
             //e.g. ActivityScope(AppScope appScope,....)
             JVar var = constructor.param(parentScope, Strings.startLowerCase(parentScope.name()));
             JFieldVar fieldBean = scope.field(JMod.PRIVATE | JMod.FINAL, parentScope, var.name());

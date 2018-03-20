@@ -4,13 +4,17 @@ import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.helger.jcodemodel.JCodeModel;
 
+import org.homunculus.codegen.generator.GenerateAsyncControllers;
 import org.homunculus.codegen.generator.GenerateBindables;
+import org.homunculus.codegen.generator.GenerateMethodBindings;
 import org.homunculus.codegen.generator.GenerateScopes;
+import org.homunculus.codegen.generator.GenerateTaskMethods;
 import org.homunculus.codegen.generator.PreprocessDiscoverBeans;
 import org.homunculus.codegen.generator.PreprocessDiscoverBeans.DiscoveryKind;
 import org.homunculus.codegen.parse.FullQualifiedName;
 import org.homunculus.codegen.parse.Resolver;
 import org.homunculus.codegen.parse.javaparser.JPResolver;
+import org.homunculus.codegen.parse.jcodemodel.JCodeModelResolver;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
@@ -19,10 +23,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +33,6 @@ import javax.annotation.Nullable;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import sun.reflect.CallerSensitive;
 
 /**
  * Created by Torben Schinke on 20.02.18.
@@ -46,7 +46,7 @@ public class GenProject {
     private List<XMLFile> xmlFiles = new ArrayList<>();
     private File projectRoot;
     private String manifestPackage;
-    private Resolver resolver;
+    private JPResolver resolver;
 
 
     public GenProject() {
@@ -184,12 +184,13 @@ public class GenProject {
 
     public void generate() throws Exception {
         resolver = new JPResolver(units);
+        resolver.setCodeResolver(new JCodeModelResolver(getCodeModel()));
         new PreprocessDiscoverBeans().generate(this);
         new GenerateScopes().generate(this);
         new GenerateBindables().generate(this);
-//        new GenerateAsyncControllers().generate(this);
-//        new GenerateMethodBindings().generate(this);
-//        new GenerateTaskMethods().generate(this);
+        new GenerateAsyncControllers().generate(this);
+        new GenerateTaskMethods().generate(this);
+        new GenerateMethodBindings().generate(this);
 //        new GenerateObjectBindings().generate(this);
 //        new GenerateControllerFactory().generate(this);
 //        new GenerateViewsFromXML().generate(this);
@@ -227,81 +228,4 @@ public class GenProject {
 //    }
 
 
-    private static class MyFixedContextClassLoader extends ClassLoader {
-        private final ClassLoader delegate;
-
-        public MyFixedContextClassLoader(ClassLoader delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public Class<?> loadClass(String name) throws ClassNotFoundException {
-            try {
-                return delegate.loadClass(name);
-            } catch (NoClassDefFoundError e) {
-                throw new ClassNotFoundException(name + " due to " + e.getClass().getName() + ": " + e.getMessage());
-            }
-        }
-
-
-        @org.jetbrains.annotations.Nullable
-        @Override
-        public URL getResource(String name) {
-            return delegate.getResource(name);
-        }
-
-        @Override
-        public Enumeration<URL> getResources(String name) throws IOException {
-            return delegate.getResources(name);
-        }
-
-
-        @CallerSensitive
-        public static boolean registerAsParallelCapable() {
-            return ClassLoader.registerAsParallelCapable();
-        }
-
-        public static URL getSystemResource(String name) {
-            return ClassLoader.getSystemResource(name);
-        }
-
-        public static Enumeration<URL> getSystemResources(String name) throws IOException {
-            return ClassLoader.getSystemResources(name);
-        }
-
-        @Override
-        public InputStream getResourceAsStream(String name) {
-            return delegate.getResourceAsStream(name);
-        }
-
-        public static InputStream getSystemResourceAsStream(String name) {
-            return ClassLoader.getSystemResourceAsStream(name);
-        }
-
-        @CallerSensitive
-        public static ClassLoader getSystemClassLoader() {
-            return ClassLoader.getSystemClassLoader();
-        }
-
-
-        @Override
-        public void setDefaultAssertionStatus(boolean enabled) {
-            delegate.setDefaultAssertionStatus(enabled);
-        }
-
-        @Override
-        public void setPackageAssertionStatus(String packageName, boolean enabled) {
-            delegate.setPackageAssertionStatus(packageName, enabled);
-        }
-
-        @Override
-        public void setClassAssertionStatus(String className, boolean enabled) {
-            delegate.setClassAssertionStatus(className, enabled);
-        }
-
-        @Override
-        public void clearAssertionStatus() {
-            delegate.clearAssertionStatus();
-        }
-    }
 }

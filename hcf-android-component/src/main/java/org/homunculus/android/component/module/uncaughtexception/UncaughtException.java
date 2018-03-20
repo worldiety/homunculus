@@ -19,27 +19,22 @@ import android.app.Activity;
 import android.app.AlertDialog.Builder;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.ImageView;
 
 import org.homunculus.android.component.MaterialFont.Icon;
 import org.homunculus.android.component.MaterialFontView;
 import org.homunculus.android.component.R;
-import org.homunculus.android.core.Android;
-import org.homunculus.android.flavor.Resource;
 import org.homunculusframework.factory.container.ObjectBinding;
 import org.homunculusframework.factory.scope.AbsScope;
+import org.homunculusframework.factory.scope.ContextScope;
 import org.homunculusframework.factory.scope.Scope;
-import org.homunculusframework.factory.scope.ScopedValue;
 import org.homunculusframework.lang.Result;
 import org.homunculusframework.navigation.Navigation;
-import org.homunculusframework.scope.SettableTask;
 import org.homunculusframework.stereotype.UserInterfaceState;
 
 import java.util.Map;
 import java.util.TreeMap;
 
 import javax.annotation.Nullable;
-import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -132,7 +127,7 @@ public class UncaughtException {
         }
     }
 
-    public static class BindUncaughtException<S extends Scope & ScopedValue<?>> extends ObjectBinding<UncaughtException, UncaughtExceptionScope, S> {
+    public static class BindUncaughtException extends ObjectBinding<UncaughtExceptionScope, Scope> {
 
         private Throwable throwable;
         private Result<?> result;
@@ -144,7 +139,7 @@ public class UncaughtException {
 
 
         @Override
-        public UncaughtExceptionScope create(S scope) throws Exception {
+        public UncaughtExceptionScope create(Scope scope) throws Exception {
             UncaughtException obj = new UncaughtException();
             UncaughtExceptionScope eScope = new UncaughtExceptionScope(scope, obj);
             obj.activity = scope.resolve(Activity.class);
@@ -157,7 +152,7 @@ public class UncaughtException {
         }
     }
 
-    public static class UncaughtExceptionScope extends AbsScope implements ScopedValue<UncaughtException> {
+    public static class UncaughtExceptionScope extends AbsScope implements ContextScope<UncaughtException> {
 
         private org.homunculusframework.factory.scope.Scope parent;
         private UncaughtException value;
@@ -173,7 +168,7 @@ public class UncaughtException {
         }
 
         @Override
-        public UncaughtException getScopedValue() {
+        public UncaughtException getContext() {
             return value;
         }
 

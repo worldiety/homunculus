@@ -27,13 +27,40 @@ public class ReflectionResolver implements Resolver {
         }
     }
 
+    public void listTypes(FullQualifiedName src, List<FullQualifiedName> found, List<FullQualifiedName> notFound) {
+        try {
+            Class t = Class.forName(src.toString());
+            found.add(src);
+            if (t.getSuperclass() != null) {
+                listTypes(new FullQualifiedName(t.getSuperclass()), found, notFound);
+            }
+            for (Class i : t.getInterfaces()) {
+                listTypes(new FullQualifiedName(i), found, notFound);
+            }
+        } catch (ClassNotFoundException e) {
+            notFound.add(src);
+        }
+    }
+
+    @Override
+    public void getSuperTypes(FullQualifiedName name, List<FullQualifiedName> dst) throws ClassNotFoundException {
+        Class t = Class.forName(name.toString());
+        dst.add(new FullQualifiedName(t));
+        if (t.getSuperclass() != null) {
+            getSuperTypes(new FullQualifiedName(t), dst);
+        }
+        for (Class i : t.getInterfaces()) {
+            getSuperTypes(new FullQualifiedName(i.getName()), dst);
+        }
+    }
+
     @Override
     public List<Constructor> getConstructors(FullQualifiedName name) throws ClassNotFoundException {
-       List<Constructor> res = new ArrayList<>();
-       for (java.lang.reflect.Constructor c:Class.forName(name.toString()).getConstructors()){
-           res.add(new ReflectionConstructor(c,name));
-       }
-       return res;
+        List<Constructor> res = new ArrayList<>();
+        for (java.lang.reflect.Constructor c : Class.forName(name.toString()).getConstructors()) {
+            res.add(new ReflectionConstructor(c, name));
+        }
+        return res;
     }
 
     @Override

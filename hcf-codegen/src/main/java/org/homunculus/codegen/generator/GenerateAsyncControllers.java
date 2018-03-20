@@ -41,8 +41,6 @@ public class GenerateAsyncControllers implements Generator {
     @Override
     public void generate(GenProject project) throws Exception {
         for (FullQualifiedName bean : project.getDiscoveredKinds().get(DiscoveryKind.SINGLETON)) {
-            System.out.println(bean.getPackageName());
-            System.out.println(bean.getSimpleName());
             JDefinedClass jc = project.getCodeModel().
                     _package(bean.getPackageName()).
                     _class("Async" + bean.getSimpleName());

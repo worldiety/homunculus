@@ -1,0 +1,28 @@
+package org.homunculus.android.example.concept;
+
+import android.os.Bundle;
+import android.support.annotation.Nullable;
+
+import org.homunculus.android.compat.EventAppCompatActivity;
+import org.homunculusframework.factory.flavor.hcf.ScopeElement;
+import org.homunculusframework.navigation.Navigation;
+
+/**
+ * Created by Torben Schinke on 16.03.18.
+ */
+
+public class ASecondActivity extends EventAppCompatActivity {
+
+    private ASecondActivityScope scope;
+
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        scope = new ASecondActivityScope(((ConceptApplication) getApplication()).getScope(), this);
+    }
+
+    @ScopeElement
+    Navigation createNavigation() {
+        return null;
+    }
+}

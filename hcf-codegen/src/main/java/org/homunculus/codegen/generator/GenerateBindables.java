@@ -30,6 +30,7 @@ import org.homunculus.codegen.parse.FullQualifiedName;
 import org.homunculus.codegen.parse.Parameter;
 import org.homunculus.codegen.parse.Resolver;
 import org.homunculus.codegen.parse.Strings;
+import org.homunculusframework.factory.container.ModelAndView;
 import org.homunculusframework.factory.container.ObjectBinding;
 import org.homunculusframework.factory.flavor.hcf.Bind;
 import org.homunculusframework.factory.scope.Scope;
@@ -72,7 +73,6 @@ public class GenerateBindables implements Generator {
             preSolved.constructor = shortestConstructor;
             preSolved.allFields = project.getResolver().getFields(bean);
             preSolved.injectParams = new ArrayList<>();
-            preSolved.extendClassNarrows.add(code.ref(bean.toString()));
             for (Field field : preSolved.allFields) {
                 if (field.getAnnotation(Bind.class) != null) {
                     preSolved.bindParams.add(field);
@@ -93,7 +93,7 @@ public class GenerateBindables implements Generator {
             }
             createBindBean(project.getResolver(), code, bean, binder, preSolved);
 
-            binder._extends(code.ref(ObjectBinding.class).narrow(preSolved.extendClassNarrows));
+            binder._extends(code.ref(ModelAndView.class).narrow(preSolved.extendClassNarrows));
         }
     }
 
@@ -134,7 +134,7 @@ public class GenerateBindables implements Generator {
         createBindable._throws(Exception.class);
         createBindable.annotate(Override.class);
         preSolved.extendClassNarrows.add(bindableScope);
-        preSolved.extendClassNarrows.add(bindableScopeParent);
+        preSolved.extendClassNarrows.add(bindableScopeParent.narrowAny());
 
         JVar varParentScope = createBindable.param(bindableScopeParent, "scope");
         JInvocation invocCtr = JExpr._new(bindableType);
@@ -163,7 +163,6 @@ public class GenerateBindables implements Generator {
 
         //inject the other values from scope
         for (Field injectParam : preSolved.injectParams) {
-            System.out.println("inject param type = " + injectParam.getType().getFullQualifiedName());
             try {
                 IJExpression invoc = resolveDependencyFromScope(resolver, code, beanScope, parentScope, varParentScope, code.ref(injectParam.getType().getFullQualifiedName().toString()), hasOwnership);
                 createBindable.body().add(bean.ref(injectParam.getName()).assign(invoc));

@@ -16,9 +16,11 @@
 package org.homunculus.codegen.generator;
 
 import com.helger.jcodemodel.AbstractJClass;
+import com.helger.jcodemodel.JCodeModel;
 import com.helger.jcodemodel.JDefinedClass;
 import com.helger.jcodemodel.JExpr;
 import com.helger.jcodemodel.JFieldVar;
+import com.helger.jcodemodel.JInvocation;
 import com.helger.jcodemodel.JMethod;
 import com.helger.jcodemodel.JMod;
 import com.helger.jcodemodel.JVar;
@@ -67,6 +69,9 @@ import org.homunculusframework.scope.Scope;
 public class GenerateMethodBindings implements Generator {
     @Override
     public void generate(GenProject project) throws Exception {
+        JCodeModel code = project.getCodeModel();
+        FullQualifiedName application = project.getDiscoveredKinds().get(DiscoveryKind.APPLICATION).iterator().next();
+        FullQualifiedName commonActivityContract = new FullQualifiedName(application.getPackageName() + ".ActivityScope");
         for (FullQualifiedName bean : project.getDiscoveredKinds().get(DiscoveryKind.SINGLETON)) {
             //pick up the already generated async controller class - care of invocation order
             String ctrName = "Async" + bean.getSimpleName();
@@ -87,18 +92,21 @@ public class GenerateMethodBindings implements Generator {
                 for (String c : allowedReturnValues) {
                     if (project.getResolver().isInstanceOf(method.getType().getFullQualifiedName(), new FullQualifiedName(c))) {
                         allowed = true;
+
                         break;
                     }
                 }
+
                 if (!allowed) {
                     continue;
                 }
 
                 //create the inner binding class
-                JDefinedClass binding = cl._class(JMod.STATIC | JMod.PUBLIC, "Bind" + bean.getSimpleName() + Strings.startUpperCase(method.getName()));
+                JDefinedClass binding = cl._class(JMod.STATIC | JMod.PUBLIC, "Invoke" + bean.getSimpleName() + Strings.startUpperCase(method.getName()));
                 binding.javadoc().add("A decoupled binding to {@link " + method.asJavadocAnchor() + "} which is serializable.");
 
-                binding._extends(project.getCodeModel().ref(MethodBinding.class).narrow(Object.class));
+                AbstractJClass activityScope = code.ref(commonActivityContract.toString()).narrowAny();
+                binding._extends(project.getCodeModel().ref(MethodBinding.class).narrow(activityScope));
 
                 //add the constructor for this binding
                 JMethod con = binding.constructor(JMod.PUBLIC);
@@ -115,31 +123,32 @@ public class GenerateMethodBindings implements Generator {
                     con.body().assign(JExpr._this().ref(thisVar), pVar);
                 }
 
-                //override onBind for the scope
-                JMethod onBind = binding.method(JMod.PROTECTED, void.class, "onBind");
-                JVar dstVar = onBind.param(Scope.class, "dst");
-                onBind.annotate(project.getCodeModel().ref(Override.class));
-                for (Parameter p : method.getParameters()) {
-                    onBind.body().add(dstVar.invoke("put").arg(p.getName()).arg(binding.fields().get(p.getName())));
-                }
 
+//                public static class InvokeControllerBQueryWithBindingDelegate
+//                        extends MethodBinding<ActivityScope<?>>
+//                {
+//                    private String param;
+//
+//                    public InvokeControllerBQueryWithBindingDelegate(String param) {
+//                        this.param = param;
+//                    }
+//
+//
+//                    @Override
+//                    public ObjectBinding<?, ?> create(ActivityScope<?> scope) throws Exception {
+//                        return scope.getParent().getControllerB().queryWithBindingDelegate(param);
+//                    }
+//                }
                 //override onExecute which performs the actual calling
-                JMethod onExecute = binding.method(JMod.PROTECTED, project.getCodeModel().ref(ObjectBinding.class).narrow(Object.class), "onExecute")._throws(Exception.class);
+                JMethod onExecute = binding.method(JMod.PUBLIC, project.getCodeModel().ref(ObjectBinding.class).narrowAny().narrowAny(), "create")._throws(Exception.class);
                 onExecute.annotate(project.getCodeModel().ref(Override.class));
-                JVar ctr = onExecute.body().decl(project.getCodeModel().ref(bean.toString()), "_ctr");
-                onExecute.body().directStatement(ctr.name() + " = get(" + bean.toString() + ".class);");
-                onExecute.body().invoke("assertNotNull").arg(project.getCodeModel().ref(bean.toString()).dotclass()).arg(ctr);
-                StringBuilder tmp = new StringBuilder();
-                tmp.append("(ObjectBinding<Object>) (ObjectBinding<?>)");
-                tmp.append(ctr.name()).append(".").append(method.getName()).append("(");
-                for (Parameter p : method.getParameters()) {
-                    tmp.append(p.getName()).append(", ");
+                JVar scopeVar = onExecute.param(activityScope, "scope");
+
+                JInvocation getCtr = scopeVar.invoke("getParent").invoke("get" + bean.getSimpleName()).invoke(method.getName());
+                for (JFieldVar field : binding.fields().values()) {
+                    getCtr.arg(field);
                 }
-                if (tmp.charAt(tmp.length() - 2) == ',') {
-                    tmp.setLength(tmp.length() - 2);
-                }
-                tmp.append(")");
-                onExecute.body()._return(JExpr.direct(tmp.toString()));
+                onExecute.body()._return(getCtr);
             }
 
         }

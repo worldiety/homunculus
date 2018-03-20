@@ -1,5 +1,10 @@
 package org.homunculus.codegen.parse;
 
+import org.homunculusframework.lang.Panic;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -9,6 +14,50 @@ import javax.annotation.Nullable;
  */
 
 public interface Resolver {
+
+    /**
+     * Tries to determine the common super types. The most valuable super type comes first, interface order is undefined.
+     */
+    default List<FullQualifiedName> resolveCommonSuperTypes(List<FullQualifiedName> names) throws ClassNotFoundException {
+        List<FullQualifiedName>[] hierarchies = new List[names.size()];
+        for (int i = 0; i < hierarchies.length; i++) {
+            hierarchies[i] = new ArrayList<>();
+            getSuperTypes(names.get(i), hierarchies[i]);
+        }
+        //n^4 yikes? naiv loop to remove all those entries which are not also in all other hierarchies
+        for (int h = 0; h < hierarchies.length; h++) {
+            List<FullQualifiedName> list = hierarchies[h];
+            Iterator<FullQualifiedName> it = list.iterator();
+            while (it.hasNext()) {
+                FullQualifiedName fqn = it.next();
+                for (List<FullQualifiedName> other : hierarchies) {
+                    if (other == list) {
+                        continue;
+                    }
+                    if (!other.contains(fqn)) {
+                        it.remove();
+                    }
+                }
+            }
+        }
+//        for (int i = 0; i < names.size(); i++) {
+//            System.out.println(names.get(i) + " is a ");
+//            for (FullQualifiedName fqn : hierarchies[i]) {
+//                System.out.println("   -" + fqn);
+//            }
+//        }
+
+        if (hierarchies[0].size() > 0) {
+            return hierarchies[0];
+        }
+
+        return Collections.singletonList(new FullQualifiedName(Object.class));
+    }
+
+    /**
+     * Returns all super types and implemented interfaces.
+     */
+    void getSuperTypes(FullQualifiedName name, List<FullQualifiedName> dst) throws ClassNotFoundException;
 
     boolean has(FullQualifiedName name);
 

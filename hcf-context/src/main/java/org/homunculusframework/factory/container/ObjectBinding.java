@@ -15,8 +15,8 @@
  */
 package org.homunculusframework.factory.container;
 
+import org.homunculusframework.factory.scope.ContextScope;
 import org.homunculusframework.factory.scope.Scope;
-import org.homunculusframework.factory.scope.ScopedValue;
 
 /**
  * A binding to an object of a specific type. This is typically used as an object factory.
@@ -25,7 +25,7 @@ import org.homunculusframework.factory.scope.ScopedValue;
  * @since 1.0
  */
 
-public abstract class ObjectBinding<T, BindResultScope extends Scope & ScopedValue<T>, ParentScope extends Scope & ScopedValue<?>> implements Binding<T, BindResultScope, ParentScope> {
+public abstract class ObjectBinding<Out extends ContextScope<?>, In extends Scope> implements Binding<Out, In> {
 
 
 }

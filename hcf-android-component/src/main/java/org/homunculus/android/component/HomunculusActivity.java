@@ -136,7 +136,7 @@ public abstract class HomunculusActivity extends EventAppCompatActivity implemen
         Navigation nb = getNavigation();
         if (nb instanceof Navigation) {
             //create a defensive copy into a serializable list
-            ArrayList<Binding<?, ?, ?>> tmp = new ArrayList<>(((Navigation) nb).getStack());
+            ArrayList<Binding< ?, ?>> tmp = new ArrayList<>(((Navigation) nb).getStack());
             try {
                 //serialize simply into a byte array
                 ByteArrayOutputStream bout = new ByteArrayOutputStream();
@@ -170,7 +170,7 @@ public abstract class HomunculusActivity extends EventAppCompatActivity implemen
             if (serializedStack != null && serializedStack.length > 0) {
                 ByteArrayInputStream bin = new ByteArrayInputStream(serializedStack);
                 try {
-                    ArrayList<Binding<?, ?, ?>> tmp = getInstanceStateSerializer().deserialize(bin, ArrayList.class);
+                    ArrayList<Binding< ?, ?>> tmp = getInstanceStateSerializer().deserialize(bin, ArrayList.class);
                     navigation.getStack().clear();
                     navigation.getStack().addAll(tmp);
                     return true;
@@ -222,7 +222,7 @@ public abstract class HomunculusActivity extends EventAppCompatActivity implemen
      *
      * @return the request which creates the first state
      */
-    abstract protected Binding<?, ?, ?> create();
+    abstract protected Binding< ?, ?> create();
 
     @Override
     public void uncaughtException(Thread t, Throwable e) {
