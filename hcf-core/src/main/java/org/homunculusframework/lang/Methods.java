@@ -1,5 +1,7 @@
 package org.homunculusframework.lang;
 
+import org.slf4j.LoggerFactory;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -35,7 +37,7 @@ class Methods {
                             res.add(m);
                         }
                     } catch (NoClassDefFoundError cfe) {
-                        System.out.println("WARN: failed to acquire methods from " + root);
+                        LoggerFactory.getLogger(Methods.class).warn("failed to acquire methods from '{}' - {}({})", root, cfe.getClass(), cfe.getMessage());
                     }
                     root = root.getSuperclass();
                 }

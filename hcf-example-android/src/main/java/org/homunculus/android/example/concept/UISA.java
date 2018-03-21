@@ -6,6 +6,7 @@ import android.widget.Button;
 
 import org.homunculus.android.compat.EventAppCompatActivity;
 import org.homunculus.android.component.module.toolbarbuilder.templates.DefaultToolbarConfiguration;
+import org.homunculus.android.core.ActivityCallback;
 import org.homunculusframework.factory.flavor.hcf.Bind;
 import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.navigation.Navigation;
@@ -40,8 +41,11 @@ public class UISA extends View {
     @Inject
     DefaultToolbarConfiguration toolbarTemplate;
 
-//    @Inject
-//    AsyncControllerA asyncControllerA;
+    @Inject
+    AsyncControllerA asyncControllerA;
+
+    @Inject
+    ActivityCallback<?> activityCallback;
 
     public UISA(Context context) {
         super(context);

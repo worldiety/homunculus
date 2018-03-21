@@ -146,17 +146,27 @@ public class JPResolver implements Resolver {
 
     @Override
     public boolean has(FullQualifiedName name) {
-        if (!typeTree.containsKey(name)) {
-            return reflection.has(name);
+        if (typeTree.containsKey(name)) {
+            return true;
         }
-        return true;
+        if (codeResolver.has(name)) {
+            return true;
+        }
+        if (reflection.has(name)) {
+            return true;
+        }
+        return false;
     }
 
     @Override
     public List<Constructor> getConstructors(FullQualifiedName name) throws ClassNotFoundException {
         TypeContext tc = typeTree.get(name);
         if (tc == null) {
-            return reflection.getConstructors(name);
+            try {
+                return reflection.getConstructors(name);
+            } catch (ClassNotFoundException nfe) {
+                return codeResolver.getConstructors(name);
+            }
         }
         ClassOrInterfaceDeclaration dec = tc.src.getUnit().getClassByName(name.getSimpleName()).get();
         List<Constructor> res = new ArrayList<>();

@@ -56,7 +56,7 @@ public class JPField implements Field {
 
     @Override
     public Type getType() {
-        return TypeUtil.convert(ctx,fieldDeclaration.getVariables().get(0).getType());
+        return TypeUtil.convert(ctx, fieldDeclaration.getVariables().get(0).getType());
     }
 
 

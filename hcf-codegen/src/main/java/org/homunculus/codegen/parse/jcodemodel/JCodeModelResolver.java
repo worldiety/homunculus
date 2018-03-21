@@ -3,6 +3,7 @@ package org.homunculus.codegen.parse.jcodemodel;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.JCodeModel;
 import com.helger.jcodemodel.JDefinedClass;
+import com.helger.jcodemodel.JMethod;
 
 import org.homunculus.codegen.parse.Annotation;
 import org.homunculus.codegen.parse.Constructor;
@@ -11,6 +12,7 @@ import org.homunculus.codegen.parse.FullQualifiedName;
 import org.homunculus.codegen.parse.Method;
 import org.homunculus.codegen.parse.Resolver;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -64,12 +66,22 @@ public class JCodeModelResolver implements Resolver {
 
     @Override
     public boolean has(FullQualifiedName name) {
-        return false;
+        return code._getClass(name.toString()) != null;
     }
 
     @Override
     public List<Constructor> getConstructors(FullQualifiedName name) throws ClassNotFoundException {
-        return null;
+        JDefinedClass cl = code._getClass(name.toString());
+        if (cl == null) {
+            throw new ClassNotFoundException(name.toString());
+        }
+        List<Constructor> res = new ArrayList<>();
+        Iterator<JMethod> it = cl.constructors();
+        while (it.hasNext()) {
+            JMethod m = it.next();
+            res.add(new JCodeModelConstructor(m));
+        }
+        return res;
     }
 
     @Override

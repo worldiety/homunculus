@@ -72,6 +72,7 @@ public class SrcFile {
                 if (resolver.has(new FullQualifiedName(tmp))) {
                     return tmp;
                 }
+
                 //very likely a native type (always preceeded with java.lang?)
                 return "java.lang." + name;
             }

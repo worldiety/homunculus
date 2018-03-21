@@ -15,6 +15,7 @@
  */
 package org.homunculus.android.flavor;
 
+import org.homunculusframework.factory.container.BackgroundHandler;
 import org.homunculusframework.factory.container.Handler;
 
 import java.util.concurrent.ExecutorService;
@@ -26,7 +27,7 @@ import java.util.concurrent.Executors;
  * @author Torben Schinke
  * @since 1.0
  */
-public class AndroidBackgroundHandler implements Handler {
+public class AndroidBackgroundHandler implements BackgroundHandler {
     private final ExecutorService mExecutor;
 
     public AndroidBackgroundHandler(int threads, String name, int priority) {

@@ -186,9 +186,9 @@ public class GenProject {
         resolver = new JPResolver(units);
         resolver.setCodeResolver(new JCodeModelResolver(getCodeModel()));
         new PreprocessDiscoverBeans().generate(this);
+        new GenerateAsyncControllers().generate(this);
         new GenerateScopes().generate(this);
         new GenerateBindables().generate(this);
-        new GenerateAsyncControllers().generate(this);
         new GenerateTaskMethods().generate(this);
         new GenerateMethodBindings().generate(this);
 //        new GenerateObjectBindings().generate(this);

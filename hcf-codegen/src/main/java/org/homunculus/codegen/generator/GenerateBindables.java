@@ -18,6 +18,7 @@ import com.helger.jcodemodel.JFieldVar;
 import com.helger.jcodemodel.JInvocation;
 import com.helger.jcodemodel.JMethod;
 import com.helger.jcodemodel.JMod;
+import com.helger.jcodemodel.JTypeVar;
 import com.helger.jcodemodel.JVar;
 
 import org.homunculus.codegen.GenProject;
@@ -33,6 +34,7 @@ import org.homunculus.codegen.parse.Strings;
 import org.homunculusframework.factory.container.ModelAndView;
 import org.homunculusframework.factory.container.ObjectBinding;
 import org.homunculusframework.factory.flavor.hcf.Bind;
+import org.homunculusframework.factory.scope.LifecycleOwner;
 import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.lang.Panic;
 import org.homunculusframework.lang.Ref;
@@ -206,6 +208,9 @@ public class GenerateBindables implements Generator {
         if (resolver.isInstanceOf(new FullQualifiedName(type.fullName()), new FullQualifiedName(Scope.class))) {
             return beanScope;
         }
+        if (resolver.isInstanceOf(new FullQualifiedName(type.fullName()), new FullQualifiedName(LifecycleOwner.class))) {
+            return beanScope;
+        }
         hasOwnership.set(false);
         JMethod matchingMethod = resolveMatchingMethod(resolver, parentScope, type);
         if (matchingMethod != null) {
@@ -236,14 +241,27 @@ public class GenerateBindables implements Generator {
         FullQualifiedName targetType = new FullQualifiedName(type.fullName());
         for (JMethod method : parentScope.methods()) {
             if (method.name().startsWith("get")) {
+
                 //a candidate, factories start with 'create'*
-                FullQualifiedName methodType = new FullQualifiedName(method.type().fullName());
+                FullQualifiedName methodType = resolveTypeParam(parentScope, method);
                 if (resolver.isInstanceOf(methodType, targetType)) {
                     return method;
                 }
             }
         }
         return null;
+    }
+
+    /**
+     * e.g. resolves a generic 'T' of a method to a bound on the class like 'Activity', otherwise just returns the method type
+     */
+    private static FullQualifiedName resolveTypeParam(JDefinedClass cl, JMethod method) {
+        for (JTypeVar typeVar : cl.typeParams()) {
+            if (method.type().fullName().equals(typeVar.fullName())) {
+                return new FullQualifiedName(typeVar.bounds().iterator().next().fullName());
+            }
+        }
+        return new FullQualifiedName(method.type().fullName());
     }
 
     private JInvocation createConstructorCall(Resolver resolver, JCodeModel code, JVar beanScope, JDefinedClass parentScope, JVar varParentScope, AbstractJType type, Ref<Boolean> hasOwnership) throws Exception {

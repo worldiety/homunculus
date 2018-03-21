@@ -1,6 +1,9 @@
 package org.homunculus.android.component;
 
 import org.homunculus.android.compat.CompatApplication;
+import org.homunculus.android.flavor.AndroidBackgroundHandler;
+import org.homunculusframework.factory.container.BackgroundHandler;
+import org.homunculusframework.factory.flavor.hcf.ScopeElement;
 import org.homunculusframework.factory.scope.ContextScope;
 
 /**
@@ -25,6 +28,15 @@ public abstract class HomunculusApplication<T extends ContextScope<?>> extends C
         MaterialFont.init(this);
         new UnbreakableCrashHandler().install(this);
     }
+
+    /**
+     * The default background handler contains at most 32 threads. Override this to supply a custom pool or handler.
+     */
+    @ScopeElement
+    public BackgroundHandler createBackgroundHandler() {
+        return new AndroidBackgroundHandler(32, "background", Thread.MIN_PRIORITY);
+    }
+
 
     @Override
     public T getScope() {

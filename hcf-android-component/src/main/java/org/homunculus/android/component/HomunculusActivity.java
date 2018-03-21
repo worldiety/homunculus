@@ -21,6 +21,7 @@ import android.os.Bundle;
 import org.homunculus.android.compat.EventAppCompatActivity;
 import org.homunculus.android.component.module.uncaughtexception.UncaughtException;
 import org.homunculus.android.component.module.uncaughtexception.UncaughtException.BindUncaughtException;
+import org.homunculus.android.core.ActivityEventDispatcher;
 import org.homunculus.android.core.Android;
 import org.homunculusframework.factory.container.Binding;
 import org.homunculusframework.factory.flavor.hcf.ScopeElement;
@@ -125,6 +126,12 @@ public abstract class HomunculusActivity<T extends ContextScope<?>> extends Even
     @ScopeElement
     public Navigation createNavigation() {
         return new DefaultAndroidNavigation(getScope());
+    }
+
+    @ScopeElement
+    @Override
+    public ActivityEventDispatcher<EventAppCompatActivity> getEventDispatcher() {
+        return super.getEventDispatcher();
     }
 
     /**

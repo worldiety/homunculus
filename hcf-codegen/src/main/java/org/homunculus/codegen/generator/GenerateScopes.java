@@ -257,8 +257,8 @@ public class GenerateScopes implements Generator {
             for (JMethod method : scope.methods()) {
                 if (method.name().startsWith("get")) {
                     JVar tmpVar = resolve.body().decl(method.type(), "_" + Strings.startLowerCase(method.name().substring(3)), JExpr._this().invoke(method));
-                    JInvocation assignable = tmpVar.invoke("getClass").invoke("isAssignableFrom").arg(typeVar);
-                    resolve.body()._if(tmpVar.neNull().band(assignable))._then()._return(JExpr.cast(genericT, tmpVar));
+                    JInvocation assignable = typeVar.invoke("isAssignableFrom").arg(JExpr.invoke(tmpVar, "getClass"));
+                    resolve.body()._if(tmpVar.neNull().cand(assignable))._then()._return(JExpr.cast(genericT, tmpVar));
                 }
             }
 
@@ -300,7 +300,7 @@ public class GenerateScopes implements Generator {
             JMethod getter = where.method(JMod.PUBLIC, what, "get" + Strings.startUpperCase(what.name()));
 
             //if (_bean == null) {synchronized(this){}}
-            JVar varBean = getter.body().decl(what, "_tmp", field);
+            JVar varBean = getter.body().decl(what, what.name().equals("tmp") ? "_tmp" : "tmp", field);
             JSynchronizedBlock sync = getter.body()._if(varBean.eqNull())._then().synchronizedBlock(JExpr._this());
             JBlock then = sync.body()._if(field.eqNull())._then();
 
