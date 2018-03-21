@@ -14,10 +14,13 @@ import org.homunculus.android.component.Str;
 import org.homunculus.android.component.module.toolbarbuilder.ToolbarCreator.ContentViewHolder;
 import org.homunculus.android.component.module.toolbarbuilder.ToolbarCreator.MenuItemClickListener;
 import org.homunculus.android.component.module.toolbarbuilder.ToolbarCreator.ToolbarHolder;
+import org.homunculus.android.core.AndroidScopeContext;
 import org.homunculusframework.factory.scope.Scope;
 
 import java.util.Map;
 import java.util.TreeMap;
+
+import javax.annotation.Nullable;
 
 /**
  * Created by aerlemann on 16.03.18.
@@ -68,16 +71,44 @@ public abstract class ToolbarConfiguration {
      */
     Map<Integer, MenuItemClickListener> mItems = new TreeMap<>();
 
+    private ToolbarConfiguration() {
+
+    }
+
     public ToolbarConfiguration(EventAppCompatActivity activity, Scope scope) {
         mAppCompatActivity = activity;
         mScope = scope;
         configure();
     }
 
+    /**
+     * Method to configure the parts of the Toolbar, which are default for this configuration. E.g. if your app has a logo in
+     * every Toolbar, you may call {@link #setLogo(int)} here.
+     */
     protected abstract void configure();
 
+    /**
+     * See {@link #createToolbar(View, View, View)}
+     */
     public <ContentView extends View, LeftDrawer extends View, RightDrawer extends View> ContentViewHolder<ToolbarHolder<ContentView>, LeftDrawer, RightDrawer> createToolbar(ContentView contentView) {
         return new ToolbarCreator(this).create(mScope, mAppCompatActivity, contentView);
+    }
+
+    /**
+     * See {@link #createToolbar(View, View, View)}
+     */
+    public <ContentView extends View, LeftDrawer extends View, RightDrawer extends View> ContentViewHolder<ToolbarHolder<ContentView>, LeftDrawer, RightDrawer> createToolbar(ContentView contentView, @Nullable LeftDrawer leftDrawer) {
+        return new ToolbarCreator(this).create(mScope, mAppCompatActivity, contentView, leftDrawer);
+    }
+
+    /**
+     * Creates the toolbar and binds optionally the life cycle of it (like registered callbacks)
+     * to the scope of the given context. See also {@link AndroidScopeContext}. Elements are cleared using
+     * {@link Scope#addOnBeforeDestroyCallback(OnBeforeDestroyCallback)}
+     * <p>
+     */
+    public <ContentView extends View, LeftDrawer extends View, RightDrawer extends View> ContentViewHolder<ToolbarHolder<ContentView>, LeftDrawer, RightDrawer> createToolbar(ContentView contentView, @Nullable LeftDrawer leftDrawer, @Nullable RightDrawer rightDrawer) {
+        return new ToolbarCreator(this).create(mScope, mAppCompatActivity, contentView, leftDrawer, rightDrawer);
     }
 
     /**
