@@ -113,7 +113,7 @@ class ToolbarCreator {
 //TODO!!!
 //        //only one active and valid toolbar builder is allowed per activity, so simply store the generation id in activity's scope. We use synchronized here in case of someone fiddles around with multiple inflater threads
 //        synchronized (ToolbarCreator.class) {
-//            Scope activityScope = ContextScope.getScope(activity);
+//            Scope activityScope = AndroidScopeContext.getScope(activity);
 //            if (activityScope == null) {
 //                //fallback
 //                nextGeneratedId = new AtomicInteger();
@@ -128,9 +128,9 @@ class ToolbarCreator {
 //        }
 //        generationId = nextGeneratedId.incrementAndGet();
 //        if (scope != null) {
-//            scope.addOnBeforeDestroyCallback(obj -> {
-//                mToolbarTemplate.mItems.clear();
-//                mToolbarTemplate.mItems = null;
+//            scope.addDestroyCallback(obj -> {
+//                mToolbarConfiguration.mItems.clear();
+//                mToolbarConfiguration.mItems = null;
 //            });
 //        }
 

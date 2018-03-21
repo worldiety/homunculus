@@ -42,7 +42,7 @@ public class UISA extends LinearLayout {
     Scope scope;
 
     @Inject
-    DefaultToolbarConfiguration toolbarTemplate;
+    ConceptToolbarConfiguration toolbarTemplate;
 
     @Inject
     AsyncControllerA asyncControllerA;
@@ -57,6 +57,12 @@ public class UISA extends LinearLayout {
 
     @PostConstruct
     void apply() {
+        toolbarTemplate.setUpAction(new Runnable() {
+            @Override
+            public void run() {
+
+            }
+        });
         activity.setContentView(toolbarTemplate.createToolbar(this));
 
         Button btn = new Button(getContext());
