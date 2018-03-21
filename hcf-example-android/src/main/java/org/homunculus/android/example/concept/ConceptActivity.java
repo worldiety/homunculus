@@ -24,7 +24,7 @@ public class ConceptActivity extends HomunculusActivity<ConceptActivityScope> {
 
     @Override
     protected Binding<?, ?> create() {
-        return null;
+        return new BindUISA();
     }
 
 

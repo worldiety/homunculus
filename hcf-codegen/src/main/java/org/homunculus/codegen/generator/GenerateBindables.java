@@ -189,7 +189,7 @@ public class GenerateBindables implements Generator {
                 createBindable.body().add(bean.ref(androidResource.getName()).assign(layoutInflater.staticInvoke("from").arg(getContext).invoke("inflate").arg(staticRef).arg(JExpr._null())));
             } else if (fieldFqn.equals(ANDROID_DRAWABLE)) {
                 //e.g. getContext().getDrawable(1);
-                createBindable.body().add(bean.ref(androidResource.getName()).assign(getContext.invoke("getDrawable").arg(staticRef)));
+                createBindable.body().add(bean.ref(androidResource.getName()).assign(getContext.invoke("getResources").invoke("getDrawable").arg(staticRef)));
             } else if (fieldFqn.equals(ANDROID_BITMAP)) {
                 //e.g. BitmapFactory.decodeResource(context.getResources(), resource.value()));
                 AbstractJClass bitmapFactory = code.ref(BitmapFactory.class);

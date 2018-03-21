@@ -3,6 +3,8 @@ package org.homunculus.android.example.concept;
 import android.content.Context;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import org.homunculus.android.compat.EventAppCompatActivity;
 import org.homunculus.android.component.module.toolbarbuilder.templates.DefaultToolbarConfiguration;
@@ -12,13 +14,14 @@ import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.navigation.Navigation;
 
 
+import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
 /**
  * Created by Torben Schinke on 16.03.18.
  */
 @Bind
-public class UISA extends View {
+public class UISA extends LinearLayout {
     @Inject
     ControllerA controllerA;
 
@@ -49,15 +52,15 @@ public class UISA extends View {
 
     public UISA(Context context) {
         super(context);
-
-        activity.setContentView(toolbarTemplate.createToolbar(this));
-
-        Button btn = new Button(getContext());
-        btn.setOnClickListener(view -> {
-//            navigation_forward(new BindUISB(new UISBModel()));
-//            navigation_forward(new MethodControllerAQueryDB("select * from x"));
-        });
     }
 
 
+    @PostConstruct
+    void apply() {
+        activity.setContentView(toolbarTemplate.createToolbar(this));
+
+        Button btn = new Button(getContext());
+        btn.setText("hallo welt");
+        addView(btn);
+    }
 }

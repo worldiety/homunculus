@@ -15,12 +15,17 @@
  */
 package org.homunculusframework.navigation;
 
+import org.homunculusframework.concurrent.Async;
+import org.homunculusframework.concurrent.Task;
 import org.homunculusframework.factory.container.Binding;
+import org.homunculusframework.factory.container.Handler;
 import org.homunculusframework.factory.container.MethodBinding;
 import org.homunculusframework.factory.container.ObjectBinding;
+import org.homunculusframework.factory.scope.ContextScope;
 import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.lang.Panic;
 import org.homunculusframework.lang.Reflection;
+import org.homunculusframework.lang.Result;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
@@ -47,10 +52,14 @@ public class DefaultNavigation implements Navigation {
     private final List<Binding<?, ?>> stack;
     private boolean crashOnFail = true;
     private boolean wasGoingForward = true;
+    private final Handler methodBindingHandler;
+    private final Handler objectBindingHandler;
 
-    public DefaultNavigation(Scope scope) {
+    public DefaultNavigation(Scope scope, Handler methodBindingHandler, Handler objectBindingHandler) {
         this.scope = scope;
         this.stack = new CopyOnWriteArrayList<>();
+        this.methodBindingHandler = methodBindingHandler;
+        this.objectBindingHandler = objectBindingHandler;
     }
 
     /**
@@ -235,25 +244,38 @@ public class DefaultNavigation implements Navigation {
 //        binding.setStackTrace(DefaultFactory.getCallStack(0));
         if (binding instanceof MethodBinding) {
             //a method binding is async and always returns an object binding
-            MethodBinding<?> methodBinding = (MethodBinding<?>) binding;
-//            methodBinding.execute(scope).whenDone(res -> {
-//                if (res.getThrowable() != null) {
-//                    postAfterApply(currentRequest, binding, res.getThrowable());
-//                } else {
-//                    ObjectBinding chainedBinding = res.get();
-//                    if (chainedBinding == null) {
-//                        postAfterApply(currentRequest, binding, new Panic("method binding is not allowed to return null"));
-//                    } else {
-//                        attachTask(chainedBinding, scope);
-//                    }
-//                }
-//            });
+            MethodBinding methodBinding = (MethodBinding<?>) binding;
+            Task<Result<ObjectBinding>> methodTask = Async.inHandler(getScope(), methodBindingHandler, true, ctx -> {
+                /*
+                Currently this works always for generated code because method bindings are always tied to the common ActivityScope context, which is the same as the navigation scope (by default).
+                For sure a developer may easily break that assumption, but then we cannot do much on that. This is library code and he has to write his own navigation then.
+                 */
+                try {
+                    ObjectBinding objectBinding = (ObjectBinding) methodBinding.create(getScope());
+                    return Result.create(objectBinding);
+                } catch (Throwable e) {
+                    return Result.auto(e);
+                }
+            });
+
+            methodTask.whenDone(res -> {
+                if (res.getThrowable() != null) {
+                    postAfterApply(currentRequest, binding, res.getThrowable());
+                } else {
+                    ObjectBinding chainedBinding = res.get();
+                    if (chainedBinding == null) {
+                        postAfterApply(currentRequest, binding, new Panic("method binding is not allowed to return null"));
+                    } else {
+                        attachTask(chainedBinding, scope);
+                    }
+                }
+            });
         } else if (binding instanceof ObjectBinding) {
             //already just an object binding
             attachTask((ObjectBinding) binding, scope);
         } else {
             //something unkown
-            postAfterApply(currentRequest, binding, new Panic("binding type unknown"));
+            postAfterApply(currentRequest, binding, new Panic("binding type unknown: " + binding));
         }
     }
 
@@ -287,43 +309,66 @@ public class DefaultNavigation implements Navigation {
     }
 
     //TODO actually it is possible that requests overpass each other, this must be avoided by the callee e.g. by locking the screen
-    private void attachTask(ObjectBinding<?, ?> binding, Scope uisScope) {
-//        UserInterfaceState uis = currentUIS;
-//        ObjectBinding<?,?,?> currentRequest;
-//        if (uis != null) {
-//            currentRequest = uis.getRequest();
-//        } else {
-//            currentRequest = null;
-//        }
-//
-//
-//        binding.execute(uisScope).whenDone(res -> {
-//            if (res.getThrowable() != null) {
-//                postAfterApply(currentRequest, binding, res.getThrowable());
-//            } else {
-//                tearDownOldAndApplyNew(new UserInterfaceState(binding, uisScope, res.get()));
-//            }
-//        });
+    private void attachTask(ObjectBinding binding, Scope uisScope) {
+        UserInterfaceState uis = currentUIS;
+        ObjectBinding<?, ?> currentRequest;
+        if (uis != null) {
+            currentRequest = uis.getRequest();
+        } else {
+            currentRequest = null;
+        }
+
+        //we don't want to interrupt the main thread, as this may cause damage to the fragile Android UI logic
+        Task<Result<ContextScope>> createTask = Async.inHandler(getScope(), objectBindingHandler, false, ctx -> {
+             /*
+                Currently this works always for generated code because method bindings are always tied to the common ActivityScope context, which is the same as the navigation scope (by default).
+                For sure a developer may easily break that assumption, but then we cannot do much on that. This is library code and he has to write his own navigation then.
+                 */
+            try {
+                ContextScope scopeWithBoundBean = (ContextScope) binding.create(getScope());
+                scopeWithBoundBean.onCreate();
+                return Result.create(scopeWithBoundBean);
+            } catch (Throwable e) {
+                return Result.auto(e);
+            }
+        });
+
+        createTask.whenDone(res -> {
+            if (res.getThrowable() != null) {
+                postAfterApply(currentRequest, binding, res.getThrowable());
+            } else {
+                tearDownOldAndApplyNew(new UserInterfaceState(binding, res.get(), res.get().getContext()));
+            }
+        });
     }
 
     private void tearDownOldAndApplyNew(UserInterfaceState uis) {
-//        UserInterfaceState oldUIS = currentUIS;
-//        if (oldUIS == null) {
-//            currentUIS = uis;
-//            postAfterApply(null, uis.getRequest(), null);
-//            LoggerFactory.getLogger(getClass()).info("applied UIS {}", uis);
-//        } else {
-//            oldUIS.getRequest().destroy().whenDone(res -> {
-//                if (res.getThrowable() != null) {
-//                    postAfterApply(oldUIS.getRequest(), uis.getRequest(), res.getThrowable());
-//                } else {
-//                    LoggerFactory.getLogger(getClass()).info("applied UIS {}", uis);
-//                    currentUIS = uis;
-//                    postAfterApply(oldUIS.getRequest(), uis.getRequest(), null);
-//                }
-//            });
-//
-//        }
+        UserInterfaceState oldUIS = currentUIS;
+        if (oldUIS == null) {
+            currentUIS = uis;
+            postAfterApply(null, uis.getRequest(), null);
+            LoggerFactory.getLogger(getClass()).info("applied UIS {}", uis);
+        } else {
+
+            Task<Result<Void>> destroyTask = Async.inHandler(getScope(), objectBindingHandler, false, ctx -> {
+                try {
+                    oldUIS.getScope().onDestroy();
+                    return Result.create();
+                } catch (Throwable e) {
+                    return Result.auto(e);
+                }
+            });
+            destroyTask.whenDone(res -> {
+                if (res.getThrowable() != null) {
+                    postAfterApply(oldUIS.getRequest(), uis.getRequest(), res.getThrowable());
+                } else {
+                    LoggerFactory.getLogger(getClass()).info("applied UIS {}", uis);
+                    currentUIS = uis;
+                    postAfterApply(oldUIS.getRequest(), uis.getRequest(), null);
+                }
+            });
+
+        }
     }
 
 
@@ -331,11 +376,11 @@ public class DefaultNavigation implements Navigation {
      * Represents a user interface state, see also {@link org.homunculusframework.stereotype.UserInterfaceState}
      */
     public final static class UserInterfaceState {
-        private final Scope scope;
+        private final ContextScope scope;
         private final Object bean;
         private final ObjectBinding<?, ?> request;
 
-        UserInterfaceState(ObjectBinding<?, ?> request, Scope scope, Object bean) {
+        UserInterfaceState(ObjectBinding<?, ?> request, ContextScope scope, Object bean) {
             this.request = request;
             this.scope = scope;
             this.bean = bean;

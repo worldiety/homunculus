@@ -55,8 +55,11 @@ public class SettableTask<T> implements Task<T> {
     private SettableTask(@Nullable Scope scope, String name) {
         this.key = name + "@" + System.identityHashCode(this);
         this.scope = scope == null ? new EmptyScope() : scope;
-
-        this.beforeDestroyCallback = s -> cancel(true);
+        this.executionList = new ExecutionList();
+        this.beforeDestroyCallback = s -> {
+            cancel(true);
+            executionList = null;
+        };
     }
 
     public void addOnCancelledListener(OnCancelledListener listener) {

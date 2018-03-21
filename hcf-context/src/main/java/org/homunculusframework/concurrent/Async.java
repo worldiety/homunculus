@@ -70,6 +70,42 @@ public class Async {
     }
 
     /**
+     * Just like {@link #inThread(Scope, Function, boolean)} but uses a handler instead of a thread.
+     */
+    public static <T> Task<Result<T>> inHandler(Scope scope, Handler handler, boolean mayInterrupt, Function<RequestContext, Result<T>> closure) {
+        SettableTask<Result<T>> task = SettableTask.create(scope, closure.toString());
+        handler.post(() -> {
+            MyRequestContext ctx = new MyRequestContext(task);
+
+            if (mayInterrupt) {
+                ctx.thread = Thread.currentThread();
+                task.addOnCancelledListener(mayInterruptIfRunning -> ctx.thread.interrupt());
+            }
+            Result<T> res;
+
+            try {
+                if (ctx.isCancelled()) {
+                    res = Result.create();
+                    res.put(Result.TAG_CANCELLED);
+                } else {
+                    res = closure.apply(ctx);
+                    if (res == null) {
+                        res = Result.create();
+                    }
+                }
+            } catch (Throwable t) {
+                res = Result.create();
+                res.setThrowable(t);
+                if (ctx.isCancelled()) {
+                    res.put(Result.TAG_CANCELLED);
+                }
+            }
+            task.set(res);
+        });
+        return task;
+    }
+
+    /**
      * Just spawns a new thread
      *
      * @param closure      the closure to execute

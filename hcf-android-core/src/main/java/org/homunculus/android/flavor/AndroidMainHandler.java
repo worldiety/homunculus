@@ -18,6 +18,7 @@ package org.homunculus.android.flavor;
 import android.os.Handler;
 import android.os.Looper;
 
+import org.homunculusframework.factory.container.MainHandler;
 import org.homunculusframework.lang.Panic;
 
 /**
@@ -26,7 +27,7 @@ import org.homunculusframework.lang.Panic;
  * @author Torben Schinke
  * @since 1.0
  */
-public class AndroidMainHandler implements org.homunculusframework.factory.container.Handler {
+public class AndroidMainHandler implements MainHandler {
     private final Handler mHandler;
 
     public AndroidMainHandler() {

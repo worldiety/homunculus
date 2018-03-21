@@ -71,6 +71,7 @@ public class GenerateScopes implements Generator {
         }
 
         JDefinedClass appScope = appScopes.get(0);
+        appScope._implements(project.getCodeModel().ref("org.homunculus.android.component.DefaultHomunculusScope"));
         List<JDefinedClass> acScopes = new ArrayList<>();
         List<FullQualifiedName> activities = new ArrayList<>(project.getDiscoveredKinds().get(DiscoveryKind.ACTIVITY));
         for (FullQualifiedName activity : activities) {

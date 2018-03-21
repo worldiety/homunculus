@@ -16,6 +16,7 @@
 package org.homunculus.android.component;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 
 import org.homunculus.android.compat.EventAppCompatActivity;
@@ -23,7 +24,9 @@ import org.homunculus.android.component.module.uncaughtexception.UncaughtExcepti
 import org.homunculus.android.component.module.uncaughtexception.UncaughtException.BindUncaughtException;
 import org.homunculus.android.core.ActivityEventDispatcher;
 import org.homunculus.android.core.Android;
+import org.homunculusframework.factory.container.BackgroundHandler;
 import org.homunculusframework.factory.container.Binding;
+import org.homunculusframework.factory.container.MainHandler;
 import org.homunculusframework.factory.flavor.hcf.ScopeElement;
 import org.homunculusframework.factory.scope.ContextScope;
 import org.homunculusframework.factory.scope.Scope;
@@ -125,7 +128,8 @@ public abstract class HomunculusActivity<T extends ContextScope<?>> extends Even
      */
     @ScopeElement
     public Navigation createNavigation() {
-        return new DefaultAndroidNavigation(getScope());
+        DefaultHomunculusScope scope = (DefaultHomunculusScope) getScope().getParent();
+        return new DefaultAndroidNavigation(getScope(), scope.getBackgroundHandler(), scope.getMainHandler());
     }
 
     @ScopeElement

@@ -2,7 +2,9 @@ package org.homunculus.android.component;
 
 import org.homunculus.android.compat.CompatApplication;
 import org.homunculus.android.flavor.AndroidBackgroundHandler;
+import org.homunculus.android.flavor.AndroidMainHandler;
 import org.homunculusframework.factory.container.BackgroundHandler;
+import org.homunculusframework.factory.container.MainHandler;
 import org.homunculusframework.factory.flavor.hcf.ScopeElement;
 import org.homunculusframework.factory.scope.ContextScope;
 
@@ -27,6 +29,16 @@ public abstract class HomunculusApplication<T extends ContextScope<?>> extends C
         scope = createScope();
         MaterialFont.init(this);
         new UnbreakableCrashHandler().install(this);
+    }
+
+
+    /**
+     * The default main handler posts it's execution tasks always into the main thread of the application.
+     * Never post intensive tasks here, because it may cause UI hickups, stalls or even deadlocks.
+     */
+    @ScopeElement
+    public MainHandler createMainHandler() {
+        return new AndroidMainHandler();
     }
 
     /**

@@ -28,6 +28,7 @@ import android.widget.ProgressBar;
 import org.homunculus.android.compat.EventAppCompatActivity;
 import org.homunculus.android.component.module.uncaughtexception.UncaughtException.BindUncaughtException;
 import org.homunculusframework.factory.container.Binding;
+import org.homunculusframework.factory.container.Handler;
 import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.navigation.BackActionConsumer;
 import org.homunculusframework.navigation.DefaultNavigation;
@@ -49,10 +50,9 @@ public class DefaultAndroidNavigation extends DefaultNavigation implements Navig
     @Nullable
     private NavigationBlockingDialog blockingIndicatorDialog;
 
-    public DefaultAndroidNavigation(Scope scope) {
-        super(scope);
+    public DefaultAndroidNavigation(Scope scope, Handler methodBindingHandler, Handler objectBindingHandler) {
+        super(scope, methodBindingHandler, objectBindingHandler);
     }
-
 
     @Override
     public void forward(Binding<?, ?> request) {
