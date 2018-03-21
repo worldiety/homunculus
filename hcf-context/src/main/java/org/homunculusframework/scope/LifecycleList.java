@@ -16,10 +16,13 @@
 
 package org.homunculusframework.scope;
 
+import org.homunculusframework.factory.scope.LifecycleOwner;
+import org.homunculusframework.lang.Destroyable;
 import org.homunculusframework.lang.Function;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,24 +31,24 @@ import java.util.concurrent.CopyOnWriteArrayList;
 /**
  * A simple to use list which stores it's things in a scope and looses all entries automatically when the scope is destroyed.
  * If the scope has been destroyed, the list is cleared and does not accept new entries (no-op, no exceptions).
- * See also {@link ScopeLocal}.
+ * See also {@link LifecycleLocal}.
  *
  * @author Torben Schinke
  * @since 1.0
  */
-public final class ScopeList<T> extends AbstractList<T> {
+public final class LifecycleList<T> extends AbstractList<T> implements Destroyable {
 
-    private final String key;
-    private final Scope scope;
+    private final LifecycleOwner scope;
+    @Nullable
+    private volatile CopyOnWriteArrayList<T> list;
+    private final OnDestroyCallback callback;
 
-    public ScopeList(Scope scope) {
-        this("scopeList", scope);
-    }
 
-    public ScopeList(String name, Scope scope) {
-        this.key = name + "@" + System.identityHashCode(scope);
+    public LifecycleList(LifecycleOwner scope) {
         this.scope = scope;
-        scope.put(key, new CopyOnWriteArrayList<>());
+        this.callback = s -> list = null;
+        list = new CopyOnWriteArrayList<>();
+        this.scope.addDestroyCallback(callback);
     }
 
     @Override
@@ -90,7 +93,7 @@ public final class ScopeList<T> extends AbstractList<T> {
 
     @Nullable
     private List<T> getDetachedList() {
-        return scope.get(key, List.class);
+        return list;
     }
 
     /**
@@ -118,5 +121,15 @@ public final class ScopeList<T> extends AbstractList<T> {
         } else {
             return new ArrayList<>();
         }
+    }
+
+
+    /**
+     * Sets the internal list to null and removes it from the scope.
+     */
+    @Override
+    public void destroy() {
+        scope.removeDestroyCallback(callback);
+        list = null;
     }
 }

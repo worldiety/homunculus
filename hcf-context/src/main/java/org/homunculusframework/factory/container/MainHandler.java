@@ -16,11 +16,10 @@
 package org.homunculusframework.factory.container;
 
 /**
- * A convenience contract to guide implementors for different configurations or presets or flavors.
+ * A simple and generic handler interface which just executes the provided runnable later.
  *
  * @author Torben Schinke
  * @since 1.0
  */
-public interface Configurator {
-    void apply(Configuration configuration);
+public interface MainHandler extends Handler {
 }

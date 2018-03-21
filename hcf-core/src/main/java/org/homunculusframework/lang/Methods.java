@@ -19,7 +19,6 @@ class Methods {
     }
 
 
-
     /**
      * Returns a non-defensive copy from cache. Returns all declared methods recursivly. Super methods are last in list, otherwise
      * order is in reflection order (not in any particular order)
@@ -31,8 +30,12 @@ class Methods {
                 res = new ArrayList<>();
                 Class root = clazz;
                 while (root != null) {
-                    for (Method m : root.getDeclaredMethods()) {
-                        res.add(m);
+                    try {
+                        for (Method m : root.getDeclaredMethods()) {
+                            res.add(m);
+                        }
+                    } catch (NoClassDefFoundError cfe) {
+                        System.out.println("WARN: failed to acquire methods from " + root);
                     }
                     root = root.getSuperclass();
                 }

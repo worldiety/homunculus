@@ -23,7 +23,6 @@ import org.homunculusframework.factory.scope.ContextScope;
  * A binding to a method which returns an {@link ObjectBinding} of a specific type. This is typically used
  * as another indirection to create an object.
  * <p>
- * The scope of is automatically destroyed after the {@link #onExecute()} returns.
  *
  * @author Torben Schinke
  * @since 1.0

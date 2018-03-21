@@ -25,7 +25,6 @@ public class UISA extends View {
     EventAppCompatActivity activity;
 
 
-
     @Inject
     Navigation navigation;
 
@@ -40,6 +39,9 @@ public class UISA extends View {
 
     @Inject
     DefaultToolbarConfiguration toolbarTemplate;
+
+//    @Inject
+//    AsyncControllerA asyncControllerA;
 
     public UISA(Context context) {
         super(context);

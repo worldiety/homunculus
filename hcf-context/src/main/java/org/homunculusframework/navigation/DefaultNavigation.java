@@ -15,14 +15,12 @@
  */
 package org.homunculusframework.navigation;
 
-import org.homunculusframework.factory.component.DefaultFactory;
 import org.homunculusframework.factory.container.Binding;
-import org.homunculusframework.factory.container.Container;
 import org.homunculusframework.factory.container.MethodBinding;
 import org.homunculusframework.factory.container.ObjectBinding;
+import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.lang.Panic;
 import org.homunculusframework.lang.Reflection;
-import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
@@ -33,7 +31,7 @@ import javax.annotation.Nullable;
 
 /**
  * This default navigation implements a simple stack based navigation approach and resolves
- * everything from a given {@link Scope} and a declared {@link Container}. It automatically dispatches
+ * everything from a given {@link Scope}. It automatically dispatches
  * calls to {@link #backward()} automatically to {@link UserInterfaceState#getBean()} first (if that
  * implements {@link BackActionConsumer}.
  *
@@ -46,7 +44,7 @@ public class DefaultNavigation implements Navigation {
     private UserInterfaceState currentUIS;
     private static final AtomicInteger requestNo = new AtomicInteger();
 
-    private final List<Binding<?,?>> stack;
+    private final List<Binding<?, ?>> stack;
     private boolean crashOnFail = true;
     private boolean wasGoingForward = true;
 
@@ -78,7 +76,7 @@ public class DefaultNavigation implements Navigation {
     }
 
     @Override
-    public void reset(Binding<?,?> request) {
+    public void reset(Binding<?, ?> request) {
         synchronized (stack) {
             stack.clear();
             stack.add(request);
@@ -87,7 +85,7 @@ public class DefaultNavigation implements Navigation {
     }
 
     @Override
-    public void forward(Binding<?,?> request) {
+    public void forward(Binding<?, ?> request) {
         synchronized (stack) {
             wasGoingForward = true;
             stack.add(request);
@@ -120,7 +118,7 @@ public class DefaultNavigation implements Navigation {
     }
 
     @Override
-    public void backward(Binding<?,?> request) {
+    public void backward(Binding<?, ?> request) {
 //        synchronized (stack) {
 //            wasGoingForward = false;
 //            pop();//just pop the current entry from the stack
@@ -137,13 +135,13 @@ public class DefaultNavigation implements Navigation {
     }
 
     @Override
-    public void redirect(Binding<?,?> request) {
+    public void redirect(Binding<?, ?> request) {
         applyInternal(request);
     }
 
     @Override
     public boolean reload() {
-        Binding<?,?> request = getTop();
+        Binding<?, ?> request = getTop();
         if (request != null) {
             applyInternal(request);
             return true;
@@ -154,7 +152,7 @@ public class DefaultNavigation implements Navigation {
 
     @Nullable
     @Override
-    public Binding<?,?> pop() {
+    public Binding<?, ?> pop() {
         synchronized (stack) {
             while (!stack.isEmpty()) {
                 return stack.remove(stack.size() - 1);
@@ -164,7 +162,7 @@ public class DefaultNavigation implements Navigation {
     }
 
     @Override
-    public void push(Binding<?,?> request) {
+    public void push(Binding<?, ?> request) {
         synchronized (stack) {
             stack.add(request);
         }
@@ -172,7 +170,7 @@ public class DefaultNavigation implements Navigation {
 
     @Nullable
     @Override
-    public Binding<?,?> getTop() {
+    public Binding<?, ?> getTop() {
         synchronized (stack) {
             if (stack.isEmpty()) {
                 return null;
@@ -184,7 +182,7 @@ public class DefaultNavigation implements Navigation {
 
     @Nullable
     @Override
-    public Binding<?,?> getCurrent() {
+    public Binding<?, ?> getCurrent() {
         synchronized (stack) {
             UserInterfaceState uis = currentUIS;
             if (uis != null) {
@@ -196,7 +194,7 @@ public class DefaultNavigation implements Navigation {
 
     @Nullable
     @Override
-    public Binding<?,?> getPriorTop() {
+    public Binding<?, ?> getPriorTop() {
         synchronized (stack) {
             if (stack.size() > 1) {
                 return stack.get(stack.size() - 2);
@@ -206,7 +204,7 @@ public class DefaultNavigation implements Navigation {
     }
 
     @Override
-    public List<Binding<?,?>> getStack() {
+    public List<Binding<?, ?>> getStack() {
         return stack;
     }
 
@@ -220,14 +218,14 @@ public class DefaultNavigation implements Navigation {
      *
      * @param request the request
      */
-    public void apply(Binding<?,?> request) {
+    public void apply(Binding<?, ?> request) {
         //this double wrapping call is needed to ensure that our stack capturing always cuts at the correct depth
         applyInternal(request);
     }
 
-    private void applyInternal(Binding<?,?> binding) {
+    private void applyInternal(Binding<?, ?> binding) {
         UserInterfaceState uis = currentUIS;
-        Binding<?,?> currentRequest;
+        Binding<?, ?> currentRequest;
         if (uis != null) {
             currentRequest = uis.getRequest();
         } else {
@@ -262,21 +260,21 @@ public class DefaultNavigation implements Navigation {
     /**
      * Delegates to {@link #onBeforeApply(Binding, Binding)}
      */
-    protected void postBeforeApply(@Nullable Binding<?,?> oldRequest, Binding<?,?> newRequest) {
+    protected void postBeforeApply(@Nullable Binding<?, ?> oldRequest, Binding<?, ?> newRequest) {
         onBeforeApply(oldRequest, newRequest);
     }
 
     /**
      * Delegates {@link #onAfterApply(Binding, Binding, Throwable)}
      */
-    protected void postAfterApply(@Nullable Binding<?,?> currentRequest, Binding<?,?> nextRequest, @Nullable Throwable details) {
+    protected void postAfterApply(@Nullable Binding<?, ?> currentRequest, Binding<?, ?> nextRequest, @Nullable Throwable details) {
         onAfterApply(currentRequest, nextRequest, details);
     }
 
     /**
      * Called before a new state is applied or the old state has been changed. It is called directly from the same
      */
-    protected void onBeforeApply(@Nullable Binding<?,?> currentRequest, Binding<?,?> nextRequest) {
+    protected void onBeforeApply(@Nullable Binding<?, ?> currentRequest, Binding<?, ?> nextRequest) {
 
     }
 
@@ -284,12 +282,12 @@ public class DefaultNavigation implements Navigation {
      * Called after the state has been applied or if application has been rejected. The throwable is not null,
      * the UIS has not been applied
      */
-    protected void onAfterApply(@Nullable Binding<?,?> oldRequest, Binding<?,?> newRequest, @Nullable Throwable details) {
+    protected void onAfterApply(@Nullable Binding<?, ?> oldRequest, Binding<?, ?> newRequest, @Nullable Throwable details) {
 
     }
 
     //TODO actually it is possible that requests overpass each other, this must be avoided by the callee e.g. by locking the screen
-    private void attachTask(ObjectBinding<?,?> binding, Scope uisScope) {
+    private void attachTask(ObjectBinding<?, ?> binding, Scope uisScope) {
 //        UserInterfaceState uis = currentUIS;
 //        ObjectBinding<?,?,?> currentRequest;
 //        if (uis != null) {
@@ -335,9 +333,9 @@ public class DefaultNavigation implements Navigation {
     public final static class UserInterfaceState {
         private final Scope scope;
         private final Object bean;
-        private final ObjectBinding<?,?> request;
+        private final ObjectBinding<?, ?> request;
 
-        UserInterfaceState(ObjectBinding<?,?> request, Scope scope, Object bean) {
+        UserInterfaceState(ObjectBinding<?, ?> request, Scope scope, Object bean) {
             this.request = request;
             this.scope = scope;
             this.bean = bean;
@@ -377,9 +375,29 @@ public class DefaultNavigation implements Navigation {
          *
          * @return the request
          */
-        public ObjectBinding<?,?> getRequest() {
+        public ObjectBinding<?, ?> getRequest() {
             return request;
         }
     }
 
+    //TODO we will spawn a new thread for each method request, which is not a great idea at all
+    private static class MethodCallThread extends Thread {
+        private final StackTraceElement[] origin;
+        private final MethodBinding<?> binding;
+        private final Scope scope;
+
+        public MethodCallThread(Scope scope, MethodBinding<?> methodBinding) {
+            this.scope = scope;
+            binding = methodBinding;
+            origin = Thread.currentThread().getStackTrace();
+            //avoid lagging the ui
+            setPriority(Thread.MIN_PRIORITY);
+            setName(methodBinding.toString());
+        }
+
+        @Override
+        public void run() {
+
+        }
+    }
 }

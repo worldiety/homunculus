@@ -24,7 +24,7 @@ import android.content.Context;
 import android.content.ContextWrapper;
 
 import org.homunculus.android.compat.CompatApplication;
-import org.homunculusframework.scope.Scope;
+import org.homunculusframework.factory.scope.Scope;
 
 import javax.annotation.Nullable;
 
@@ -36,11 +36,10 @@ import javax.annotation.Nullable;
  * @author Torben Schinke
  * @since 1.0
  */
-@Deprecated
-public class ContextScope extends ContextWrapper {
+public class AndroidScopeContext extends ContextWrapper {
     private final Scope mScope;
 
-    public ContextScope(Scope scope, Context base) {
+    public AndroidScopeContext(Scope scope, Context base) {
         super(base);
         mScope = scope;
     }
@@ -59,8 +58,8 @@ public class ContextScope extends ContextWrapper {
     @Nullable
     public static Scope getScope(@Nullable Context context) {
         while (context instanceof ContextWrapper) {
-            if (context instanceof ContextScope) {
-                return ((ContextScope) context).getScope();
+            if (context instanceof AndroidScopeContext) {
+                return ((AndroidScopeContext) context).getScope();
             }
             if (context instanceof CompatApplication) {
                 return ((CompatApplication) context).getScope();
@@ -70,44 +69,6 @@ public class ContextScope extends ContextWrapper {
         return null;
     }
 
-
-    /**
-     * Creates a new scope for the given lifecycle owner (e.g. a Fragment or an Activity).
-     * Note: The lifetime is
-     * attached to the {@link android.arch.lifecycle.Lifecycle} AND the parent scope. So the returned
-     * scope is destroyed if either of them is destroyed.
-     */
-    public static Scope createScope(@Nullable Scope parent, LifecycleOwner lifecycleOwner) {
-        Scope scope = new Scope(lifecycleOwner.toString(), parent);
-        lifecycleOwner.getLifecycle().addObserver(new LifecycleObserver() {
-            @OnLifecycleEvent(Event.ON_DESTROY)
-            void onDestroy() {
-                scope.destroy();
-            }
-        });
-        if (lifecycleOwner instanceof Context) {
-            scope.put(Android.NAME_CONTEXT, lifecycleOwner);
-        }
-        return scope;
-    }
-
-    /**
-     * See {@link Scope#resolve(String, Class)}
-     *
-     * @param context the context to get the scope form
-     * @param name    the name to resolve
-     * @param type    the type to cast to
-     * @param <T>     the target type
-     * @return the instance or null
-     */
-    @Nullable
-    public static <T> T resolveNamedValue(@Nullable Context context, String name, Class<T> type) {
-        Scope scope = getScope(context);
-        if (scope != null) {
-            return scope.resolve(name, type);
-        }
-        return null;
-    }
 
     /**
      * See {@link Scope#resolve(Class)}

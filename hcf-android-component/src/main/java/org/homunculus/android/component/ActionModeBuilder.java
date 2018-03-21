@@ -16,20 +16,24 @@
 package org.homunculus.android.component;
 
 import android.content.Context;
-import android.view.*;
+import android.view.ActionMode;
 import android.view.ActionMode.Callback;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
 
-import org.homunculus.android.core.ContextScope;
-import org.homunculusframework.scope.Scope;
-
-import javax.annotation.Nullable;
+import org.homunculus.android.core.AndroidScopeContext;
+import org.homunculusframework.factory.scope.Scope;
 
 import java.util.Map;
 import java.util.TreeMap;
 
+import javax.annotation.Nullable;
+
 /**
  * A builder around the {@link ActionMode} from Android to simplify the usage and to integrate it into the world
- * of {@link Scope}s transparently. The scope API is optional and hidden behind {@link ContextScope}.
+ * of {@link Scope}s transparently. The scope API is optional and hidden behind {@link AndroidScopeContext}.
  * After the action mode has been destroyed, all configured references are removed.
  *
  * @author Torben Schinke
@@ -93,10 +97,10 @@ public class ActionModeBuilder {
 
     /**
      * Tries to automatically detect the {@link Scope} from the view's context. Works also without any scope.
-     * See also {@link ContextScope}.
+     * See also {@link AndroidScopeContext}.
      */
     public ActionMode create(View view) {
-        return create(ContextScope.getScope(view.getContext()), view);
+        return create(AndroidScopeContext.getScope(view.getContext()), view);
     }
 
     /**
@@ -107,7 +111,7 @@ public class ActionModeBuilder {
         Context context = view.getContext();
 
         if (scope != null) {
-            scope.addOnBeforeDestroyCallback(s -> {
+            scope.addDestroyCallback(s -> {
                 if (mActionMode != null) {
                     mActionMode.finish();
                 }

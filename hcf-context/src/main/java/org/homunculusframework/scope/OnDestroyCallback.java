@@ -13,21 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.homunculusframework.factory.container;
 
-import org.homunculusframework.scope.Scope;
+package org.homunculusframework.scope;
 
-import java.lang.reflect.Field;
+import org.homunculusframework.factory.scope.LifecycleOwner;
 
 /**
- * A field processor must be thread safe and should not hold a state.
+ * A life cycle callback which is called while the destruction is running. The state of the scope within it's parent is already undefined,
+ * and may be already detached.
  *
  * @author Torben Schinke
  * @since 1.0
  */
-public interface AnnotatedFieldProcessor {
-    /**
-     * Processes the given field on the given type with the given scope.
-     */
-    void process(Scope scope, Object instance, Field field);
+public interface OnDestroyCallback {
+    void onDestroy(LifecycleOwner owner);
 }

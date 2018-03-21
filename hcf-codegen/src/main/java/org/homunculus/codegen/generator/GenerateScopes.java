@@ -202,6 +202,7 @@ public class GenerateScopes implements Generator {
                     AbstractJClass providedType = code.ref(method.getType().getFullQualifiedName().toString());
                     createDoubleCheckGetter(code, scope, providedType, factoryMethod);
                 }
+
             }
 
 

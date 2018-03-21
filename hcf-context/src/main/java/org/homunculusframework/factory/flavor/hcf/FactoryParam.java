@@ -15,7 +15,6 @@
  */
 package org.homunculusframework.factory.flavor.hcf;
 
-import org.homunculusframework.factory.ObjectCreator;
 import org.homunculusframework.factory.serializer.Serializable;
 import org.homunculusframework.factory.serializer.Serializer;
 

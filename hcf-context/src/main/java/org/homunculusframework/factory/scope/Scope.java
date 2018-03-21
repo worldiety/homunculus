@@ -1,12 +1,14 @@
 package org.homunculusframework.factory.scope;
 
+import org.homunculusframework.scope.OnDestroyCallback;
+
 import javax.annotation.Nullable;
 
 /**
  * Created by tschinke on 17.03.18.
  */
 
-public interface Scope {
+public interface Scope extends LifecycleOwner {
 
     /**
      * The parent of the scope, if any
@@ -33,7 +35,7 @@ public interface Scope {
      * java has no ducktyping interfaces it can not get written in a better way than this.
      * <p>
      * The given type is tried to be resolved but never created if not found in this scope or any of it's parents.
-     *
+     * <p>
      * TODO actually this is not true, in a handwritten system we would introduce an interface and implement it in our own scope implementation
      *
      * @param type the type to resolve an instance for
@@ -42,4 +44,6 @@ public interface Scope {
      */
     @Nullable
     <T> T resolve(Class<T> type);
+
+
 }

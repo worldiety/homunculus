@@ -1,10 +1,10 @@
 package org.homunculusframework.factory.async;
 
 import org.homunculusframework.concurrent.Task;
-import org.homunculusframework.factory.container.Container;
+import org.homunculusframework.factory.container.BackgroundHandler;
 import org.homunculusframework.factory.container.Handler;
+import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.lang.Result;
-import org.homunculusframework.scope.Scope;
 
 import java.util.IdentityHashMap;
 import java.util.Map;
@@ -18,16 +18,12 @@ import javax.inject.Named;
 
 public abstract class AsyncDelegate<Delegate> {
 
-    @Inject
-    private Delegate delegate;
+    private final Delegate delegate;
 
-    @Inject
-    private Scope scope;
+    private final Scope scope;
 
 
-    @Inject
-    @Named(Container.NAME_BACKGROUND_HANDLER)
-    private Handler handler;
+    private final Handler handler;
 
 
     private final Map<Class, AsyncMethodContext> methods = new IdentityHashMap<>();
@@ -35,7 +31,10 @@ public abstract class AsyncDelegate<Delegate> {
     /**
      * Empty constructor used by injection to avoid that extending classes have to repeat the constructor again.
      */
-    public AsyncDelegate() {
+    public AsyncDelegate(Scope scope, BackgroundHandler handler, Delegate delegate) {
+        this.delegate = delegate;
+        this.scope = scope;
+        this.handler = handler;
     }
 
     protected Delegate getDelegate() {

@@ -15,13 +15,13 @@
  */
 package org.homunculusframework.concurrent;
 
-import org.homunculusframework.factory.container.Container;
+import org.homunculusframework.factory.container.BackgroundHandler;
 import org.homunculusframework.factory.container.Handler;
 import org.homunculusframework.factory.container.RequestContext;
+import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.lang.Function;
 import org.homunculusframework.lang.Panic;
 import org.homunculusframework.lang.Result;
-import org.homunculusframework.scope.Scope;
 import org.homunculusframework.scope.SettableTask;
 import org.slf4j.LoggerFactory;
 
@@ -118,7 +118,7 @@ public class Async {
     /**
      * Creates a task within the given scope. Destroying the scope may result in cancelling the actual task.
      * The handler used to execute is resolved from the scope using
-     * {@link Container#NAME_BACKGROUND_HANDLER}. You should never configure the main thread and interrupt it, to
+     * {@link BackgroundHandler}. You should never configure the main thread and interrupt it, to
      * avoid insanity.
      * <p>
      *
@@ -250,7 +250,7 @@ public class Async {
     }
 
     private static Handler getHandler(Scope scope) {
-        Handler handler = scope.resolve(Container.NAME_BACKGROUND_HANDLER, Handler.class);
+        Handler handler = scope.resolve(BackgroundHandler.class);
         if (handler == null) {
             //pick any handler
             handler = scope.resolve(Handler.class);

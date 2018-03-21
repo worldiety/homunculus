@@ -20,7 +20,7 @@ public class ReflectionAnnotation implements Annotation {
 
     @Override
     public FullQualifiedName getFullQualifiedName() {
-        return new FullQualifiedName(annotation.getClass().getName());
+        return new FullQualifiedName(annotation.annotationType());
     }
 
     @Nullable

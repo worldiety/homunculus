@@ -17,7 +17,6 @@ package org.homunculusframework.factory.container;
 
 /**
  * A request context can be injected automatically into a controller call, when invoked
- * by a proxied {@link org.homunculusframework.factory.connection.Connection}.
  *
  * @author Torben Schinke
  * @since 1.0

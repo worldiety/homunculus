@@ -230,14 +230,15 @@ public class JPResolver implements Resolver {
                     //the supertype is defined in the unit itself
                     String superTypeName = td.type.asClassOrInterfaceDeclaration().getExtendedTypes().get(0).getNameAsString();
                     FullQualifiedName superType;
-                    superType = new FullQualifiedName(td.src.getPackageName() + "." + superTypeName);
+                    superType = new FullQualifiedName(td.src.getFullQualifiedName(superTypeName));
                     td = typeTree.get(superType);
                     if (td == null) {
                         try {
                             res.addAll(reflection.getMethods(superType));
                         } catch (ClassNotFoundException e) {
                             //TODO
-                            //System.out.println("unable to resolve methods for: " + superType);
+                            e.printStackTrace();
+                            System.out.println("unable to resolve methods for: " + superType);
                         }
                         break;
                     }

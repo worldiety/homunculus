@@ -25,5 +25,5 @@ import org.homunculusframework.factory.scope.Scope;
  * @since 1.0
  */
 
-public abstract class ModelAndView<BindResultScope extends ContextScope<?>, ParentScope extends ContextScope<?>> extends ObjectBinding<BindResultScope, ParentScope> {
+public abstract class ModelAndView<Out extends ContextScope<?>, In extends ContextScope<?>> extends ObjectBinding<Out, In> {
 }

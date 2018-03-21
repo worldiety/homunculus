@@ -35,7 +35,6 @@ import org.homunculus.codegen.parse.Strings;
 import org.homunculusframework.factory.container.MethodBinding;
 import org.homunculusframework.factory.container.ModelAndView;
 import org.homunculusframework.factory.container.ObjectBinding;
-import org.homunculusframework.scope.Scope;
 
 /**
  * Generates inner classes in Async* controllers which are created by {@link GenerateAsyncControllers}.
@@ -105,6 +104,7 @@ public class GenerateMethodBindings implements Generator {
                 JDefinedClass binding = cl._class(JMod.STATIC | JMod.PUBLIC, "Invoke" + bean.getSimpleName() + Strings.startUpperCase(method.getName()));
                 binding.javadoc().add("A decoupled binding to {@link " + method.asJavadocAnchor() + "} which is serializable.");
 
+
                 AbstractJClass activityScope = code.ref(commonActivityContract.toString()).narrowAny();
                 binding._extends(project.getCodeModel().ref(MethodBinding.class).narrow(activityScope));
 
@@ -149,6 +149,9 @@ public class GenerateMethodBindings implements Generator {
                     getCtr.arg(field);
                 }
                 onExecute.body()._return(getCtr);
+
+
+                binding.method(JMod.PUBLIC, String.class, "toString").body()._return(JExpr.lit(bean.getSimpleName() + "." + method.getName()));
             }
 
         }

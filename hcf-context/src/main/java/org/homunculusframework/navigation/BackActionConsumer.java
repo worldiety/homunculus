@@ -15,12 +15,10 @@
  */
 package org.homunculusframework.navigation;
 
-import org.homunculusframework.factory.container.Container;
-import org.homunculusframework.scope.Scope;
 
 /**
  * This default navigation implements a simple stack based navigation approach and resolves
- * everything from a given {@link Scope} and a declared {@link Container}
+ * everything from a given {@link org.homunculusframework.factory.scope.Scope}
  *
  * @author Torben Schinke
  * @since 1.0

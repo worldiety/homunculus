@@ -28,11 +28,10 @@ import android.widget.ProgressBar;
 import org.homunculus.android.compat.EventAppCompatActivity;
 import org.homunculus.android.component.module.uncaughtexception.UncaughtException.BindUncaughtException;
 import org.homunculusframework.factory.container.Binding;
+import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.navigation.BackActionConsumer;
 import org.homunculusframework.navigation.DefaultNavigation;
 import org.homunculusframework.navigation.Navigation;
-import org.homunculusframework.scope.Scope;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 

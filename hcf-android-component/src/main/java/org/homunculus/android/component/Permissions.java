@@ -22,14 +22,15 @@ import android.content.pm.PackageManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 
+import org.homunculus.android.core.ActivityCallback;
 import org.homunculus.android.core.ActivityEventDispatcher;
 import org.homunculus.android.core.ActivityEventDispatcher.AbsActivityEventCallback;
 import org.homunculus.android.core.ActivityEventDispatcher.ActivityEventCallback;
-import org.homunculus.android.core.ContextScope;
+import org.homunculus.android.core.AndroidScopeContext;
 import org.homunculusframework.concurrent.Task;
+import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.lang.Destroyable;
 import org.homunculusframework.lang.Result;
-import org.homunculusframework.scope.Scope;
 import org.homunculusframework.scope.SettableTask;
 
 import java.util.ArrayList;
@@ -39,7 +40,7 @@ import java.util.List;
 
 /**
  * A helper class to write permission aware components. Task callbacks are optionally bound to {@link Scope}
- * by using {@link ContextScope}. Don't forget to declare the correct permissions in your manifest.
+ * by using {@link AndroidScopeContext}. Don't forget to declare the correct permissions in your manifest.
  * <p>
  * Android 6 packs permissions into groups, but these groups is just another ill-defined set. Even google says that we should not use it at all. Taken from the doc:
  * <p>
@@ -89,7 +90,7 @@ public class Permissions implements Destroyable {
                 }
             }
         };
-        eventDispatcher.register(scope, mCallback);
+        new ActivityCallback<>(scope,eventDispatcher).setDelegate(mCallback);
     }
 
 

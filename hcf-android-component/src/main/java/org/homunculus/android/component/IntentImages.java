@@ -35,10 +35,10 @@ import org.homunculus.android.core.ActivityEventDispatcher.AbsActivityEventCallb
 import org.homunculus.android.core.ActivityEventDispatcher.ActivityEventCallback;
 import org.homunculusframework.concurrent.Async;
 import org.homunculusframework.concurrent.Task;
+import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.lang.Destroyable;
 import org.homunculusframework.lang.Procedure;
 import org.homunculusframework.lang.Result;
-import org.homunculusframework.scope.Scope;
 import org.homunculusframework.scope.SettableTask;
 import org.slf4j.LoggerFactory;
 

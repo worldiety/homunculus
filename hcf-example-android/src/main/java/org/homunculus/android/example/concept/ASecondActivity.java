@@ -4,6 +4,8 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 
 import org.homunculus.android.compat.EventAppCompatActivity;
+import org.homunculus.android.component.HomunculusActivity;
+import org.homunculusframework.factory.container.Binding;
 import org.homunculusframework.factory.flavor.hcf.ScopeElement;
 import org.homunculusframework.navigation.Navigation;
 
@@ -11,18 +13,18 @@ import org.homunculusframework.navigation.Navigation;
  * Created by Torben Schinke on 16.03.18.
  */
 
-public class ASecondActivity extends EventAppCompatActivity {
+public class ASecondActivity extends HomunculusActivity<ASecondActivityScope> {
 
-    private ASecondActivityScope scope;
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        scope = new ASecondActivityScope(((ConceptApplication) getApplication()).getScope(), this);
+    protected ASecondActivityScope createScope() {
+        return new ASecondActivityScope(((ConceptApplication) getApplication()).getScope(), this);
     }
 
-    @ScopeElement
-    Navigation createNavigation() {
+    @Override
+    protected Binding<?, ?> create() {
         return null;
     }
+
+
 }

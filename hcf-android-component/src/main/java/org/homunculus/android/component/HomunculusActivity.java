@@ -23,6 +23,9 @@ import org.homunculus.android.component.module.uncaughtexception.UncaughtExcepti
 import org.homunculus.android.component.module.uncaughtexception.UncaughtException.BindUncaughtException;
 import org.homunculus.android.core.Android;
 import org.homunculusframework.factory.container.Binding;
+import org.homunculusframework.factory.flavor.hcf.ScopeElement;
+import org.homunculusframework.factory.scope.ContextScope;
+import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.factory.serializer.Serializable;
 import org.homunculusframework.factory.serializer.Serializer;
 import org.homunculusframework.navigation.Navigation;
@@ -54,8 +57,10 @@ import javax.annotation.Nullable;
  * @author Torben Schinke
  * @since 1.0
  */
-public abstract class HomunculusActivity extends EventAppCompatActivity implements UncaughtExceptionHandler {
+public abstract class HomunculusActivity<T extends ContextScope<?>> extends EventAppCompatActivity implements UncaughtExceptionHandler {
     private final static String HC_NAVIGATION_STACK = "HC_NAVIGATION_STACK";
+    private T scope;
+    private Navigation navigation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,22 +80,27 @@ public abstract class HomunculusActivity extends EventAppCompatActivity implemen
      * {@link #onStackRestored(Navigation, Bundle)}.
      */
     protected void init(@Nullable Bundle savedInstanceState) {
-        Navigation nav = createNavigation();
-        getScope().put(Android.NAME_NAVIGATION, nav);
-        getScope().put(Android.NAME_LAYOUT_INFLATER, getSystemService(Context.LAYOUT_INFLATER_SERVICE));
-        getScope().put(Android.NAME_FRAGMENT_MANAGER, getFragmentManager());
+        this.scope = createScope();
+        this.navigation = createNavigation();
         if (savedInstanceState != null) {
             if (restoreStackState(savedInstanceState)) {
-                if (!onStackRestored(nav, savedInstanceState)) {
-                    nav.reload();
+                if (!onStackRestored(navigation, savedInstanceState)) {
+                    navigation.reload();
                 }
             } else {
-                nav.forward(create());
+                navigation.forward(create());
             }
         } else {
-            nav.forward(create());
+            navigation.forward(create());
         }
     }
+
+    @Override
+    public T getScope() {
+        return scope;
+    }
+
+    protected abstract T createScope();
 
     /**
      * Called after the stack has been restored due to a saved instance state (see {@link #onSaveInstanceState(Bundle)}.
@@ -112,7 +122,8 @@ public abstract class HomunculusActivity extends EventAppCompatActivity implemen
      *
      * @return the navigation to use. Available by name {@link Android#NAME_NAVIGATION} in the scope.
      */
-    protected Navigation createNavigation() {
+    @ScopeElement
+    public Navigation createNavigation() {
         return new DefaultAndroidNavigation(getScope());
     }
 
@@ -136,7 +147,7 @@ public abstract class HomunculusActivity extends EventAppCompatActivity implemen
         Navigation nb = getNavigation();
         if (nb instanceof Navigation) {
             //create a defensive copy into a serializable list
-            ArrayList<Binding< ?, ?>> tmp = new ArrayList<>(((Navigation) nb).getStack());
+            ArrayList<Binding<?, ?>> tmp = new ArrayList<>(((Navigation) nb).getStack());
             try {
                 //serialize simply into a byte array
                 ByteArrayOutputStream bout = new ByteArrayOutputStream();
@@ -165,25 +176,18 @@ public abstract class HomunculusActivity extends EventAppCompatActivity implemen
     protected boolean restoreStackState(Bundle savedInstanceState) {
         byte[] serializedStack = savedInstanceState.getByteArray(HC_NAVIGATION_STACK);
         Navigation nb = getNavigation();
-        if (nb instanceof Navigation) {
-            Navigation navigation = ((Navigation) nb);
-            if (serializedStack != null && serializedStack.length > 0) {
-                ByteArrayInputStream bin = new ByteArrayInputStream(serializedStack);
-                try {
-                    ArrayList<Binding< ?, ?>> tmp = getInstanceStateSerializer().deserialize(bin, ArrayList.class);
-                    navigation.getStack().clear();
-                    navigation.getStack().addAll(tmp);
-                    return true;
-                } catch (IOException e) {
-                    LoggerFactory.getLogger(getClass()).warn("onRestoreInstanceState: the serialized navigation stack contains a value which is not deserializable by {}. Reason:", getInstanceStateSerializer(), e);
-                    return false;
-                }
-            } else {
+        if (serializedStack != null && serializedStack.length > 0) {
+            ByteArrayInputStream bin = new ByteArrayInputStream(serializedStack);
+            try {
+                ArrayList<Binding<?, ?>> tmp = getInstanceStateSerializer().deserialize(bin, ArrayList.class);
+                navigation.getStack().clear();
+                navigation.getStack().addAll(tmp);
+                return true;
+            } catch (IOException e) {
+                LoggerFactory.getLogger(getClass()).warn("onRestoreInstanceState: the serialized navigation stack contains a value which is not deserializable by {}. Reason:", getInstanceStateSerializer(), e);
                 return false;
             }
-            //else just do nothing, create() defines the first state
         } else {
-            LoggerFactory.getLogger(getClass()).warn("onRestoreInstanceState: getNavigation() does not provide a Navigation instance");
             return false;
         }
     }
@@ -206,7 +210,7 @@ public abstract class HomunculusActivity extends EventAppCompatActivity implemen
      * @return the navigation builder, which is null before {@link #onCreate(Bundle)} and after {@link #onDestroy()}
      */
     public Navigation getNavigation() {
-        return getScope().resolve(Android.NAME_NAVIGATION, Navigation.class);
+        return navigation;
     }
 
     @Override
@@ -222,7 +226,7 @@ public abstract class HomunculusActivity extends EventAppCompatActivity implemen
      *
      * @return the request which creates the first state
      */
-    abstract protected Binding< ?, ?> create();
+    abstract protected Binding<?, ?> create();
 
     @Override
     public void uncaughtException(Thread t, Throwable e) {

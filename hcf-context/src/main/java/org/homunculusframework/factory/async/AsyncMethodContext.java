@@ -1,12 +1,12 @@
 package org.homunculusframework.factory.async;
 
 import org.homunculusframework.concurrent.Task;
-import org.homunculusframework.factory.component.DefaultFactory;
 import org.homunculusframework.factory.container.Handler;
 import org.homunculusframework.factory.container.RequestContext;
+import org.homunculusframework.factory.container.UtilStack;
+import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.lang.Ref;
 import org.homunculusframework.lang.Result;
-import org.homunculusframework.scope.Scope;
 import org.homunculusframework.scope.SettableTask;
 
 import java.util.concurrent.Callable;
@@ -42,7 +42,7 @@ class AsyncMethodContext {
 
         final int myGeneration = callGeneration.incrementAndGet();
         //capture the synchronous trace
-        StackTraceElement[] trace = DefaultFactory.getCallStack(4);
+        StackTraceElement[] trace = UtilStack.getCallStack(4);
 
         final String methodName = trace[0].getMethodName();
         SettableTask<Result<T>> task = SettableTask.create(lifeTime, methodName + "@" + COUNTER.incrementAndGet());

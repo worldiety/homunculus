@@ -28,16 +28,20 @@ import android.os.Process;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.view.*;
+import android.view.ActionMode;
 import android.view.ActionMode.Callback;
+import android.view.KeyEvent;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.MotionEvent;
+import android.view.SearchEvent;
+import android.view.View;
 
 import org.homunculus.android.core.ActivityEventDispatcher;
 import org.homunculus.android.core.ActivityEventOwner;
-import org.homunculus.android.core.Android;
-import org.homunculus.android.core.ContextScope;
-import org.homunculusframework.lang.Panic;
+import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.navigation.Navigation;
-import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -68,17 +72,6 @@ public class EventAppCompatActivity extends AppCompatActivity implements Activit
         }
     }
 
-//    @Override
-//    protected void attachBaseContext(Context base) {
-//        Scope appScope = ContextScope.getScope(base.getApplicationContext());
-//        if (appScope == null) {
-//            throw new Panic("application is not correctly configured: ApplicationContext must provide a ContextScope (e.g. use CompatApplication)");
-//        }
-//        mScope = new Scope(toString(), appScope);
-//        mScope.put(Android.NAME_CONTEXT, this);
-//        ContextScope ctx = new ContextScope(mScope, base);
-//        super.attachBaseContext(ctx);
-//    }
 
     /**
      * Returns the scope of this activity. Equal to {@link ContextScope#getScope(Context)} on "this"
@@ -577,7 +570,7 @@ public class EventAppCompatActivity extends AppCompatActivity implements Activit
         mEventDispatcher.destroy();
         super.onDestroy();
         mEventDispatcher = null;
-        mScope.destroy();
+        mScope.onDestroy();
     }
 
 

@@ -15,7 +15,6 @@
  */
 package org.homunculusframework.factory.flavor.hcf;
 
-import org.homunculusframework.factory.ObjectCreator;
 import org.homunculusframework.factory.serializer.Serializable;
 import org.homunculusframework.factory.serializer.Serializer;
 import org.homunculusframework.factory.serializer.Xml;
@@ -24,9 +23,7 @@ import java.lang.annotation.*;
 
 /**
  * Marks a field or getter method to save the declared model "before" exiting
- * the scope which was used to create the instance. The concrete capabilities depends on the
- * configured {@link ObjectCreator}.
- * See also {@link HCFFieldPersistent}. It is guaranteed that if nothing can be deserialized, the actual
+ * the scope which was used to create the instance. It is guaranteed that if nothing can be deserialized, the actual
  * value is null (however a reference is never null).
  * <p>
  * If you annotate a generic {@link org.homunculusframework.lang.Reference} the setter will perform a manual

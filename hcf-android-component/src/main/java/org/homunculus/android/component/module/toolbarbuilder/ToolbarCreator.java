@@ -36,10 +36,10 @@ import org.homunculus.android.component.InputManager;
 import org.homunculus.android.component.R;
 import org.homunculus.android.component.Widget;
 import org.homunculus.android.core.ActivityEventDispatcher;
+import org.homunculus.android.core.AndroidScopeContext;
 import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.lang.Panic;
 import org.homunculusframework.navigation.BackActionConsumer;
-import org.homunculusframework.scope.OnBeforeDestroyCallback;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -105,7 +105,7 @@ class ToolbarCreator {
 
     /**
      * Creates the toolbar and binds optionally the life cycle of it (like registered callbacks)
-     * to the scope of the given context. See also {@link org.homunculus.android.core.ContextScope}. Elements are cleared using
+     * to the scope of the given context. See also {@link AndroidScopeContext}. Elements are cleared using
      * {@link Scope#addOnBeforeDestroyCallback(OnBeforeDestroyCallback)}
      * <p>
      */

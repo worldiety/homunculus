@@ -35,7 +35,8 @@ import android.view.View;
 
 import org.homunculus.android.compat.EventAppCompatActivity;
 import org.homunculus.android.flavor.AndroidMainHandler;
-import org.homunculusframework.scope.Scope;
+import org.homunculusframework.factory.scope.EmptyScope;
+import org.homunculusframework.factory.scope.Scope;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,20 +49,20 @@ import javax.annotation.Nullable;
 /**
  * Used to create component driven development which requires integration with the lifecycle and functions of activities.
  * A default implementation comes with {@link EventAppCompatActivity}.
- * Internally the base scope (given by constructor) and all it's children scopes are searched and notified (if they
- * had ever a registration). Scopes are optional at all, so that this
+ * <p>
+ * To be lifecycle aware, use {@link ActivityCallback}.
  *
  * @author Torben Schinke
  * @since 1.0
  */
 public class ActivityEventDispatcher<T extends Activity> {
-    private final static String NAME_CALLBACKS = "$activityCallbacks";
     private final static AtomicInteger mRequestCode = new AtomicInteger();
     private final InternalEventDispatcher mDispatcher;
     private final T mActivity;
     private ActivityStatus mStatus;
     private Bundle mSavedInstanceStateAtOnCreate;
     private final Scope mBaseScope;
+    private List<ActivityEventCallback<T>> callbacks = new ArrayList<>();
 
     private List<ActivityResult> mBufferedActivityResults;
 
@@ -76,7 +77,7 @@ public class ActivityEventDispatcher<T extends Activity> {
         mActivity = activity;
         mDispatcher = new InternalEventDispatcher();
         mBufferedActivityResults = new ArrayList<>();
-        mBaseScope = baseScope==null?new Scope("asdf",null):baseScope;
+        mBaseScope = baseScope == null ? new EmptyScope() : baseScope;
     }
 
     /**
@@ -140,32 +141,12 @@ public class ActivityEventDispatcher<T extends Activity> {
         return mActivity;
     }
 
+
     /**
      * Registers a new callback with all activity events in the current top scope. Buffered events are directly called, when necessary. Use only from the main thread, otherwise
      * the result is not defined (e.g. multiple or lost buffered events).
-     *
-     * @param callback the callback
      */
     public void register(ActivityEventCallback<T> callback) {
-        register(mActivity, callback);
-    }
-
-    /**
-     * Registers a new callback with all activity events within the given scope. See also {@link #register(ActivityEventCallback)}
-     * Tries to grab the scope from the given context, and calls {@link #register(Scope, ActivityEventCallback)}
-     */
-    public void register(@Nullable Context context, ActivityEventCallback<T> callback) {
-        Scope scope = ContextScope.getScope(context);
-        register(scope, callback);
-    }
-
-    /**
-     * Registers a new callback with all activity events within the given scope. See also {@link #register(Context, ActivityEventCallback)}
-     */
-    public void register(@Nullable Scope scope, ActivityEventCallback<T> callback) {
-        if (scope == null) {
-            scope = mBaseScope;
-        }
         switch (mStatus) {
             case Running:
                 callback.onBufferedCreate(mActivity, mSavedInstanceStateAtOnCreate);
@@ -188,42 +169,11 @@ public class ActivityEventDispatcher<T extends Activity> {
                 break;
 
         }
-        ensure(scope).add(callback);
+        callbacks.add(callback);
     }
 
-    /**
-     * We only have a callback list once per scope
-     *
-     * @param scope
-     * @return
-     */
-    private List<ActivityEventCallback<T>> ensure(Scope scope) {
-        if (scope == null) {
-            return new ArrayList<>();
-        }
-        synchronized (scope) {
-            List<ActivityEventCallback<T>> callbacks = scope.get(NAME_CALLBACKS, List.class);
-            if (callbacks == null) {
-                callbacks = new CopyOnWriteArrayList<>();
-                scope.put(NAME_CALLBACKS, callbacks);
-            }
-            return callbacks;
-        }
-    }
-
-    public boolean unregister(ActivityEventCallback<T> callback) {
-        return unregister(null, callback);
-    }
-
-    public boolean unregister(@Nullable Scope scope, ActivityEventCallback<T> callback) {
-        if (scope == null) {
-            scope = mBaseScope;
-        }
-        if (scope == null) {
-            return false;
-        }
-        List<ActivityEventCallback<T>> callbacks = ensure(scope);
-        return callbacks.remove(callback);
+    public void unregister(ActivityEventCallback<T> callback) {
+        callbacks.remove(callback);
     }
 
 
@@ -245,29 +195,9 @@ public class ActivityEventDispatcher<T extends Activity> {
      * Listeners are automatically removed from subtrees as they are destroyed or detached.
      */
     private List<ActivityEventCallback<T>> getCallbacks() {
-        List<ActivityEventCallback<T>> tmp = new ArrayList<>();
-        List<ActivityEventCallback<T>> listInScope = mBaseScope.get(NAME_CALLBACKS, List.class);
-        if (listInScope != null) {
-            tmp.addAll(listInScope);
-        }
-        collectCallbacks(mBaseScope, tmp);
-        return tmp;
+        return callbacks;
     }
 
-    private void collectCallbacks(Scope root, List<ActivityEventCallback<T>> dst) {
-        if (root == null) {
-            return;
-        }
-        root.forEachScope(scope -> {
-            List<ActivityEventCallback<T>> listInScope = scope.get(NAME_CALLBACKS, List.class);
-            if (listInScope != null) {
-                dst.addAll(listInScope);
-            }
-            //recursive
-            collectCallbacks(scope, dst);
-            return true;
-        });
-    }
 
     //TODO complete implementation
     private class InternalEventDispatcher extends AbsActivityEventCallback<T> {

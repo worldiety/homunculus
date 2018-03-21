@@ -17,16 +17,20 @@ package org.homunculusframework.scope;
 
 import org.homunculusframework.concurrent.ExecutionList;
 import org.homunculusframework.concurrent.Task;
-import org.homunculusframework.factory.container.Container;
 import org.homunculusframework.factory.container.Handler;
+import org.homunculusframework.factory.container.MainHandler;
+import org.homunculusframework.factory.scope.AbsScope;
+import org.homunculusframework.factory.scope.EmptyScope;
+import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.lang.Function;
 import org.homunculusframework.lang.Panic;
 import org.homunculusframework.lang.Procedure;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.annotation.Nullable;
 
 /**
  * An implementation of {@link Task} which is optionally connectable to a scope.
@@ -40,28 +44,19 @@ import java.util.List;
 public class SettableTask<T> implements Task<T> {
     private volatile T result;
     private final String key;
-    @Nullable
     private final Scope scope;
-    private final ExecutionList leakyExecutionList;
     private volatile boolean shouldCancel;
     private volatile boolean shouldCancelWithInterrupt;
     private volatile boolean done;
     private final List<OnCancelledListener> onCancelledListeners = new ArrayList<>(1);
-    private final OnBeforeDestroyCallback beforeDestroyCallback;
+    private final OnDestroyCallback beforeDestroyCallback;
+    private volatile ExecutionList executionList;
 
-    private SettableTask(Scope scope, String name) {
+    private SettableTask(@Nullable Scope scope, String name) {
         this.key = name + "@" + System.identityHashCode(this);
-        this.scope = scope;
+        this.scope = scope == null ? new EmptyScope() : scope;
 
-        if (scope != null) {
-            this.beforeDestroyCallback = s -> cancel(true);
-            scope.put(key, new ExecutionList());
-            scope.addOnBeforeDestroyCallback(beforeDestroyCallback);
-            leakyExecutionList = null;
-        } else {
-            this.beforeDestroyCallback = null;
-            leakyExecutionList = new ExecutionList();
-        }
+        this.beforeDestroyCallback = s -> cancel(true);
     }
 
     public void addOnCancelledListener(OnCancelledListener listener) {
@@ -99,36 +94,27 @@ public class SettableTask<T> implements Task<T> {
 
     @Override
     public void whenDone(Procedure<T> callback) {
-        if (leakyExecutionList != null) {
-            leakyExecutionList.add(() -> callback.apply(result));
+        Handler handler = scope.resolve(MainHandler.class);
+        if (handler != null) {
+            handler.post(() -> {
+                ExecutionList list = getExecutionList();
+                if (list != null) {
+                    list.add(() -> callback.apply(result));
+                }
+            });
         } else {
-            if (scope == null) {
-                throw new Panic();
-            }
-            Handler handler = scope.resolve(Container.NAME_MAIN_HANDLER, Handler.class);
-            if (handler != null) {
-                handler.post(() -> {
-                    ExecutionList list = getExecutionList();
-                    if (list != null) {
-                        list.add(() -> callback.apply(result));
-                    }
-                });
-            } else {
-                LoggerFactory.getLogger(getClass()).error("cannot call whenDone: main handler is gone");
-            }
+            LoggerFactory.getLogger(getClass()).error("cannot call whenDone: main handler is gone");
         }
 
     }
 
     @Nullable
     private ExecutionList getExecutionList() {
-        ExecutionList list = scope.get(key, ExecutionList.class);
-        return list;
+        return executionList;
     }
 
     /**
      * Sets a result to this task. Subsequent calls are ignored. Works also without {@link Scope} or {@link Handler}.
-     * Expects by default {@link Container#NAME_MAIN_HANDLER}
      */
     public void set(T result) {
         synchronized (this) {
@@ -137,29 +123,25 @@ public class SettableTask<T> implements Task<T> {
             }
             done = true;
             this.result = result;
-            if (leakyExecutionList != null) {
-                leakyExecutionList.execute();
-            } else {
-                synchronized (this) {
-                    if (scope == null) {
-                        throw new Panic();
-                    } else {
-                        scope.removeOnBeforeDestroyCallback(beforeDestroyCallback);
-                    }
-                    this.result = result;
-                    Handler handler = scope.resolve(Container.NAME_MAIN_HANDLER, Handler.class);
-                    if (handler != null) {
-                        handler.post(() -> {
-                            ExecutionList list = getExecutionList();
-                            if (list != null) {
-                                list.execute();
-                            }
-                        });
-                    } else {
+            synchronized (this) {
+                if (scope == null) {
+                    throw new Panic();
+                } else {
+                    scope.removeDestroyCallback(beforeDestroyCallback);
+                }
+                this.result = result;
+                Handler handler = scope.resolve(Handler.class);
+                if (handler != null) {
+                    handler.post(() -> {
                         ExecutionList list = getExecutionList();
                         if (list != null) {
                             list.execute();
                         }
+                    });
+                } else {
+                    ExecutionList list = getExecutionList();
+                    if (list != null) {
+                        list.execute();
                     }
                 }
             }
@@ -182,7 +164,7 @@ public class SettableTask<T> implements Task<T> {
     @Override
     public void cancel(boolean mayInterruptIfRunning) {
         if (beforeDestroyCallback != null && scope != null) {
-            scope.removeOnBeforeDestroyCallback(beforeDestroyCallback);
+            scope.removeDestroyCallback(beforeDestroyCallback);
         }
         if (shouldCancel) {
             return;
@@ -209,4 +191,6 @@ public class SettableTask<T> implements Task<T> {
     public interface OnCancelledListener {
         void onCancelled(boolean mayInterruptIfRunning);
     }
+
+
 }

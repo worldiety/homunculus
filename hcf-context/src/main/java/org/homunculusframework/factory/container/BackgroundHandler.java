@@ -13,19 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.homunculusframework.factory;
-
-import org.homunculusframework.scope.Scope;
+package org.homunculusframework.factory.container;
 
 /**
+ * A simple and generic handler interface which just executes the provided runnable later.
+ *
  * @author Torben Schinke
  * @since 1.0
  */
-public interface ObjectInjector {
-
-    /**
-     * Tries to create a new instance of the given type using the given scope to resolve
-     * all required dependencies. It is always a programming error when this call fails.
-     */
-    void inject(Scope scope, Object instance, ProcessingCompleteCallback injectionCompleteCallback) throws FactoryException;
+public interface BackgroundHandler extends Handler {
 }

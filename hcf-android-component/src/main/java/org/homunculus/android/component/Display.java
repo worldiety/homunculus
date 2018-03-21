@@ -19,7 +19,7 @@ import android.content.Context;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 
-import org.homunculus.android.core.ContextScope;
+import org.homunculus.android.core.AndroidScopeContext;
 
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -49,7 +49,7 @@ public class Display {
      * @return the display, never null
      */
     public static Display from(Context context) {
-        Display display = ContextScope.resolveNamedValue(context, NAME_DISPLAY, Display.class);
+        Display display = AndroidScopeContext.resolve(context,Display.class);
         if (display != null) {
             return display;
         }

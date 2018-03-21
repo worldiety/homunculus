@@ -23,9 +23,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.widget.FrameLayout;
 
-import org.homunculus.android.core.ContextScope;
+import org.homunculus.android.core.AndroidScopeContext;
 import org.homunculusframework.lang.Function;
-import org.homunculusframework.scope.Scope;
 import org.slf4j.LoggerFactory;
 
 import java.lang.Thread.UncaughtExceptionHandler;
@@ -43,7 +42,7 @@ import javax.annotation.Nullable;
  * <li>Some view bugs disturb the entire rendering of the activity, so we need some trickery to reset it (e.g. requesting a permission)</li>
  * </ul>
  * <p>
- * Hint: Provide a {@link ContextScope} and implement in your activity {@link UncaughtExceptionHandler} and get invoked automagically.
+ * Hint: Provide a {@link AndroidScopeContext} and implement in your activity {@link UncaughtExceptionHandler} and get invoked automagically.
  *
  * @author Torben Schinke
  * @since 1.0
@@ -89,98 +88,99 @@ public class UnbreakableCrashHandler {
     }
 
     protected void resurrect(Thread t, Throwable e, @Nullable UncaughtExceptionHandler handler) {
-        if (Looper.getMainLooper().getThread() == Thread.currentThread()) {
-            //handle the first crash of the main looper
-            fixRenderingAndDispatchCrash(t, e, handler);
-            while (true) {
-                try {
-                    Looper.loop();
-                    throw new RuntimeException("Main thread loop unexpectedly exited");
-                } catch (Throwable followUpExceptions) {
-                    //at this point, we never enter the "uncaught" exception again, because our looper is already protected
-                    print(e);
-                    fixRenderingAndDispatchCrash(t, e, handler);
-                }
-            }
-        } else {
-            //not the main thread, nothing to revive, but for the sake of consistency we treat it the same
-            fixRenderingAndDispatchCrash(t, e, handler);
-        }
+//        if (Looper.getMainLooper().getThread() == Thread.currentThread()) {
+//            //handle the first crash of the main looper
+//            fixRenderingAndDispatchCrash(t, e, handler);
+//            while (true) {
+//                try {
+//                    Looper.loop();
+//                    throw new RuntimeException("Main thread loop unexpectedly exited");
+//                } catch (Throwable followUpExceptions) {
+//                    //at this point, we never enter the "uncaught" exception again, because our looper is already protected
+//                    print(e);
+//                    fixRenderingAndDispatchCrash(t, e, handler);
+//                }
+//            }
+//        } else {
+//            //not the main thread, nothing to revive, but for the sake of consistency we treat it the same
+//            fixRenderingAndDispatchCrash(t, e, handler);
+//        }
     }
 
-    protected void fixRenderingAndDispatchCrash(Thread t, Throwable e, @Nullable UncaughtExceptionHandler handler) {
-        Thread otherThread = new Thread() {
-            @Override
-            public void run() {
-                mMainHandler.post(() -> {
-                    //invoke the given handler
-                    if (handler != null) {
-                        handler.uncaughtException(t, e);
-                    }
+    //TODO
+//    protected void fixRenderingAndDispatchCrash(Thread t, Throwable e, @Nullable UncaughtExceptionHandler handler) {
+//        Thread otherThread = new Thread() {
+//            @Override
+//            public void run() {
+//                mMainHandler.post(() -> {
+//                    //invoke the given handler
+//                    if (handler != null) {
+//                        handler.uncaughtException(t, e);
+//                    }
+//
+//
+//                    //dispatch, when possible
+//                    Scope appScope = AndroidScopeContext.getScope(mAppContext);
+//                    if (appScope != null) {
+//                        recursiveFixUI(appScope);
+//                        recursiveDispatch(appScope, t, e);
+//                    }
+//                });
+//            }
+//        };
+//        otherThread.setName("pacemaker");
+//        otherThread.start();
+//    }
 
-
-                    //dispatch, when possible
-                    Scope appScope = ContextScope.getScope(mAppContext);
-                    if (appScope != null) {
-                        recursiveFixUI(appScope);
-                        recursiveDispatch(appScope, t, e);
-                    }
-                });
-            }
-        };
-        otherThread.setName("pacemaker");
-        otherThread.start();
-    }
-
-    /**
-     * walks recursive up (not down) the scope from the root and tries to repair all activities.
-     */
-    protected void recursiveFixUI(Scope root) {
-        root.forEachEntry(entry -> {
-            if (entry.getValue() instanceof Activity) {
-                Activity activity = ((Activity) entry.getValue());
-                //clear any broken view
-                FrameLayout tmp = new FrameLayout(activity);
-                activity.setContentView(tmp);
-                LoggerFactory.getLogger(getClass()).warn("reset content view with empty view");
-
-                //fix around weired redraw/buffer/vsync problem, see also https://source.android.com/devices/graphics/implement-vsync
-
-                //now it get awkward: we need to resync some lost events for drawing: force a onPause and onResume cycle to fix it
-                launch(activity);
-                //the following delay is required for exceptions which occur while failing in onCreate (restoreOnSaveInstance), probably also for immediate errors, does not work "alone"
-                mMainHandler.postDelayed(() -> launch(activity), 100);
-
-            }
-            return true;
-        });
-        root.forEachScope(scope -> {
-            recursiveFixUI(scope);
-            return true;
-        });
-    }
-
-    protected void launch(Activity activity) {
-        try {
-            activity.startActivity(new Intent(activity, RecoverActivity.class));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    protected void recursiveDispatch(Scope root, Thread t, Throwable e) {
-        root.forEachEntry(entry -> {
-            if (entry.getValue() instanceof UncaughtExceptionHandler) {
-                ((UncaughtExceptionHandler) entry.getValue()).uncaughtException(t, e);
-            }
-            return true;
-        });
-        root.forEachScope(scope -> {
-            recursiveDispatch(scope, t, e);
-            return true;
-        });
-    }
+//    /**
+//     * walks recursive up (not down) the scope from the root and tries to repair all activities.
+//     */
+//    protected void recursiveFixUI(Scope root) {
+//        root.forEachEntry(entry -> {
+//            if (entry.getValue() instanceof Activity) {
+//                Activity activity = ((Activity) entry.getValue());
+//                //clear any broken view
+//                FrameLayout tmp = new FrameLayout(activity);
+//                activity.setContentView(tmp);
+//                LoggerFactory.getLogger(getClass()).warn("reset content view with empty view");
+//
+//                //fix around weired redraw/buffer/vsync problem, see also https://source.android.com/devices/graphics/implement-vsync
+//
+//                //now it get awkward: we need to resync some lost events for drawing: force a onPause and onResume cycle to fix it
+//                launch(activity);
+//                //the following delay is required for exceptions which occur while failing in onCreate (restoreOnSaveInstance), probably also for immediate errors, does not work "alone"
+//                mMainHandler.postDelayed(() -> launch(activity), 100);
+//
+//            }
+//            return true;
+//        });
+//        root.forEachScope(scope -> {
+//            recursiveFixUI(scope);
+//            return true;
+//        });
+//    }
+//
+//    protected void launch(Activity activity) {
+//        try {
+//            activity.startActivity(new Intent(activity, RecoverActivity.class));
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
+//
+//
+//    protected void recursiveDispatch(Scope root, Thread t, Throwable e) {
+//        root.forEachEntry(entry -> {
+//            if (entry.getValue() instanceof UncaughtExceptionHandler) {
+//                ((UncaughtExceptionHandler) entry.getValue()).uncaughtException(t, e);
+//            }
+//            return true;
+//        });
+//        root.forEachScope(scope -> {
+//            recursiveDispatch(scope, t, e);
+//            return true;
+//        });
+//    }
 
 
     public static class RecoverActivity extends Activity {
