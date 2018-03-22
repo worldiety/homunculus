@@ -268,6 +268,7 @@ public abstract class ToolbarConfiguration {
 
     /**
      * Sets the elevation for the {@link Toolbar}. Does nothing on devices < API-Level 21 (because this feature is not supported there).
+     * See also {@link View#setElevation(float)}
      *
      * @param elevation the elevation
      * @return
