@@ -1,11 +1,13 @@
 package org.homunculus.android.example.concept;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.view.View;
 
 import org.homunculus.android.example.R;
+import org.homunculus.android.example.my.packagename.TestView;
 import org.homunculus.android.flavor.Resource;
 import org.homunculusframework.factory.flavor.hcf.Bind;
 
@@ -37,13 +39,19 @@ public class UISB extends View {
     @Resource(R.drawable.ic_launcher)
     Bitmap bmp;
 
+    @Inject
+    TestView testView;
+
+    @Inject
+    Activity activity;
+
     public UISB(Context context, MyCustomDatabase fishyDb) {
         super(context);
     }
 
     @PostConstruct
     void apply() {
-
+        activity.setContentView(testView);
     }
 
     @PreDestroy

@@ -66,8 +66,8 @@ public class UISA extends LinearLayout {
 
         Button btn = new Button(getContext());
         btn.setText("hallo welt");
-        btn.setOnClickListener(v->{
-            navigation.forward(new InvokeControllerADoJob1("asd"));
+        btn.setOnClickListener(v -> {
+            navigation.forward(new BindUISB(new UISBModel()));
         });
         addView(btn);
     }
