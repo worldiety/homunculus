@@ -386,7 +386,7 @@ public class GenerateScopes implements Generator {
             FullQualifiedName fqn = new FullQualifiedName(what.fullName());
             Constructor shortestConstructor = null;
             for (Constructor ctr : resolver.getConstructors(fqn)) {
-                if (shortestConstructor == null || ctr.getParameters().size() < ctr.getParameters().size()) {
+                if (!ctr.isPrivate() && (shortestConstructor == null || ctr.getParameters().size() < ctr.getParameters().size())) {
                     shortestConstructor = ctr;
                 }
             }

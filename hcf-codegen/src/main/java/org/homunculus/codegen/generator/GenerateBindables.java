@@ -66,7 +66,7 @@ public class GenerateBindables implements Generator {
 
             Constructor shortestConstructor = null;
             for (Constructor ctr : project.getResolver().getConstructors(bean)) {
-                if (shortestConstructor == null || ctr.getParameters().size() < ctr.getParameters().size()) {
+                if (!ctr.isPrivate() && (shortestConstructor == null || ctr.getParameters().size() < ctr.getParameters().size())) {
                     shortestConstructor = ctr;
                 }
             }
@@ -277,7 +277,7 @@ public class GenerateBindables implements Generator {
 
             Constructor shortestConstructor = null;
             for (Constructor ctr : resolver.getConstructors(new FullQualifiedName(type.fullName()))) {
-                if (shortestConstructor == null || ctr.getParameters().size() < ctr.getParameters().size()) {
+                if (!ctr.isPrivate() && (shortestConstructor == null || ctr.getParameters().size() < ctr.getParameters().size())) {
                     shortestConstructor = ctr;
                 }
             }
