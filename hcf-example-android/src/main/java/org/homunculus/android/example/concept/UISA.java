@@ -1,7 +1,6 @@
 package org.homunculus.android.example.concept;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -9,6 +8,7 @@ import android.widget.Toast;
 import org.homunculus.android.compat.EventAppCompatActivity;
 import org.homunculus.android.core.ActivityCallback;
 import org.homunculus.android.example.R;
+import org.homunculus.android.example.concept.AsyncControllerA.InvokeControllerADoJob1;
 import org.homunculusframework.factory.flavor.hcf.Bind;
 import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.navigation.Navigation;
@@ -66,6 +66,9 @@ public class UISA extends LinearLayout {
 
         Button btn = new Button(getContext());
         btn.setText("hallo welt");
+        btn.setOnClickListener(v->{
+            navigation.forward(new InvokeControllerADoJob1("asd"));
+        });
         addView(btn);
     }
 }

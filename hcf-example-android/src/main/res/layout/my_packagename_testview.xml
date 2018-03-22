@@ -2,9 +2,7 @@
 <android.support.v4.widget.NestedScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:hcf="http://schemas.homunculus.io/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    hcf:class="org.homunculus.android.example.module.cart.TestValidatorView"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -13,8 +11,11 @@
         android:layout_height="match_parent">
 
 
+        <!--This is the trapping spinner-->
+
+
+
         <Spinner
-            hcf:doc="Gives the possibility to select a value from the trap record."
             android:id="@+id/uis_trap_record_trap_spinner"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -35,6 +36,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/uis_trap_record_trap_spinner"/>
 
+        <!--A user can enter a funny record here-->
         <TextView
             android:id="@+id/uis_trap_record_nr"
             android:layout_width="wrap_content"
@@ -62,9 +64,9 @@
             android:layout_marginTop="8dp"
             android:layout_weight="1"
             android:gravity="center_vertical"
+            app:layout_constraintEnd_toEndOf="@id/guideline4"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textView17"
-            app:layout_constraintEnd_toEndOf="@id/guideline4"/>
+            app:layout_constraintTop_toBottomOf="@+id/textView17"/>
 
         <android.support.design.widget.TextInputLayout
             android:layout_width="0dp"
@@ -128,7 +130,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/uis_trap_record_note_layout"
             app:layout_constraintTop_toTopOf="@+id/uis_trap_record_note_layout"
-          />
+            />
 
         <android.support.design.widget.TextInputLayout
             android:id="@+id/uis_trap_record_ub_memo_layout"

@@ -26,26 +26,34 @@ import com.helger.jcodemodel.JVar;
 import org.homunculus.codegen.GenProject;
 import org.homunculus.codegen.Generator;
 import org.homunculus.codegen.XMLFile;
+import org.homunculus.codegen.parse.Strings;
+import org.w3c.dom.Comment;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.w3c.dom.Text;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import javax.annotation.Nullable;
+
 /**
+ * Picks all xml's from the layout folder and creates them in packages relative to
+ * the applications package name.
+ * E.g. com.my.app is the app's package and your view is in res/layout/states_myuis_myview.xml
+ * the view is generated as com.my.app.states.myuis.Myview
+ * <p>
+ * Comments are respected and added as javadoc.
  *
  * @author Torben Schinke
  * @since 1.0
  */
 
 public class GenerateViewsFromXML implements Generator {
-    private final static String XML_NAMESPACE = "http://schemas.homunculus.io/apk/res/android";
-    private final static String XML_CREATE_CLASS = "class";
-    private final static String XML_CREATE_CLASS_SIMPLE = "hcf:class";
     private final static String XML_ID_SIMPLE = "android:id";
-    private final static String XML_DOC_SIMPLE = "hcf:doc";
 
     private final static Map<String, String> ALIASE = new HashMap<>();
 
@@ -69,15 +77,28 @@ public class GenerateViewsFromXML implements Generator {
     private Map<String, XMLFile> collectViews(GenProject project) throws JClassAlreadyExistsException {
         Map<String, XMLFile> toGenerate = new HashMap<>();
         for (XMLFile file : project.getXmlFiles()) {
-            NodeList nl = file.getDoc().getChildNodes();
-            String fqn = file.getDoc().getDocumentElement().getAttribute(XML_CREATE_CLASS_SIMPLE);
-            if (fqn == null || fqn.trim().isEmpty()) {
+            //only pick those xml from the layout dir
+            if (!file.getFile().getParentFile().getName().equals("layout")) {
                 continue;
             }
-            genClass(project, file, fqn);
+            String mainPackage = project.getManifestPackage();
+            String fname = file.getFile().getName().substring(0, file.getFile().getName().length() - 4);
+            String[] relPackageName = fname.split(Pattern.quote("_"));
+            String className;
+            if (relPackageName.length == 0) {
+                className = mainPackage + "." + Strings.startUpperCase(Strings.nicefy(fname));
+            } else {
+                className = mainPackage;
+                for (int i = 0; i < relPackageName.length - 1; i++) {
+                    className = className + "." + relPackageName[i];
+                }
+                className = className + "." + Strings.startUpperCase(Strings.nicefy(relPackageName[relPackageName.length - 1]));
+            }
+            genClass(project, file, className);
         }
         return toGenerate;
     }
+
 
     private void genClass(GenProject project, XMLFile file, String className) throws JClassAlreadyExistsException {
 
@@ -112,19 +133,35 @@ public class GenerateViewsFromXML implements Generator {
         });
 
         for (Element element : exports) {
+
             String id = element.getAttribute(XML_ID_SIMPLE);
-            String doc = element.getAttribute(XML_DOC_SIMPLE);
             AbstractJClass returnType = project.getCodeModel().ref(getAndroidViewName(element.getNodeName()));
             JMethod meth = cl.method(JMod.PUBLIC, returnType, "get" + makeNiceName(id));
             String fieldName = id.substring(id.lastIndexOf("/") + 1);
             meth.body()._return(JExpr.direct("findViewById(" + project.getManifestPackage() + ".R.id." + fieldName + ")"));
 
-            if (doc != null && !doc.trim().isEmpty()) {
-                meth.javadoc().add(doc);
+            Comment comment = grabLatestNode(element);
+            if (comment != null) {
+                meth.javadoc().add(comment.getNodeValue());
             }
+
+        }
+    }
+
+    @Nullable
+    private Comment grabLatestNode(Node node) {
+        Node priorSib = node.getPreviousSibling();
+        if (priorSib == null) {
+            return null;
+        }
+        while (priorSib instanceof Text) {
+            priorSib = priorSib.getPreviousSibling();
         }
 
-
+        if (priorSib instanceof Comment) {
+            return (Comment) priorSib;
+        }
+        return null;
     }
 
     private String getAndroidViewName(String id) {

@@ -9,6 +9,7 @@ import org.homunculus.codegen.generator.GenerateBindables;
 import org.homunculus.codegen.generator.GenerateMethodBindings;
 import org.homunculus.codegen.generator.GenerateScopes;
 import org.homunculus.codegen.generator.GenerateTaskMethods;
+import org.homunculus.codegen.generator.GenerateViewsFromXML;
 import org.homunculus.codegen.generator.PreprocessDiscoverBeans;
 import org.homunculus.codegen.generator.PreprocessDiscoverBeans.DiscoveryKind;
 import org.homunculus.codegen.parse.FullQualifiedName;
@@ -193,7 +194,7 @@ public class GenProject {
         new GenerateMethodBindings().generate(this);
 //        new GenerateObjectBindings().generate(this);
 //        new GenerateControllerFactory().generate(this);
-//        new GenerateViewsFromXML().generate(this);
+        new GenerateViewsFromXML().generate(this);
     }
 
     public Resolver getResolver() {
