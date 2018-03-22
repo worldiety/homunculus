@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.ColorRes;
 import android.support.annotation.DrawableRes;
+import android.support.annotation.RequiresApi;
 import android.support.annotation.StyleRes;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -74,6 +75,8 @@ public abstract class ToolbarConfiguration {
     Map<Integer, MenuItemClickListener> mItems = new TreeMap<>();
 
     ToolbarContentConfiguratorListener mToolbarContentConfiguratorListener;
+
+    Float mElevation;
 
     private ToolbarConfiguration() {
 
@@ -260,6 +263,17 @@ public abstract class ToolbarConfiguration {
     public ToolbarConfiguration setMenu(Integer menuId, Map<Integer, MenuItemClickListener> clicklistener) {
         mMenuId = menuId;
         mItems.putAll(clicklistener);
+        return this;
+    }
+
+    /**
+     * Sets the elevation for the {@link Toolbar}. Does nothing on devices < API-Level 21 (because this feature is not supported there).
+     *
+     * @param elevation the elevation
+     * @return
+     */
+    public ToolbarConfiguration setElevation(float elevation) {
+        mElevation = elevation;
         return this;
     }
 

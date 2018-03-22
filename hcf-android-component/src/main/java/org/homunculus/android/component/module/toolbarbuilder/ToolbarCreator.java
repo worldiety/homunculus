@@ -15,8 +15,9 @@
  */
 package org.homunculus.android.component.module.toolbarbuilder;
 
-import android.app.Activity;
 import android.content.Context;
+import android.os.Build.VERSION;
+import android.os.Build.VERSION_CODES;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.DrawerLayout.LayoutParams;
@@ -24,10 +25,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.ActionMode;
 import android.view.Gravity;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
@@ -37,9 +35,7 @@ import org.homunculus.android.compat.EventAppCompatActivity;
 import org.homunculus.android.component.InputManager;
 import org.homunculus.android.component.R;
 import org.homunculus.android.component.Widget;
-import org.homunculus.android.component.module.toolbarbuilder.ToolbarConfiguration.MenuItemClickListener;
 import org.homunculus.android.core.ActivityEventDispatcher;
-import org.homunculus.android.core.ActivityEventDispatcher.AbsActivityEventCallback;
 import org.homunculus.android.core.AndroidScopeContext;
 import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.lang.Panic;
@@ -250,6 +246,11 @@ class ToolbarCreator {
             toolbar.setTitleTextColor(ContextCompat.getColor(activity, mToolbarConfiguration.mTitleTextColor));
         }
 
+        if (mToolbarConfiguration.mElevation != null) {
+            if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
+                toolbar.setElevation(mToolbarConfiguration.mElevation);
+            }
+        }
 
         activity.setSupportActionBar(toolbar);
         ActionBar ab = activity.getSupportActionBar();
@@ -274,7 +275,6 @@ class ToolbarCreator {
         }
 
         ab.setDisplayHomeAsUpEnabled(mToolbarConfiguration.mShowNavigationIcons);
-
 
         ToolbarHolder holder = new ToolbarHolder(activity);
         holder.setId(Widget.generateViewId());
