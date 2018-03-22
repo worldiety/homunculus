@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.view.View;
 
+import org.homunculus.android.component.ViewTransitionAnimator;
 import org.homunculus.android.example.R;
 import org.homunculus.android.example.my.packagename.TestView;
 import org.homunculus.android.flavor.Resource;
@@ -43,6 +44,9 @@ public class UISB extends View {
     TestView testView;
 
     @Inject
+    ViewTransitionAnimator transitionAnimator;
+
+    @Inject
     Activity activity;
 
     public UISB(Context context, MyCustomDatabase fishyDb) {
@@ -51,7 +55,7 @@ public class UISB extends View {
 
     @PostConstruct
     void apply() {
-        activity.setContentView(testView);
+        transitionAnimator.setActivityContentView(testView);
     }
 
     @PreDestroy

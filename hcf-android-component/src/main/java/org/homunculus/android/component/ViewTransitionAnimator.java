@@ -11,8 +11,6 @@ import android.view.ViewGroup.LayoutParams;
 
 import org.homunculusframework.navigation.Navigation;
 
-import javax.inject.Inject;
-
 /**
  * Component, which main purpose is to set a {@link View} as content view of an {@link Activity} using a {@link Transition}.
  * It is using the {@link Navigation} to determine, if it should use the forward or backward animation. The class also offers
@@ -22,30 +20,36 @@ import javax.inject.Inject;
  */
 
 public class ViewTransitionAnimator {
-    @Inject
-    private Navigation navigation;
-
-    @Inject
-    private Activity activity;
+    private Navigation mNavigation;
+    private Activity mActivity;
 
     private Transition mForwardTransition = new AutoTransition();
     private Transition mBackwardTransition = new AutoTransition();
 
+    private ViewTransitionAnimator() {
+
+    }
+
+    public ViewTransitionAnimator(Navigation navigation, Activity activity) {
+        this.mNavigation = navigation;
+        this.mActivity = activity;
+    }
+
     /**
-     * Sets a {@link View} as content view of an {@link Activity} using a {@link Transition}, based on the current navigation direction
+     * Sets a {@link View} as content view of an {@link Activity} using a {@link Transition}, based on the current mNavigation direction
      * (forward or backward). The transitions may be set with {@link #setForwardTransition(Transition)} or {@link #setBackwardTransition(Transition)}.
      *
      * @param view the {@link View} to be set as content view
      */
     public void setActivityContentView(View view) {
         // Start recording changes to the view hierarchy
-        TransitionManager.beginDelayedTransition((ViewGroup) activity.getWindow().getDecorView(), getTransitionToBeUsed());
-        activity.setContentView(view);
+        TransitionManager.beginDelayedTransition((ViewGroup) mActivity.getWindow().getDecorView(), getTransitionToBeUsed());
+        mActivity.setContentView(view);
     }
 
     private Transition getTransitionToBeUsed() {
         Transition transitionToBeUsed;
-        if (navigation.wasGoingForward()) {
+        if (mNavigation.wasGoingForward()) {
             transitionToBeUsed = mForwardTransition;
         } else {
             transitionToBeUsed = mBackwardTransition;
@@ -73,7 +77,7 @@ public class ViewTransitionAnimator {
      * @param transitionId the id if the {@link Transition} to be inflated from xml
      */
     public void setForwardTransition(int transitionId) {
-        mForwardTransition = TransitionInflater.from(activity).inflateTransition(transitionId);
+        mForwardTransition = TransitionInflater.from(mActivity).inflateTransition(transitionId);
     }
 
     /**
@@ -82,7 +86,7 @@ public class ViewTransitionAnimator {
      * @param transitionId the id if the {@link Transition} to be inflated from xml
      */
     public void setBackwardTransition(int transitionId) {
-        mBackwardTransition = TransitionInflater.from(activity).inflateTransition(transitionId);
+        mBackwardTransition = TransitionInflater.from(mActivity).inflateTransition(transitionId);
     }
 
     /**
