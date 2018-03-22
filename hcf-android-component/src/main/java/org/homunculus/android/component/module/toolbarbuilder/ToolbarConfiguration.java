@@ -6,16 +6,18 @@ import android.support.annotation.ColorRes;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.StyleRes;
 import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 
 import org.homunculus.android.compat.EventAppCompatActivity;
 import org.homunculus.android.component.ActionModeBuilder;
 import org.homunculus.android.component.Str;
 import org.homunculus.android.component.module.toolbarbuilder.ToolbarCreator.ContentViewHolder;
-import org.homunculus.android.component.module.toolbarbuilder.ToolbarCreator.MenuItemClickListener;
 import org.homunculus.android.component.module.toolbarbuilder.ToolbarCreator.ToolbarHolder;
 import org.homunculus.android.core.AndroidScopeContext;
 import org.homunculusframework.factory.scope.Scope;
+import org.homunculusframework.scope.OnDestroyCallback;
 
 import java.util.Map;
 import java.util.TreeMap;
@@ -71,6 +73,8 @@ public abstract class ToolbarConfiguration {
      */
     Map<Integer, MenuItemClickListener> mItems = new TreeMap<>();
 
+    ToolbarContentConfiguratorListener mToolbarContentConfiguratorListener;
+
     private ToolbarConfiguration() {
 
     }
@@ -104,7 +108,7 @@ public abstract class ToolbarConfiguration {
     /**
      * Creates the toolbar and binds optionally the life cycle of it (like registered callbacks)
      * to the scope of the given context. See also {@link AndroidScopeContext}. Elements are cleared using
-     * {@link Scope#addOnBeforeDestroyCallback(OnBeforeDestroyCallback)}
+     * {@link Scope#addDestroyCallback(OnDestroyCallback)}
      * <p>
      */
     public <ContentView extends View, LeftDrawer extends View, RightDrawer extends View> ContentViewHolder<ToolbarHolder<ContentView>, LeftDrawer, RightDrawer> createToolbar(ContentView contentView, @Nullable LeftDrawer leftDrawer, @Nullable RightDrawer rightDrawer) {
@@ -256,6 +260,33 @@ public abstract class ToolbarConfiguration {
     public ToolbarConfiguration setMenu(Integer menuId, Map<Integer, MenuItemClickListener> clicklistener) {
         mMenuId = menuId;
         mItems.putAll(clicklistener);
+        return this;
+    }
+
+    /**
+     * Listener interface to handle item clicks in the menu toolbar
+     */
+    public interface MenuItemClickListener {
+
+        /**
+         * @param menuItem The menu item that was clicked
+         * @return Boolean to evaluate item clickOnce
+         */
+        boolean onMenuItemSelected(MenuItem menuItem);
+    }
+
+    /**
+     * Listener interface to get access to the created menu e.g. if you want to enable and disable menu items
+     */
+    public interface ToolbarContentConfiguratorListener {
+        /**
+         * @param menu The menu that was inflated
+         */
+        void onMenuCreated(Menu menu);
+    }
+
+    public ToolbarConfiguration setToolbarContentConfiguratorListener(ToolbarContentConfiguratorListener toolbarContentConfiguratorListener) {
+        this.mToolbarContentConfiguratorListener = toolbarContentConfiguratorListener;
         return this;
     }
 

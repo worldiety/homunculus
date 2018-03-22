@@ -1,18 +1,15 @@
 package org.homunculus.android.example.concept;
 
 import android.content.Context;
-import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
-import android.widget.TextView;
+import android.widget.Toast;
 
 import org.homunculus.android.compat.EventAppCompatActivity;
-import org.homunculus.android.component.module.toolbarbuilder.templates.DefaultToolbarConfiguration;
 import org.homunculus.android.core.ActivityCallback;
 import org.homunculusframework.factory.flavor.hcf.Bind;
 import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.navigation.Navigation;
-
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -60,7 +57,7 @@ public class UISA extends LinearLayout {
         toolbarTemplate.setUpAction(new Runnable() {
             @Override
             public void run() {
-
+                Toast.makeText(getContext(), "Hello from Toolbar", Toast.LENGTH_LONG).show();
             }
         });
         activity.setContentView(toolbarTemplate.createToolbar(this));

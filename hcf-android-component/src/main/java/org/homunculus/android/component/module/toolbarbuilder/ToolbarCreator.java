@@ -15,6 +15,7 @@
  */
 package org.homunculus.android.component.module.toolbarbuilder;
 
+import android.app.Activity;
 import android.content.Context;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -23,6 +24,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.ActionMode;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -35,11 +37,14 @@ import org.homunculus.android.compat.EventAppCompatActivity;
 import org.homunculus.android.component.InputManager;
 import org.homunculus.android.component.R;
 import org.homunculus.android.component.Widget;
+import org.homunculus.android.component.module.toolbarbuilder.ToolbarConfiguration.MenuItemClickListener;
 import org.homunculus.android.core.ActivityEventDispatcher;
+import org.homunculus.android.core.ActivityEventDispatcher.AbsActivityEventCallback;
 import org.homunculus.android.core.AndroidScopeContext;
 import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.lang.Panic;
 import org.homunculusframework.navigation.BackActionConsumer;
+import org.homunculusframework.scope.OnDestroyCallback;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -76,7 +81,6 @@ class ToolbarCreator {
      */
     private ContentViewHolder mDrawerLayout;
 
-    private ToolbarContentConfiguratorListener toolbarContentConfiguratorListener;
     private int generationId;
 
     //an activity scope shared generation id
@@ -92,24 +96,24 @@ class ToolbarCreator {
     /**
      * See {@link #create(Scope, EventAppCompatActivity, View, View, View)}
      */
-    public <ContentView extends View, LeftDrawer extends View, RightDrawer extends View> ContentViewHolder<ToolbarHolder<ContentView>, LeftDrawer, RightDrawer> create(@Nullable Scope scope, EventAppCompatActivity activity, ContentView contentView) {
+    <ContentView extends View, LeftDrawer extends View, RightDrawer extends View> ContentViewHolder<ToolbarHolder<ContentView>, LeftDrawer, RightDrawer> create(@Nullable Scope scope, EventAppCompatActivity activity, ContentView contentView) {
         return create(scope, activity, contentView, null, null);
     }
 
     /**
      * See {@link #create(Scope, EventAppCompatActivity, View, View, View)}
      */
-    public <ContentView extends View, LeftDrawer extends View, RightDrawer extends View> ContentViewHolder<ToolbarHolder<ContentView>, LeftDrawer, RightDrawer> create(@Nullable Scope scope, EventAppCompatActivity activity, ContentView contentView, @Nullable LeftDrawer leftDrawer) {
+    <ContentView extends View, LeftDrawer extends View, RightDrawer extends View> ContentViewHolder<ToolbarHolder<ContentView>, LeftDrawer, RightDrawer> create(@Nullable Scope scope, EventAppCompatActivity activity, ContentView contentView, @Nullable LeftDrawer leftDrawer) {
         return create(scope, activity, contentView, leftDrawer, null);
     }
 
     /**
      * Creates the toolbar and binds optionally the life cycle of it (like registered callbacks)
      * to the scope of the given context. See also {@link AndroidScopeContext}. Elements are cleared using
-     * {@link Scope#addOnBeforeDestroyCallback(OnBeforeDestroyCallback)}
+     * {@link Scope#addDestroyCallback(OnDestroyCallback)}
      * <p>
      */
-    public <ContentView extends View, LeftDrawer extends View, RightDrawer extends View> ContentViewHolder<ToolbarHolder<ContentView>, LeftDrawer, RightDrawer> create(@Nullable Scope scope, EventAppCompatActivity activity, ContentView contentView, @Nullable LeftDrawer leftDrawer, @Nullable RightDrawer rightDrawer) {
+    <ContentView extends View, LeftDrawer extends View, RightDrawer extends View> ContentViewHolder<ToolbarHolder<ContentView>, LeftDrawer, RightDrawer> create(@Nullable Scope scope, EventAppCompatActivity activity, ContentView contentView, @Nullable LeftDrawer leftDrawer, @Nullable RightDrawer rightDrawer) {
 //TODO!!!
 //        //only one active and valid toolbar builder is allowed per activity, so simply store the generation id in activity's scope. We use synchronized here in case of someone fiddles around with multiple inflater threads
 //        synchronized (ToolbarCreator.class) {
@@ -204,12 +208,12 @@ class ToolbarCreator {
 //
 //            private boolean invalidateOptionsMenu(Menu menu) {
 //                menu.clear();
-//                if (mToolbarTemplate.mMenuId != null) {
-//                    activity.getMenuInflater().inflate(mToolbarTemplate.mMenuId, menu);
+//                if (mToolbarConfiguration.mMenuId != null) {
+//                    activity.getMenuInflater().inflate(mToolbarConfiguration.mMenuId, menu);
 //                }
 //
-//                if (ToolbarCreator.this.toolbarContentConfiguratorListener != null) {
-//                    ToolbarCreator.this.toolbarContentConfiguratorListener.onMenuCreated(menu);
+//                if (mToolbarConfiguration.mToolbarContentConfiguratorListener != null) {
+//                    mToolbarConfiguration.mToolbarContentConfiguratorListener.onMenuCreated(menu);
 //                }
 //
 //                return true;
@@ -221,7 +225,7 @@ class ToolbarCreator {
 //                    logInvalidMenu();
 //                    return false;
 //                }
-//                MenuItemClickListener itemListener = mToolbarTemplate.mItems.get(item.getItemId());
+//                MenuItemClickListener itemListener = mToolbarConfiguration.mItems.get(item.getItemId());
 //                if (itemListener != null) {
 //                    itemListener.onMenuItemSelected(item);
 //                }
@@ -345,33 +349,6 @@ class ToolbarCreator {
 
 
         return mDrawerLayout;
-    }
-
-    /**
-     * Listener interface to handle item clicks in the menu toolbar
-     */
-    public interface MenuItemClickListener {
-
-        /**
-         * @param menuItem The menu item that was clicked
-         * @return Boolean to evaluate item clickOnce
-         */
-        boolean onMenuItemSelected(MenuItem menuItem);
-    }
-
-    /**
-     * Listener interface to get access to the created menu e.g. if you want to enable and disable menu items
-     */
-    public interface ToolbarContentConfiguratorListener {
-        /**
-         * @param menu The menu that was inflated
-         */
-        void onMenuCreated(Menu menu);
-    }
-
-    public ToolbarCreator setToolbarContentConfiguratorListener(ToolbarContentConfiguratorListener toolbarContentConfiguratorListener) {
-        this.toolbarContentConfiguratorListener = toolbarContentConfiguratorListener;
-        return this;
     }
 
     public static class ToolbarHolder<ContentView> extends LinearLayout {
