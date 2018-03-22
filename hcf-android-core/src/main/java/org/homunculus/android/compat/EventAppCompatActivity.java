@@ -56,7 +56,6 @@ import org.slf4j.LoggerFactory;
 public class EventAppCompatActivity extends AppCompatActivity implements ActivityEventOwner {
     private ActivityEventDispatcher<EventAppCompatActivity> mEventDispatcher;
     private boolean mEverCreated;
-    private Scope mScope;
     private View mContentView;
 
 
@@ -78,7 +77,7 @@ public class EventAppCompatActivity extends AppCompatActivity implements Activit
      * Returns the scope of this activity. Equal to {@link ContextScope#getScope(Context)} on "this"
      */
     public Scope getScope() {
-        return mScope;
+        return null;
     }
 
     @Override
@@ -119,7 +118,7 @@ public class EventAppCompatActivity extends AppCompatActivity implements Activit
     }
 
     private void init() {
-        mEventDispatcher = new ActivityEventDispatcher<>(mScope, this);
+        mEventDispatcher = new ActivityEventDispatcher<>(getScope(), this);
         mEverCreated = true;
 //        mScope.put(Android.NAME_ACTIVITY_EVENT_DISPATCHER, mEventDispatcher);
     }
@@ -571,7 +570,10 @@ public class EventAppCompatActivity extends AppCompatActivity implements Activit
         mEventDispatcher.destroy();
         super.onDestroy();
         mEventDispatcher = null;
-        mScope.onDestroy();
+        Scope scope = getScope();
+        if (scope != null) {
+            scope.onDestroy();
+        }
     }
 
 

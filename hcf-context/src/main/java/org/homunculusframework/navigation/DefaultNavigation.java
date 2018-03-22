@@ -425,24 +425,4 @@ public class DefaultNavigation implements Navigation {
         }
     }
 
-    //TODO we will spawn a new thread for each method request, which is not a great idea at all
-    private static class MethodCallThread extends Thread {
-        private final StackTraceElement[] origin;
-        private final MethodBinding<?> binding;
-        private final Scope scope;
-
-        public MethodCallThread(Scope scope, MethodBinding<?> methodBinding) {
-            this.scope = scope;
-            binding = methodBinding;
-            origin = Thread.currentThread().getStackTrace();
-            //avoid lagging the ui
-            setPriority(Thread.MIN_PRIORITY);
-            setName(methodBinding.toString());
-        }
-
-        @Override
-        public void run() {
-
-        }
-    }
 }

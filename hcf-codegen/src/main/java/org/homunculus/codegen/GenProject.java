@@ -186,15 +186,14 @@ public class GenProject {
     public void generate() throws Exception {
         resolver = new JPResolver(units);
         resolver.setCodeResolver(new JCodeModelResolver(getCodeModel()));
+        new GenerateViewsFromXML().generate(this);
         new PreprocessDiscoverBeans().generate(this);
         new GenerateAsyncControllers().generate(this);
         new GenerateScopes().generate(this);
         new GenerateBindables().generate(this);
         new GenerateTaskMethods().generate(this);
         new GenerateMethodBindings().generate(this);
-//        new GenerateObjectBindings().generate(this);
-//        new GenerateControllerFactory().generate(this);
-        new GenerateViewsFromXML().generate(this);
+
     }
 
     public Resolver getResolver() {
