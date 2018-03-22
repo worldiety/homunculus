@@ -38,7 +38,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public final class LifecycleList<T> extends AbstractList<T> implements Destroyable {
 
-    private final LifecycleOwner scope;
+    private LifecycleOwner scope;
     @Nullable
     private volatile CopyOnWriteArrayList<T> list;
     private final OnDestroyCallback callback;
@@ -129,7 +129,11 @@ public final class LifecycleList<T> extends AbstractList<T> implements Destroyab
      */
     @Override
     public void destroy() {
-        scope.removeDestroyCallback(callback);
+        LifecycleOwner owner = scope;
+        if (owner != null) {
+            owner.removeDestroyCallback(callback);
+            scope = null;
+        }
         list = null;
     }
 }

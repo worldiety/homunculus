@@ -11,6 +11,9 @@ import org.homunculus.android.example.R;
 import org.homunculus.android.example.my.packagename.TestView;
 import org.homunculus.android.flavor.Resource;
 import org.homunculusframework.factory.flavor.hcf.Bind;
+import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -21,6 +24,7 @@ import javax.inject.Inject;
  */
 @Bind
 public class UISB extends View {
+    private static AtomicInteger INSTANCE_COUNT = new AtomicInteger();
 
     @Inject
     ControllerB controllerB;
@@ -51,6 +55,7 @@ public class UISB extends View {
 
     public UISB(Context context, MyCustomDatabase fishyDb) {
         super(context);
+        LoggerFactory.getLogger(getClass()).info("instances: {}", INSTANCE_COUNT.incrementAndGet());
     }
 
     @PostConstruct
@@ -61,5 +66,11 @@ public class UISB extends View {
     @PreDestroy
     void destroy() {
 
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        super.finalize();
+        LoggerFactory.getLogger(getClass()).info("instances: {}", INSTANCE_COUNT.decrementAndGet());
     }
 }

@@ -126,8 +126,7 @@ public abstract class HomunculusActivity<T extends ContextScope<?>> extends Even
      *
      * @return the navigation to use. Available by name {@link Android#NAME_NAVIGATION} in the scope.
      */
-    @ScopeElement
-    public Navigation createNavigation() {
+    protected Navigation createNavigation() {
         DefaultHomunculusScope scope = (DefaultHomunculusScope) getScope().getParent();
         return new DefaultAndroidNavigation(getScope(), scope.getBackgroundHandler(), scope.getMainHandler());
     }
@@ -220,6 +219,7 @@ public abstract class HomunculusActivity<T extends ContextScope<?>> extends Even
      *
      * @return the navigation builder, which is null before {@link #onCreate(Bundle)} and after {@link #onDestroy()}
      */
+    @ScopeElement
     public Navigation getNavigation() {
         return navigation;
     }

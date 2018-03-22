@@ -12,8 +12,12 @@ import org.homunculus.android.example.concept.AsyncControllerA.InvokeControllerA
 import org.homunculusframework.factory.flavor.hcf.Bind;
 import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.navigation.Navigation;
+import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 
 /**
@@ -21,6 +25,9 @@ import javax.inject.Inject;
  */
 @Bind
 public class UISA extends LinearLayout {
+    private static AtomicInteger INSTANCE_COUNT = new AtomicInteger();
+    private static AtomicInteger LIFECYCLE_COUNT = new AtomicInteger();
+
     @Inject
     ControllerA controllerA;
 
@@ -51,17 +58,20 @@ public class UISA extends LinearLayout {
 
     public UISA(Context context) {
         super(context);
+        LoggerFactory.getLogger(getClass()).info("instances: {}", INSTANCE_COUNT.incrementAndGet());
     }
 
 
     @PostConstruct
     void apply() {
-        toolbarTemplate.setUpAction(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(getContext(), "Hello from Toolbar", Toast.LENGTH_LONG).show();
-            }
-        }).setToolbarColor(R.color.toolbarColor).setElevation(25);
+        LoggerFactory.getLogger(getClass()).info("LIFE instances: {}", LIFECYCLE_COUNT.incrementAndGet());
+
+//        toolbarTemplate.setUpAction(new Runnable() {
+//            @Override
+//            public void run() {
+//                Toast.makeText(getContext(), "Hello from Toolbar", Toast.LENGTH_LONG).show();
+//            }
+//        }).setToolbarColor(R.color.toolbarColor).setElevation(25);
         activity.setContentView(toolbarTemplate.createToolbar(this));
 
         Button btn = new Button(getContext());
@@ -70,5 +80,16 @@ public class UISA extends LinearLayout {
             navigation.forward(new BindUISB(new UISBModel()));
         });
         addView(btn);
+    }
+
+    @PreDestroy
+    void onDestroy() {
+        LoggerFactory.getLogger(getClass()).info("LIFE instances: {}", LIFECYCLE_COUNT.decrementAndGet());
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        super.finalize();
+        LoggerFactory.getLogger(getClass()).info("instances: {}", INSTANCE_COUNT.decrementAndGet());
     }
 }

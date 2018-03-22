@@ -33,7 +33,7 @@ public class LifecycleLocal<T> implements Reference<T>, Destroyable {
 
     @Nullable
     private T value;
-    private final LifecycleOwner scope;
+    private LifecycleOwner scope;
     private boolean destroyed;
     private final OnDestroyCallback callback;
 
@@ -73,6 +73,7 @@ public class LifecycleLocal<T> implements Reference<T>, Destroyable {
             }
             destroyed = true;
             scope.removeDestroyCallback(callback);
+            scope = null;
             value = null;
         }
     }

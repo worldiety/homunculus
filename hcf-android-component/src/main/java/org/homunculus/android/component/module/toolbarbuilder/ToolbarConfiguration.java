@@ -88,6 +88,10 @@ public abstract class ToolbarConfiguration {
         configure();
     }
 
+    Scope getScope() {
+        return mScope;
+    }
+
     /**
      * Method to configure the parts of the Toolbar, which are default for this configuration. E.g. if your app has a logo in
      * every Toolbar, you may call {@link #setLogo(int)} here.

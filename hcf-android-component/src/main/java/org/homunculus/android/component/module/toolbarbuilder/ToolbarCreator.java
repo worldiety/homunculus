@@ -37,9 +37,12 @@ import org.homunculus.android.component.R;
 import org.homunculus.android.component.Widget;
 import org.homunculus.android.core.ActivityEventDispatcher;
 import org.homunculus.android.core.AndroidScopeContext;
+import org.homunculusframework.factory.scope.LifecycleOwner;
 import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.lang.Panic;
+import org.homunculusframework.lang.Reference;
 import org.homunculusframework.navigation.BackActionConsumer;
+import org.homunculusframework.scope.LifecycleEntry;
 import org.homunculusframework.scope.OnDestroyCallback;
 import org.slf4j.LoggerFactory;
 
@@ -110,29 +113,29 @@ class ToolbarCreator {
      * <p>
      */
     <ContentView extends View, LeftDrawer extends View, RightDrawer extends View> ContentViewHolder<ToolbarHolder<ContentView>, LeftDrawer, RightDrawer> create(@Nullable Scope scope, EventAppCompatActivity activity, ContentView contentView, @Nullable LeftDrawer leftDrawer, @Nullable RightDrawer rightDrawer) {
-//TODO!!!
-//        //only one active and valid toolbar builder is allowed per activity, so simply store the generation id in activity's scope. We use synchronized here in case of someone fiddles around with multiple inflater threads
-//        synchronized (ToolbarCreator.class) {
-//            Scope activityScope = AndroidScopeContext.getScope(activity);
-//            if (activityScope == null) {
-//                //fallback
-//                nextGeneratedId = new AtomicInteger();
-//            } else {
-//                if (activityScope.has(NGID, AtomicInteger.class)) {
-//                    nextGeneratedId = activityScope.get(NGID, AtomicInteger.class);
-//                } else {
-//                    nextGeneratedId = new AtomicInteger();
-//                    activityScope.put(NGID, nextGeneratedId);
-//                }
-//            }
-//        }
-//        generationId = nextGeneratedId.incrementAndGet();
-//        if (scope != null) {
-//            scope.addDestroyCallback(obj -> {
-//                mToolbarConfiguration.mItems.clear();
-//                mToolbarConfiguration.mItems = null;
-//            });
-//        }
+
+
+        //only one active and valid toolbar builder is allowed per activity, so simply store the generation id in activity's scope. We use synchronized here in case of someone fiddles around with multiple inflater threads
+        synchronized (ToolbarCreator.class) {
+            Scope activityScope = AndroidScopeContext.getScope(activity);
+            if (activityScope == null) {
+                //fallback
+                nextGeneratedId = new AtomicInteger();
+            } else {
+                Reference<AtomicInteger> ctr = LifecycleEntry.get(activityScope, NGID, AtomicInteger.class);
+                if (ctr.get() == null) {
+                    ctr.set(new AtomicInteger());
+                }
+                nextGeneratedId = ctr.get();
+            }
+        }
+        generationId = nextGeneratedId.incrementAndGet();
+        if (scope != null) {
+            scope.addDestroyCallback(obj -> {
+                mToolbarConfiguration.mItems.clear();
+                mToolbarConfiguration.mItems = null;
+            });
+        }
 
         mContentView = contentView;
         mLeftDrawer = leftDrawer;
@@ -140,7 +143,7 @@ class ToolbarCreator {
         // Initialize menu
         initMenu(scope, activity, activity.getEventDispatcher());
         // Initialize toolbar
-        ToolbarHolder toolbar = initToolbar(activity);
+        ToolbarHolder toolbar = initToolbar(scope, activity);
         // Initialize navigation drawer
         return initDrawerLayout(activity, toolbar);
     }
@@ -232,7 +235,7 @@ class ToolbarCreator {
     }
 
 
-    private ToolbarHolder initToolbar(AppCompatActivity activity) {
+    private ToolbarHolder initToolbar(Scope scope, AppCompatActivity activity) {
         Toolbar toolbar = new Toolbar(activity);
         int barSize = (int) activity.getResources().getDimension(R.dimen.toolbarbuilder_barheight);
         toolbar.setMinimumHeight(barSize);
@@ -276,7 +279,7 @@ class ToolbarCreator {
 
         ab.setDisplayHomeAsUpEnabled(mToolbarConfiguration.mShowNavigationIcons);
 
-        ToolbarHolder holder = new ToolbarHolder(activity);
+        ToolbarHolder holder = new ToolbarHolder(scope, activity);
         holder.setId(Widget.generateViewId());
         holder.addView(toolbar, new LinearLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, barSize, 0));
         holder.addView(mContentView, new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, 1));
@@ -356,9 +359,23 @@ class ToolbarCreator {
         private ContentView mChild;
         private Toolbar mToolbar;
 
-        public ToolbarHolder(Context context) {
+        public ToolbarHolder(LifecycleOwner owner, Context context) {
             super(context);
             setOrientation(VERTICAL);
+            /*
+            Cut off all leaking bug from the android InputMethodManager regarding the toolbar, see also https://issuetracker.google.com/issues/37043700
+            Otherwise Android leaks the entire UIS until the next toolbar and UIS does it's stuff.
+            This bug has NOT been fixed since more than 3 year now!!!
+             */
+            if (owner != null) {
+                owner.addDestroyCallback(o -> {
+                    mChild = null;
+                    mToolbar = null;
+                    removeAllViews();
+                });
+            } else {
+                LoggerFactory.getLogger(getClass()).error("no owner scope, the Android InputMethodManager will leak your views");
+            }
         }
 
         public ContentView getChild() {
