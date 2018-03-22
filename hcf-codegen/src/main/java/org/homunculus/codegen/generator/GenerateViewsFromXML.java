@@ -54,6 +54,8 @@ import javax.annotation.Nullable;
 
 public class GenerateViewsFromXML implements Generator {
     private final static String XML_ID_SIMPLE = "android:id";
+    private final static String INCLUDE = "include";
+    private final static String AT_LAYOUT = "@layout/";
 
     private final static Map<String, String> ALIASE = new HashMap<>();
 
@@ -124,6 +126,8 @@ public class GenerateViewsFromXML implements Generator {
         con.javadoc().add("Inflates the layout from {@link " + impName + "." + attribName + "}");
         con.body().invokeSuper().arg(pCtx).arg(project.getCodeModel().ref(impName).staticRef(attribName));
 
+        inflate(project, file);
+
         List<Element> exports = file.collect(element -> {
             String id = element.getAttribute(XML_ID_SIMPLE);
             if (id == null || id.trim().length() == 0) {
@@ -133,7 +137,9 @@ public class GenerateViewsFromXML implements Generator {
         });
 
         for (Element element : exports) {
+            if (element.getNodeName().equals("include")) {
 
+            }
             String id = element.getAttribute(XML_ID_SIMPLE);
             AbstractJClass returnType = project.getCodeModel().ref(getAndroidViewName(element.getNodeName()));
             JMethod meth = cl.method(JMod.PUBLIC, returnType, "get" + makeNiceName(id));
@@ -148,6 +154,78 @@ public class GenerateViewsFromXML implements Generator {
         }
     }
 
+    /**
+     * Inflates all available includes from the given XML file. Each include may include other views, so
+     * this process is repeated until no includes are available anymore.
+     *
+     * @param project to grab the includes from
+     * @param file
+     */
+    private void inflate(GenProject project, XMLFile file) {
+        while (true) {
+            List<Element> includes = file.collect(element -> {
+                return element.getNodeName().equals(INCLUDE);
+            });
+
+            if (includes.isEmpty()) {
+                return;
+            }
+
+            for (Element include : includes) {
+                //e.g. layout="@layout/activity_cart"
+                String layoutId = include.getAttribute("layout");
+                if (layoutId.startsWith(AT_LAYOUT)) {
+                    layoutId = layoutId.substring(AT_LAYOUT.length());
+                }
+
+                //this overrides the included layout id
+                String androidId = include.getAttribute(XML_ID_SIMPLE);
+
+                XMLFile includeFile = null;
+                String targetFileName = layoutId + ".xml";
+                for (XMLFile i : project.getXmlFiles()) {
+                    if (i.getFile().getName().equals(targetFileName)) {
+                        includeFile = i;
+                        break;
+                    }
+                }
+
+                //we always replace include-nodes, either with android.view.View or the concrete types
+                Element templateView;
+                if (includeFile == null) {
+                    //ups so such file or from sdk or whatever, replace with view
+                    templateView = file.getDoc().createElement("android.view.View");
+                } else {
+                    //we found the file to include
+                    templateView = (Element) file.getDoc().importNode(includeFile.getDoc().getDocumentElement(), true);
+                }
+
+                Node templateParent = include.getParentNode();
+                templateParent.removeChild(include);
+                //now either insert or add, whatever fits
+                if (include.getNextSibling() != null) {
+                    Node nextSibling = include.getNextSibling();
+                    templateParent.insertBefore(templateView, nextSibling);
+                } else {
+                    templateParent.appendChild(templateView);
+                }
+
+                //do not forget to override the id
+                if (androidId != null) {
+                    templateView.setAttribute(XML_ID_SIMPLE, androidId);
+                }
+
+            }
+        }
+    }
+
+    /**
+     * Walks it's sibling up until and discards Text nodes until no more Text nodes are found and then returns
+     * the Comment (if any) or null.
+     *
+     * @param node the node to grab the comment for
+     * @return null or the comment
+     */
     @Nullable
     private Comment grabLatestNode(Node node) {
         Node priorSib = node.getPreviousSibling();
@@ -183,6 +261,6 @@ public class GenerateViewsFromXML implements Generator {
             sb.append(camel.substring(0, 1).toUpperCase());
             sb.append(camel.substring(1));
         }
-        return sb.toString();
+        return Strings.nicefy(sb.toString());
     }
 }

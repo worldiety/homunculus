@@ -1,5 +1,8 @@
 package org.homunculus.codegen.parse;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
 /**
@@ -7,6 +10,13 @@ import java.util.regex.Pattern;
  */
 
 public class Strings {
+    private static final Map<String, String> QUOTED_WORDS = new HashMap<>();
+
+    static {
+        QUOTED_WORDS.put(Pattern.quote("view"), "View");
+        QUOTED_WORDS.put(Pattern.quote("button"), "Button");
+    }
+
     private Strings() {
 
     }
@@ -22,6 +32,9 @@ public class Strings {
     }
 
     public static String nicefy(String text) {
-        return text.replaceFirst(Pattern.quote("view"), "View");
+        for (Entry<String, String> entry : QUOTED_WORDS.entrySet()) {
+            text = text.replaceFirst(entry.getKey(), entry.getValue());
+        }
+        return text;
     }
 }

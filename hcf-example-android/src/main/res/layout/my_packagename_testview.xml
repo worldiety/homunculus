@@ -56,6 +56,8 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textView9"/>
 
+        <include layout="@layout/activity_cart" android:id="@+id/included_cart"/>
+
         <Spinner
             android:id="@+id/uis_trap_record_today_spinner"
             android:layout_width="0dp"
