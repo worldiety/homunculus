@@ -1,8 +1,11 @@
 package org.homunculus.android.example.concept;
 
 
+import org.homunculusframework.concurrent.Cancellable;
+import org.homunculusframework.concurrent.NotInterruptible;
 import org.homunculusframework.factory.container.Binding;
 import org.homunculusframework.factory.container.ModelAndView;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -16,15 +19,39 @@ public class ControllerA {
     @Inject
     MyCustomDatabase myCustomDatabase;
 
-    public String sayHelloToA(int x) {
+    public String sayHelloToA(int x) throws InterruptedException {
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            LoggerFactory.getLogger(getClass()).info("interrupted");
+            throw e;
+        }
         return "hello " + x;
     }
 
-    public ModelAndView doJob1(String param) {
-        return new BindUISA();
+    @NotInterruptible
+    public String sayHelloToA1(int x) throws InterruptedException {
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            LoggerFactory.getLogger(getClass()).info("interrupted");
+            throw e;
+        }
+        return "hello " + x;
     }
 
-    public ModelAndView doJob2(String param, int p2, Float p3) {
-        return new BindUISA();
+    @Cancellable
+    public String sayHelloToA2(int x) throws InterruptedException {
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            LoggerFactory.getLogger(getClass()).info("interrupted");
+            throw e;
+        }
+        return "hello " + x;
+    }
+
+    public ModelAndView nextUIS(String asdf) {
+        return new BindUISB(new UISBModel());
     }
 }

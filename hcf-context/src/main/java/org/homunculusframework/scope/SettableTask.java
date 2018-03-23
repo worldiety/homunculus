@@ -19,7 +19,6 @@ import org.homunculusframework.concurrent.ExecutionList;
 import org.homunculusframework.concurrent.Task;
 import org.homunculusframework.factory.container.Handler;
 import org.homunculusframework.factory.container.MainHandler;
-import org.homunculusframework.factory.scope.AbsScope;
 import org.homunculusframework.factory.scope.EmptyScope;
 import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.lang.Function;
@@ -49,17 +48,20 @@ public class SettableTask<T> implements Task<T> {
     private volatile boolean shouldCancelWithInterrupt;
     private volatile boolean done;
     private final List<OnCancelledListener> onCancelledListeners = new ArrayList<>(1);
-    private final OnDestroyCallback beforeDestroyCallback;
+    private final OnDestroyCallback destroyCallback;
     private volatile ExecutionList executionList;
 
     private SettableTask(@Nullable Scope scope, String name) {
         this.key = name + "@" + System.identityHashCode(this);
         this.scope = scope == null ? new EmptyScope() : scope;
         this.executionList = new ExecutionList();
-        this.beforeDestroyCallback = s -> {
+        this.destroyCallback = s -> {
             cancel(true);
             executionList = null;
         };
+        if (scope != null){
+            scope.addDestroyCallback(destroyCallback);
+        }
     }
 
     public void addOnCancelledListener(OnCancelledListener listener) {
@@ -130,7 +132,7 @@ public class SettableTask<T> implements Task<T> {
                 if (scope == null) {
                     throw new Panic();
                 } else {
-                    scope.removeDestroyCallback(beforeDestroyCallback);
+                    scope.removeDestroyCallback(destroyCallback);
                 }
                 this.result = result;
                 Handler handler = scope.resolve(Handler.class);
@@ -166,8 +168,8 @@ public class SettableTask<T> implements Task<T> {
      */
     @Override
     public void cancel(boolean mayInterruptIfRunning) {
-        if (beforeDestroyCallback != null && scope != null) {
-            scope.removeDestroyCallback(beforeDestroyCallback);
+        if (destroyCallback != null && scope != null) {
+            scope.removeDestroyCallback(destroyCallback);
         }
         if (shouldCancel) {
             return;

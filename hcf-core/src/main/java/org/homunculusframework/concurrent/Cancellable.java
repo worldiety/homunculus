@@ -32,7 +32,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface CancelPending {
+public @interface Cancellable {
     /**
      * Default is true. Flags the automatic call to {@link Task#cancel(boolean)}
      *

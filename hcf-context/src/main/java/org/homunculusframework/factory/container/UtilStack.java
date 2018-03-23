@@ -19,7 +19,7 @@ public class UtilStack {
         int callOffset = 0;
         for (int i = 0; i < trace.length; i++) {
             StackTraceElement elem = trace[i];
-            if (elem.getFileName().equals("DefaultFactory.java") && elem.getMethodName().equals("getCallStack")) {
+            if (elem.getFileName() != null && elem.getFileName().equals("DefaultFactory.java") && elem.getMethodName().equals("getCallStack")) {
                 callOffset = i + 1;
                 break;
             }

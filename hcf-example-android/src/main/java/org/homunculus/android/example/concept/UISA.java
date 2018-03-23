@@ -1,6 +1,7 @@
 package org.homunculus.android.example.concept;
 
 import android.content.Context;
+import android.support.v7.app.AlertDialog.Builder;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -8,7 +9,7 @@ import android.widget.Toast;
 import org.homunculus.android.compat.EventAppCompatActivity;
 import org.homunculus.android.core.ActivityCallback;
 import org.homunculus.android.example.R;
-import org.homunculus.android.example.concept.AsyncControllerA.InvokeControllerADoJob1;
+import org.homunculus.android.example.concept.AsyncControllerA.InvokeControllerANextUIS;
 import org.homunculusframework.factory.flavor.hcf.Bind;
 import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.navigation.Navigation;
@@ -56,6 +57,8 @@ public class UISA extends LinearLayout {
     @Inject
     ActivityCallback<?> activityCallback;
 
+    private int helloCounter;
+
     public UISA(Context context) {
         super(context);
         LoggerFactory.getLogger(getClass()).info("instances: {}", INSTANCE_COUNT.incrementAndGet());
@@ -66,20 +69,56 @@ public class UISA extends LinearLayout {
     void apply() {
         LoggerFactory.getLogger(getClass()).info("LIFE instances: {}", LIFECYCLE_COUNT.incrementAndGet());
 
-//        toolbarTemplate.setUpAction(new Runnable() {
-//            @Override
-//            public void run() {
-//                Toast.makeText(getContext(), "Hello from Toolbar", Toast.LENGTH_LONG).show();
-//            }
-//        }).setToolbarColor(R.color.toolbarColor).setElevation(25);
+        setOrientation(VERTICAL);
+
+        toolbarTemplate.setUpAction(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(getContext(), "Hello from Toolbar", Toast.LENGTH_LONG).show();
+            }
+        }).setToolbarColor(R.color.toolbarColor).setElevation(25);
         activity.setContentView(toolbarTemplate.createToolbar(this));
 
         Button btn = new Button(getContext());
-        btn.setText("hallo welt");
+        btn.setText("go directly to UISB");
         btn.setOnClickListener(v -> {
             navigation.forward(new BindUISB(new UISBModel()));
         });
         addView(btn);
+
+
+        Button btn2 = new Button(getContext());
+        btn2.setText("navigate through controller");
+        btn2.setOnClickListener(v -> {
+            navigation.forward(new InvokeControllerANextUIS("asdf"));
+        });
+        addView(btn2);
+
+        Button btn3 = new Button(getContext());
+        btn3.setText("say async hello");
+        btn3.setOnClickListener(v -> {
+            asyncControllerA.sayHelloToA(helloCounter++).whenDone(res -> {
+                Builder builder = new Builder(getContext());
+                builder.setMessage("hello world no " + res.get() + " [cancelled=" + res.isCancelled() + ", outdated=" + res.isOutdated() + "]");
+                builder.setNeutralButton("k", (dialog, which) -> {
+                });
+                builder.create().show();
+            });
+        });
+        addView(btn3);
+
+        Button btn4 = new Button(getContext());
+        btn4.setText("say async hello interruptible and cancelable");
+        btn4.setOnClickListener(v -> {
+            asyncControllerA.sayHelloToA2(helloCounter++).whenDone(res -> {
+                Builder builder = new Builder(getContext());
+                builder.setMessage("hello world no " + res.get() + " [cancelled=" + res.isCancelled() + ", outdated=" + res.isOutdated() + "]");
+                builder.setNeutralButton("k", (dialog, which) -> {
+                });
+                builder.create().show();
+            });
+        });
+        addView(btn4);
     }
 
     @PreDestroy
