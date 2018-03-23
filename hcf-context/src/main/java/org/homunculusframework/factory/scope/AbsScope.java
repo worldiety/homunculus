@@ -1,5 +1,6 @@
 package org.homunculusframework.factory.scope;
 
+import org.homunculusframework.lang.Function;
 import org.homunculusframework.scope.OnDestroyCallback;
 
 import java.util.ArrayList;
@@ -16,9 +17,13 @@ public abstract class AbsScope implements Scope {
 
     private final List<OnDestroyCallback> callbacks;
 
+    private final List<Scope> children;
+
+    private boolean destroyed;
 
     public AbsScope() {
         callbacks = new ArrayList<>();
+        children = new ArrayList<>();
     }
 
     @Override
@@ -32,6 +37,12 @@ public abstract class AbsScope implements Scope {
     }
 
     private void destroy() {
+        //TODO this is not thread safe
+        if (destroyed) {
+            return;
+        }
+        destroyed = true;
+
         //defensive copy again, to protect against weired stuff
         final ArrayList<OnDestroyCallback> tmpOnBeforeDestroyCallbacks;
         synchronized (callbacks) {
@@ -42,6 +53,16 @@ public abstract class AbsScope implements Scope {
             tmpOnBeforeDestroyCallbacks.get(i).onDestroy(this);
         }
         tmpOnBeforeDestroyCallbacks.clear();
+
+        //defensive copy for child scopes and their destruction
+        List<Scope> tmp;
+        synchronized (children) {
+            tmp = new ArrayList<>(children);
+            children.clear();
+        }
+        for (Scope scope : tmp) {
+            scope.onDestroy();
+        }
 
     }
 
@@ -60,4 +81,35 @@ public abstract class AbsScope implements Scope {
     }
 
 
+    @Override
+    public boolean addScope(Scope child) {
+        synchronized (children) {
+            if (children.contains(child)) {
+                return false;
+            }
+            children.add(child);
+            return true;
+        }
+    }
+
+    @Override
+    public boolean removeScope(Scope child) {
+        synchronized (children) {
+            return children.remove(child);
+        }
+    }
+
+    @Override
+    public void forEachScope(Function<Scope, Boolean> closure) {
+        List<Scope> tmp;
+        synchronized (children) {
+            tmp = new ArrayList<>(children);
+        }
+        for (Scope scope : tmp) {
+            Boolean b = closure.apply(scope);
+            if (b == null || !b) {
+                return;
+            }
+        }
+    }
 }

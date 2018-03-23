@@ -1,5 +1,7 @@
 package org.homunculusframework.factory.scope;
 
+import org.homunculusframework.lang.Function;
+
 import javax.annotation.Nullable;
 
 public class EmptyScope extends AbsScope {
@@ -14,5 +16,10 @@ public class EmptyScope extends AbsScope {
     @Override
     public <T> T resolve(Class<T> type) {
         return null;
+    }
+
+    @Override
+    public void forEachEntry(Function<Object, Boolean> closure) {
+
     }
 }

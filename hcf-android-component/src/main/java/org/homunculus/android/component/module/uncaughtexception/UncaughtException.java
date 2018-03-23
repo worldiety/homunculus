@@ -27,6 +27,7 @@ import org.homunculusframework.factory.container.ObjectBinding;
 import org.homunculusframework.factory.scope.AbsScope;
 import org.homunculusframework.factory.scope.ContextScope;
 import org.homunculusframework.factory.scope.Scope;
+import org.homunculusframework.lang.Function;
 import org.homunculusframework.lang.Result;
 import org.homunculusframework.navigation.Navigation;
 import org.homunculusframework.stereotype.UserInterfaceState;
@@ -163,6 +164,12 @@ public class UncaughtException {
         }
 
         @Override
+        public void onCreate() {
+            super.onCreate();
+            value.apply();
+        }
+
+        @Override
         public org.homunculusframework.factory.scope.Scope getParent() {
             return parent;
         }
@@ -176,6 +183,11 @@ public class UncaughtException {
         @Override
         public <T> T resolve(Class<T> type) {
             return null;
+        }
+
+        @Override
+        public void forEachEntry(Function<Object, Boolean> closure) {
+
         }
     }
 }

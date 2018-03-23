@@ -2,6 +2,7 @@ package org.homunculus.android.example.concept;
 
 import android.content.Context;
 import android.support.v7.app.AlertDialog.Builder;
+import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -119,6 +120,8 @@ public class UISA extends LinearLayout {
             });
         });
         addView(btn4);
+
+
     }
 
     @PreDestroy

@@ -86,6 +86,7 @@ public abstract class HomunculusActivity<T extends ContextScope<?>> extends Even
     protected void init(@Nullable Bundle savedInstanceState) {
         this.scope = createScope();
         this.navigation = createNavigation();
+        this.scope.onCreate();
         if (savedInstanceState != null) {
             if (restoreStackState(savedInstanceState)) {
                 if (!onStackRestored(navigation, savedInstanceState)) {
@@ -96,6 +97,15 @@ public abstract class HomunculusActivity<T extends ContextScope<?>> extends Even
             }
         } else {
             navigation.forward(create());
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Scope scope = this.scope;
+        if (scope != null) {
+            scope.onDestroy();
         }
     }
 

@@ -28,6 +28,7 @@ import org.homunculus.codegen.parse.Strings;
 import org.homunculusframework.factory.flavor.hcf.ScopeElement;
 import org.homunculusframework.factory.scope.AbsScope;
 import org.homunculusframework.factory.scope.Scope;
+import org.homunculusframework.lang.Function;
 import org.homunculusframework.lang.Panic;
 import org.homunculusframework.factory.scope.ContextScope;
 
@@ -210,6 +211,7 @@ public class GenerateScopes implements Generator {
             //call the PostConstruct methods
             JMethod create = scope.method(JMod.PUBLIC, void.class, "onCreate");
             create.body().add(JExpr._super().invoke("onCreate"));
+            create.body().add(JExpr.invoke("getParent").invoke("addScope").arg(JExpr._this()));
             create.annotate(Override.class);
             for (Method method : resolver.getMethods(bean)) {
                 if (method.getAnnotation(PostConstruct.class) != null) {
@@ -220,6 +222,7 @@ public class GenerateScopes implements Generator {
             //call the PreDestroy methods
             JMethod destroy = scope.method(JMod.PUBLIC, void.class, "onDestroy");
             destroy.body().add(JExpr._super().invoke("onDestroy"));
+            destroy.body().add(JExpr.invoke("getParent").invoke("removeScope").arg(JExpr._this()));
             destroy.annotate(Override.class);
             for (Method method : resolver.getMethods(bean)) {
                 if (method.getAnnotation(PreDestroy.class) != null) {
@@ -234,6 +237,8 @@ public class GenerateScopes implements Generator {
 
             //<T> T resolve(Class<T> type)
             createResolveMethod(code, scope);
+
+            createForEachEntryMethod(code, scope);
 
             return scope;
         }
@@ -267,6 +272,20 @@ public class GenerateScopes implements Generator {
             JVar tmpScope = resolve.body().decl(code.ref(Scope.class), "parent", JExpr._this().invoke("getParent"));
             resolve.body()._if(tmpScope.eqNull())._then()._return(JExpr._null());
             resolve.body()._return(tmpScope.invoke("resolve").arg(typeVar));
+        }
+
+        void createForEachEntryMethod(JCodeModel code, JDefinedClass scope) {
+            JMethod resolve = scope.method(JMod.PUBLIC, void.class, "forEachEntry");
+            resolve.annotate(Override.class);
+            JVar closureVar = resolve.param(code.ref(Function.class).narrow(Object.class).narrow(Boolean.class), "closure");
+            JVar nextVar = resolve.body().decl(code.ref(Boolean.class), "next");
+            //loop every member
+            for (JMethod method : scope.methods()) {
+                if (method.name().startsWith("get") && !method.name().equals("getContext")) {
+                    resolve.body().assign(nextVar, closureVar.invoke("apply").arg(JExpr._this().invoke(method)));
+                    resolve.body()._if(nextVar.eqNull().cor(nextVar.eq(JExpr.FALSE)))._then()._return();
+                }
+            }
         }
 
         void onConstructorDefined(JDefinedClass scope, JMethod constructor) {

@@ -1,5 +1,6 @@
 package org.homunculusframework.factory.scope;
 
+import org.homunculusframework.lang.Function;
 import org.homunculusframework.scope.OnDestroyCallback;
 
 import javax.annotation.Nullable;
@@ -36,6 +37,8 @@ public interface Scope extends LifecycleOwner {
      * <p>
      * The given type is tried to be resolved but never created if not found in this scope or any of it's parents.
      * <p>
+     * Important: Scope.class is always resolved to this.
+     * <p>
      * TODO actually this is not true, in a handwritten system we would introduce an interface and implement it in our own scope implementation
      *
      * @param type the type to resolve an instance for
@@ -45,5 +48,35 @@ public interface Scope extends LifecycleOwner {
     @Nullable
     <T> T resolve(Class<T> type);
 
+    /**
+     * Adds another scope as child
+     *
+     * @param child
+     * @return true if successfully added
+     */
+    boolean addScope(Scope child);
 
+    /**
+     * Removes the given scope from the children list.
+     *
+     * @param child
+     * @return true if successfully removed
+     */
+    boolean removeScope(Scope child);
+
+    /**
+     * Loops over the direct children (not recursive) until no other child is available or false is returned.
+     * Scopes are not considered to be entries which are resolvable, see also {@link #forEachEntry(Function)}
+     *
+     * @param closure the closure to call
+     */
+    void forEachScope(Function<Scope, Boolean> closure);
+
+
+    /**
+     * Loops over all direct scope entries (not recursive, neither up or done). Does not loop over children scopes.
+     *
+     * @param closure
+     */
+    void forEachEntry(Function<Object, Boolean> closure);
 }
