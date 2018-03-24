@@ -31,37 +31,35 @@ public class GenTask extends DefaultTask {
 
     @TaskAction
     void doFullTaskAction() throws Exception {
-        doLast(task -> {
-            try {
-                AppPlugin android = null;
-                for (Plugin plugin : getProject().getPlugins()) {
-                    System.out.println(plugin.getClass() + "(" + plugin + ")");
-                    if (plugin instanceof AppPlugin) {
-                        android = (AppPlugin) plugin;
-                        break;
-                    }
+        try {
+            AppPlugin android = null;
+            for (Plugin plugin : getProject().getPlugins()) {
+                System.out.println(plugin.getClass() + "(" + plugin + ")");
+                if (plugin instanceof AppPlugin) {
+                    android = (AppPlugin) plugin;
+                    break;
                 }
-
-                File hcfDir = new File(getProject().getBuildDir(), HCF_GEN_DIR);
-                GenProject gen = new GenProject();
-                gen.setProjectRoot(getProject().getProjectDir());
-                gen.setManifestPackage(android.getVariantManager().getDefaultConfig().getProductFlavor().getApplicationId());
-
-                for (File f : android.getVariantManager().getDefaultConfig().getSourceSet().getJavaDirectories()) {
-                    gen.addRecursive(f);
-                }
-                for (File f : android.getVariantManager().getDefaultConfig().getSourceSet().getResourcesDirectories()) {
-                    gen.addRecursive(f);
-                }
-                gen.clearDir(hcfDir);
-                hcfDir.mkdirs();
-
-                gen.generate();
-                gen.emitGeneratedClass(hcfDir);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
             }
-        });
+
+            File hcfDir = new File(getProject().getBuildDir(), HCF_GEN_DIR);
+            GenProject gen = new GenProject();
+            gen.setProjectRoot(getProject().getProjectDir());
+            gen.setManifestPackage(android.getVariantManager().getDefaultConfig().getProductFlavor().getApplicationId());
+
+            for (File f : android.getVariantManager().getDefaultConfig().getSourceSet().getJavaDirectories()) {
+                gen.addRecursive(f);
+            }
+            for (File f : android.getVariantManager().getDefaultConfig().getSourceSet().getResourcesDirectories()) {
+                gen.addRecursive(f);
+            }
+            gen.clearDir(hcfDir);
+            hcfDir.mkdirs();
+
+            gen.generate();
+            gen.emitGeneratedClass(hcfDir);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
 
     }

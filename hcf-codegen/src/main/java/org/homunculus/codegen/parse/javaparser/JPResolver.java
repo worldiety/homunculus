@@ -51,8 +51,9 @@ public class JPResolver implements Resolver {
         instanceOfTable.put(new FullQualifiedName("org.homunculus.android.compat.EventAppCompatActivity"), new FullQualifiedName(Activity.class));
     }
 
-    public JPResolver(List<SrcFile> srcFiles) {
+    public JPResolver(JCodeModelResolver codeResolver, List<SrcFile> srcFiles) {
         this.srcFiles = srcFiles;
+        this.codeResolver = codeResolver;
         for (SrcFile file : srcFiles) {
             file.setResolver(this);
             for (TypeDeclaration td : file.getUnit().getTypes()) {
@@ -63,9 +64,6 @@ public class JPResolver implements Resolver {
         }
     }
 
-    public void setCodeResolver(JCodeModelResolver codeResolver) {
-        this.codeResolver = codeResolver;
-    }
 
     @Override
     public void getSuperTypes(FullQualifiedName name, List<FullQualifiedName> dst) throws ClassNotFoundException {
