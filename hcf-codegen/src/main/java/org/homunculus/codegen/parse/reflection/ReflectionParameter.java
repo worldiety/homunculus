@@ -37,4 +37,9 @@ public class ReflectionParameter implements Parameter {
         }
         return res;
     }
+
+    @Override
+    public String toString() {
+        return getType().toString();
+    }
 }

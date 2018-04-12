@@ -37,7 +37,7 @@ public class ReflectionResolver implements Resolver {
             for (Class i : t.getInterfaces()) {
                 listTypes(new FullQualifiedName(i), found, notFound);
             }
-        } catch (ClassNotFoundException e) {
+        } catch (ClassNotFoundException | NoClassDefFoundError e) {
             notFound.add(src);
         }
     }

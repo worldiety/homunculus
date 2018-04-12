@@ -3,6 +3,12 @@ description = "code parser and generator to improve static compilation experienc
 apply plugin: 'application'
 mainClassName = "org.homunculus.codegen.Test"
 
+
+configurations {
+    // configuration that holds jars to include in the jar
+    extraLibs
+}
+
 dependencies {
     compile(project(":hcf-core"))
     compile(project(":hcf-context"))
@@ -25,4 +31,12 @@ dependencies {
 
     //if you have a cyclic compilation dependency problem uncomment the following line and do a "make"
     compile fileTree(dir: 'libs', include: ['*.jar'])
+
+    extraLibs fileTree(dir: 'libs', include: ['*.jar'])
+}
+
+jar {
+    from {
+        configurations.extraLibs.collect { it.isDirectory() ? it : zipTree(it) }
+    }
 }

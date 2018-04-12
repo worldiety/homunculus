@@ -5,6 +5,8 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 
@@ -66,7 +68,7 @@ public class GenerateBindables implements Generator {
 
             Constructor shortestConstructor = null;
             for (Constructor ctr : project.getResolver().getConstructors(bean)) {
-                if (!ctr.isPrivate() && (shortestConstructor == null || ctr.getParameters().size() < ctr.getParameters().size())) {
+                if (!ctr.isPrivate() && (shortestConstructor == null || ctr.getParameters().size() < shortestConstructor.getParameters().size())) {
                     shortestConstructor = ctr;
                 }
             }
@@ -205,12 +207,15 @@ public class GenerateBindables implements Generator {
 
 
     private IJExpression resolveDependencyFromScope(Resolver resolver, JCodeModel code, JVar beanScope, JDefinedClass parentScope, JVar varParentScope, AbstractJType type, Ref<Boolean> hasOwnership) throws Exception {
+        //special type resolving
         if (resolver.isInstanceOf(new FullQualifiedName(type.fullName()), new FullQualifiedName(Scope.class))) {
             return beanScope;
         }
         if (resolver.isInstanceOf(new FullQualifiedName(type.fullName()), new FullQualifiedName(LifecycleOwner.class))) {
             return beanScope;
         }
+        //====
+
         hasOwnership.set(false);
         JMethod matchingMethod = resolveMatchingMethod(resolver, parentScope, type);
         if (matchingMethod != null) {
@@ -231,10 +236,35 @@ public class GenerateBindables implements Generator {
             }
         }
 
+        //if not available, check special kinds of resolving
+        IJExpression specialCreate = specialConstructorRules(resolver, code, beanScope, parentScope, varParentScope, type, hasOwnership);
+        if (specialCreate != null) {
+            return specialCreate;
+        }
+
         //well no such dependency, so let's try to create an instance from scratch
         JInvocation constructorCall = createConstructorCall(resolver, code, beanScope, parentScope, varParentScope, type, hasOwnership);
         hasOwnership.set(true);
         return constructorCall;
+    }
+
+    /**
+     * For certain types and use cases we want to provide some convenience behaviorals, like factory methods or other globals which are usually used.
+     * This is only used if no such type is provided by the scopes.
+     */
+    @Nullable
+    private IJExpression specialConstructorRules(Resolver resolver, JCodeModel code, JVar beanScope, JDefinedClass parentScope, JVar varParentScope, AbstractJType type, Ref<Boolean> hasOwnership) {
+        //Android Handler defaults to Main-Looper handler: new Handler(Looper.getMainLooper)
+        if (resolver.isInstanceOf(new FullQualifiedName(type.fullName()), new FullQualifiedName(Handler.class))) {
+            return JExpr._new(code.ref(Handler.class)).arg(code.ref(Looper.class).staticInvoke("getMainLooper"));
+        }
+
+        //Android LayoutInflater defaults to factory call: LayoutInflater.from(scope.getContext()
+        if (resolver.isInstanceOf(new FullQualifiedName(type.fullName()), new FullQualifiedName(LayoutInflater.class))) {
+            return code.ref(LayoutInflater.class).staticInvoke("from").arg(varParentScope.invoke("getContext"));
+        }
+
+        return null;
     }
 
     private JMethod resolveMatchingMethod(Resolver resolver, JDefinedClass parentScope, AbstractJType type) {
@@ -277,14 +307,13 @@ public class GenerateBindables implements Generator {
 
             Constructor shortestConstructor = null;
             for (Constructor ctr : resolver.getConstructors(new FullQualifiedName(type.fullName()))) {
-                if (!ctr.isPrivate() && (shortestConstructor == null || ctr.getParameters().size() < ctr.getParameters().size())) {
+                if (!ctr.isPrivate() && (shortestConstructor == null || ctr.getParameters().size() < shortestConstructor.getParameters().size())) {
                     shortestConstructor = ctr;
                 }
             }
 
             //the easy one
             if (shortestConstructor == null || shortestConstructor.getParameters().isEmpty()) {
-
                 return JExpr._new(type);
             }
 

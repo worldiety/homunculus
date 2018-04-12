@@ -18,6 +18,8 @@ package org.homunculus.android.component;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 
 import org.homunculus.android.compat.EventAppCompatActivity;
 import org.homunculus.android.component.module.uncaughtexception.UncaughtException;
@@ -100,6 +102,7 @@ public abstract class HomunculusActivity<T extends ContextScope<?>> extends Even
         }
     }
 
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -141,11 +144,13 @@ public abstract class HomunculusActivity<T extends ContextScope<?>> extends Even
         return new DefaultAndroidNavigation(getScope(), scope.getBackgroundHandler(), scope.getMainHandler());
     }
 
+
     @ScopeElement
     @Override
     public ActivityEventDispatcher<EventAppCompatActivity> getEventDispatcher() {
         return super.getEventDispatcher();
     }
+
 
     /**
      * Calls to {@link #saveStackState(Bundle)} to write the navigation stack into the bundle.

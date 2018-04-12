@@ -6,6 +6,7 @@ import android.support.annotation.Nullable;
 
 import org.homunculus.android.compat.EventAppCompatActivity;
 import org.homunculus.android.component.HomunculusActivity;
+import org.homunculus.android.component.module.validator.HomunculusValidator;
 import org.homunculusframework.factory.container.Binding;
 import org.homunculusframework.factory.flavor.hcf.ScopeElement;
 import org.homunculusframework.navigation.Navigation;
@@ -27,5 +28,9 @@ public class ConceptActivity extends HomunculusActivity<ConceptActivityScope> {
         return new BindUISA();
     }
 
+    @ScopeElement
+    HomunculusValidator createValidator(){
+        return HomunculusValidator.createAndroidResourceMessagesValidator(this);
+    }
 
 }
