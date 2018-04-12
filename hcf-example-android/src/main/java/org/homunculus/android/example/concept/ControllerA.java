@@ -1,6 +1,9 @@
 package org.homunculus.android.example.concept;
 
 
+import android.content.Context;
+
+import org.homunculus.android.component.module.storage.Persistent;
 import org.homunculusframework.concurrent.Cancellable;
 import org.homunculusframework.concurrent.NotInterruptible;
 import org.homunculusframework.factory.container.Binding;
@@ -18,6 +21,15 @@ public class ControllerA {
 
     @Inject
     MyCustomDatabase myCustomDatabase;
+
+    @Inject
+    Persistent<Boolean> testPersistent;
+
+    @Inject
+    Persistent<Boolean> testPersistent2;
+
+    @Inject
+    Context regression;
 
     public String sayHelloToA(int x) throws InterruptedException {
         try {

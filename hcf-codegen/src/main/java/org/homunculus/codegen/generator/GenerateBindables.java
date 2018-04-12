@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.v4.util.ArrayMap;
 import android.view.LayoutInflater;
 import android.view.View;
 
@@ -23,6 +24,7 @@ import com.helger.jcodemodel.JMod;
 import com.helger.jcodemodel.JTypeVar;
 import com.helger.jcodemodel.JVar;
 
+import org.homunculus.android.component.module.storage.Persistent;
 import org.homunculus.codegen.GenProject;
 import org.homunculus.codegen.Generator;
 import org.homunculus.codegen.generator.PreprocessDiscoverBeans.DiscoveryKind;
@@ -43,6 +45,8 @@ import org.homunculusframework.lang.Ref;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -55,6 +59,7 @@ public class GenerateBindables implements Generator {
     private final static FullQualifiedName HCF_ANDROID_RES = new FullQualifiedName("org.homunculus.android.flavor.Resource");
     private final static FullQualifiedName ANDROID_VIEW = new FullQualifiedName(View.class);
     private final static FullQualifiedName STRING = new FullQualifiedName(String.class);
+    private final static FullQualifiedName PERSISTENT = new FullQualifiedName(Persistent.class);
     private final static FullQualifiedName ANDROID_DRAWABLE = new FullQualifiedName(Drawable.class);
     private final static FullQualifiedName ANDROID_BITMAP = new FullQualifiedName(Bitmap.class);
 
@@ -99,6 +104,23 @@ public class GenerateBindables implements Generator {
 
             binder._extends(code.ref(ModelAndView.class).narrow(preSolved.extendClassNarrows));
         }
+    }
+
+    static Map<FullQualifiedName, Object> createLiterals(Parameter p) {
+        return createLiterals(p.getType(), p.getName());
+    }
+
+    static Map<FullQualifiedName, Object> createLiterals(Field p) {
+        return createLiterals(p.getType().getFullQualifiedName(), p.getName());
+    }
+
+    static Map<FullQualifiedName, Object> createLiterals(FullQualifiedName f, String name) {
+        if (f.equals(PERSISTENT)) {
+            Map<FullQualifiedName, Object> res = new TreeMap<>();
+            res.put(STRING, name);
+            return res;
+        }
+        return null;
     }
 
     private void createBindBean(Resolver resolver, JCodeModel code, FullQualifiedName bindable, JDefinedClass binder, PreSolved preSolved) throws Exception {
@@ -153,7 +175,7 @@ public class GenerateBindables implements Generator {
                 if (p.getAnnotation(Bind.class) != null) {
                     invocCtr.arg(binder.fields().get(p.getName()));
                 } else {
-                    invocCtr.arg(resolveDependencyFromScope(resolver, code, beanScope, parentScope, varParentScope, code.ref(p.getType().toString()), hasOwnership));
+                    invocCtr.arg(resolveDependencyFromScope(createLiterals(p), resolver, code, beanScope, parentScope, varParentScope, code.ref(p.getType().toString()), hasOwnership));
                     //TODO potential ownership destruction violation
                 }
             }
@@ -168,7 +190,7 @@ public class GenerateBindables implements Generator {
         //inject the other values from scope
         for (Field injectParam : preSolved.injectParams) {
             try {
-                IJExpression invoc = resolveDependencyFromScope(resolver, code, beanScope, parentScope, varParentScope, code.ref(injectParam.getType().getFullQualifiedName().toString()), hasOwnership);
+                IJExpression invoc = resolveDependencyFromScope(createLiterals(injectParam), resolver, code, beanScope, parentScope, varParentScope, code.ref(injectParam.getType().getFullQualifiedName().toString()), hasOwnership);
                 createBindable.body().add(bean.ref(injectParam.getName()).assign(invoc));
             } catch (Panic e) {
                 e.printStackTrace();
@@ -179,7 +201,7 @@ public class GenerateBindables implements Generator {
         //inject the android resources
         for (Field androidResource : preSolved.androidResource) {
             FullQualifiedName fqn = androidResource.getAnnotation(HCF_ANDROID_RES).getConstant("");
-            IJExpression getContext = resolveDependencyFromScope(resolver, code, beanScope, parentScope, varParentScope, code.ref(Context.class), hasOwnership);
+            IJExpression getContext = resolveDependencyFromScope(null, resolver, code, beanScope, parentScope, varParentScope, code.ref(Context.class), hasOwnership);
 
             IJExpression staticRef = JExpr.direct(fqn.toString());
             FullQualifiedName fieldFqn = androidResource.getType().getFullQualifiedName();
@@ -206,7 +228,7 @@ public class GenerateBindables implements Generator {
     }
 
 
-    private IJExpression resolveDependencyFromScope(Resolver resolver, JCodeModel code, JVar beanScope, JDefinedClass parentScope, JVar varParentScope, AbstractJType type, Ref<Boolean> hasOwnership) throws Exception {
+    private static IJExpression resolveDependencyFromScope(@Nullable Map<FullQualifiedName, Object> literals, Resolver resolver, JCodeModel code, JVar beanScope, JDefinedClass parentScope, JVar varParentScope, AbstractJType type, Ref<Boolean> hasOwnership) throws Exception {
         //special type resolving
         if (resolver.isInstanceOf(new FullQualifiedName(type.fullName()), new FullQualifiedName(Scope.class))) {
             return beanScope;
@@ -237,13 +259,13 @@ public class GenerateBindables implements Generator {
         }
 
         //if not available, check special kinds of resolving
-        IJExpression specialCreate = specialConstructorRules(resolver, code, beanScope, parentScope, varParentScope, type, hasOwnership);
+        IJExpression specialCreate = specialConstructorRules(literals, resolver, code, beanScope, parentScope, varParentScope, type, hasOwnership);
         if (specialCreate != null) {
             return specialCreate;
         }
 
         //well no such dependency, so let's try to create an instance from scratch
-        JInvocation constructorCall = createConstructorCall(resolver, code, beanScope, parentScope, varParentScope, type, hasOwnership);
+        JInvocation constructorCall = createConstructorCall(literals, resolver, code, beanScope, parentScope, varParentScope, type, hasOwnership);
         hasOwnership.set(true);
         return constructorCall;
     }
@@ -253,7 +275,7 @@ public class GenerateBindables implements Generator {
      * This is only used if no such type is provided by the scopes.
      */
     @Nullable
-    private IJExpression specialConstructorRules(Resolver resolver, JCodeModel code, JVar beanScope, JDefinedClass parentScope, JVar varParentScope, AbstractJType type, Ref<Boolean> hasOwnership) {
+    private static IJExpression specialConstructorRules(@Nullable Map<FullQualifiedName, Object> literals, Resolver resolver, JCodeModel code, JVar beanScope, JDefinedClass parentScope, JVar varParentScope, AbstractJType type, Ref<Boolean> hasOwnership) {
         //Android Handler defaults to Main-Looper handler: new Handler(Looper.getMainLooper)
         if (resolver.isInstanceOf(new FullQualifiedName(type.fullName()), new FullQualifiedName(Handler.class))) {
             return JExpr._new(code.ref(Handler.class)).arg(code.ref(Looper.class).staticInvoke("getMainLooper"));
@@ -264,10 +286,21 @@ public class GenerateBindables implements Generator {
             return code.ref(LayoutInflater.class).staticInvoke("from").arg(varParentScope.invoke("getContext"));
         }
 
+        //insert constants, if available
+        if (literals != null) {
+            Object obj = literals.get(new FullQualifiedName(type.fullName()));
+            if (obj instanceof String) {
+                return JExpr.lit((String) obj);
+            }
+        }
+
         return null;
     }
 
-    private JMethod resolveMatchingMethod(Resolver resolver, JDefinedClass parentScope, AbstractJType type) {
+    private static JMethod resolveMatchingMethod(Resolver resolver, JDefinedClass parentScope, AbstractJType type) {
+        if (parentScope == null) {
+            return null;
+        }
         FullQualifiedName targetType = new FullQualifiedName(type.fullName());
         for (JMethod method : parentScope.methods()) {
             if (method.name().startsWith("get")) {
@@ -294,13 +327,13 @@ public class GenerateBindables implements Generator {
         return new FullQualifiedName(method.type().fullName());
     }
 
-    private JInvocation createConstructorCall(Resolver resolver, JCodeModel code, JVar beanScope, JDefinedClass parentScope, JVar varParentScope, AbstractJType type, Ref<Boolean> hasOwnership) throws Exception {
+    static JInvocation createConstructorCall(@Nullable Map<FullQualifiedName, Object> literals, Resolver resolver, JCodeModel code, JVar beanScope, JDefinedClass parentScope, JVar varParentScope, AbstractJType type, Ref<Boolean> hasOwnership) throws Exception {
         //is there a scope binder?
         FullQualifiedName fqnType = new FullQualifiedName(type.fullName());
         FullQualifiedName binder = new FullQualifiedName(fqnType.getPackageName() + ".Bind" + fqnType.getSimpleName());
         if (code._getClass(binder.toString()) != null) {
             //we have to create a binder for it, very ugly
-            return resolveDependencyFromScope(resolver, code, beanScope, parentScope, varParentScope, code.ref(binder.toString()), hasOwnership).invoke("create").arg(varParentScope).invoke("get" + Strings.startUpperCase(fqnType.getSimpleName()));
+            return resolveDependencyFromScope(literals, resolver, code, beanScope, parentScope, varParentScope, code.ref(binder.toString()), hasOwnership).invoke("create").arg(varParentScope).invoke("get" + Strings.startUpperCase(fqnType.getSimpleName()));
         }
 
         if (resolver.has(new FullQualifiedName(type.fullName()))) {
@@ -320,7 +353,7 @@ public class GenerateBindables implements Generator {
             //the hard one
             JInvocation newCall = JExpr._new(type);
             for (Parameter p : shortestConstructor.getParameters()) {
-                newCall.arg(resolveDependencyFromScope(resolver, code, beanScope, parentScope, varParentScope, code.ref(p.getType().toString()), hasOwnership));
+                newCall.arg(resolveDependencyFromScope(literals, resolver, code, beanScope, parentScope, varParentScope, code.ref(p.getType().toString()), hasOwnership));
             }
             return newCall;
         } else {
@@ -335,7 +368,7 @@ public class GenerateBindables implements Generator {
             JMethod method = definedClass.constructors().next();
             JInvocation newCall = JExpr._new(type);
             for (JVar p : method.params()) {
-                newCall.arg(resolveDependencyFromScope(resolver, code, beanScope, parentScope, varParentScope, p.type(), hasOwnership));
+                newCall.arg(resolveDependencyFromScope(literals, resolver, code, beanScope, parentScope, varParentScope, p.type(), hasOwnership));
             }
             return newCall;
         }

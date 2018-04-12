@@ -25,12 +25,14 @@ import org.homunculus.codegen.parse.Method;
 import org.homunculus.codegen.parse.Parameter;
 import org.homunculus.codegen.parse.Resolver;
 import org.homunculus.codegen.parse.Strings;
+import org.homunculus.codegen.parse.Type;
 import org.homunculusframework.factory.flavor.hcf.ScopeElement;
 import org.homunculusframework.factory.scope.AbsScope;
 import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.lang.Function;
 import org.homunculusframework.lang.Panic;
 import org.homunculusframework.factory.scope.ContextScope;
+import org.homunculusframework.lang.Ref;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -157,11 +159,23 @@ public class GenerateScopes implements Generator {
      */
     private static class ScopeGenerator {
         JCodeModel code;
+        Map<String, FullQualifiedName> availableGetters;
 
         JDefinedClass create(GenProject project, FullQualifiedName bean) throws Exception {
             JCodeModel code = project.getCodeModel();
             this.code = code;
             Resolver resolver = project.getResolver();
+
+
+            availableGetters = new HashMap<>();
+            for (Method method : resolver.getMethods(bean)) {
+                if (method.getAnnotation(ScopeElement.class) != null) {
+                    String getterName = "get" + Strings.startUpperCase(method.getType().getFullQualifiedName().getSimpleName());
+                    availableGetters.put(getterName, method.getType().getFullQualifiedName());
+                }
+            }
+            availableGetters.put("getContext", bean);
+
             onStartGeneration(code);
 
             //e.g. my.domain.MyApp
@@ -185,6 +199,9 @@ public class GenerateScopes implements Generator {
 
             //public MyApp getMyApp(){...}
             scope.method(JMod.PUBLIC, beanClass, "get" + Strings.startUpperCase(beanClass.name())).body()._return(fieldBean);
+
+
+
 
             /*
                 provide things into scope, annotated by @ScopeElement
@@ -346,14 +363,14 @@ public class GenerateScopes implements Generator {
             singletons.sort(Comparator.comparing(FullQualifiedName::getSimpleName));
             for (FullQualifiedName singleton : singletons) {
                 AbstractJClass providedType = code.ref(singleton.toString());
-                JMethod factoryMethod = createSingletonFactory(project.getResolver(), code, scope, providedType);
+                JMethod factoryMethod = createSingletonFactory(project.getResolver(), availableGetters, code, scope, providedType);
                 createDoubleCheckGetter(code, scope, providedType, JExpr.invoke(factoryMethod));
             }
             return scope;
         }
 
-        private JMethod createSingletonFactory(Resolver resolver, JCodeModel code, JDefinedClass where, AbstractJClass what) throws Exception {
-            return new ObjectCreator().createFactoryMethod(resolver, code, where, what);
+        private JMethod createSingletonFactory(Resolver resolver, Map<String, FullQualifiedName> availableGetters, JCodeModel code, JDefinedClass where, AbstractJClass what) throws Exception {
+            return new ObjectCreator().createFactoryMethod(resolver, availableGetters, code, where, what);
         }
     }
 
@@ -399,7 +416,7 @@ public class GenerateScopes implements Generator {
 
 
     private static class ObjectCreator {
-        JMethod createFactoryMethod(Resolver resolver, JCodeModel code, JDefinedClass where, AbstractJClass what) throws Exception {
+        JMethod createFactoryMethod(Resolver resolver, Map<String, FullQualifiedName> availableGetters, JCodeModel code, JDefinedClass where, AbstractJClass what) throws Exception {
             //e.g. private MySingleton
             JMethod creator = where.method(JMod.PRIVATE, what, "create" + Strings.startUpperCase(what.name()));
             FullQualifiedName fqn = new FullQualifiedName(what.fullName());
@@ -421,12 +438,34 @@ public class GenerateScopes implements Generator {
                 bean = creator.body().decl(what, "bean", expr);
             }
 
+
             //fill the fields
+            int t = 0;
+            NEXT_FIELD:
             for (Field field : resolver.getFields(fqn)) {
                 if (field.getAnnotation(Inject.class) != null) {
                     //e.g. bean.myDB = getMyCustomDatabase()
-                    JAssignment beanFieldAssign = bean.ref(field.getName()).assign(JExpr.invoke("get" + Strings.startUpperCase(field.getType().getFullQualifiedName().getSimpleName())));
-                    creator.body().add(beanFieldAssign);
+                    String getter = "get" + Strings.startUpperCase(field.getType().getFullQualifiedName().getSimpleName());
+                    if (availableGetters.containsKey(getter)) {
+                        JAssignment beanFieldAssign = bean.ref(field.getName()).assign(JExpr.invoke(getter));
+                        creator.body().add(beanFieldAssign);
+                    } else {
+                        //try to match a bit more intelligent, before creating a new instance
+                        for (Entry<String, FullQualifiedName> entry : availableGetters.entrySet()) {
+                            if (resolver.isInstanceOf(field.getType().getFullQualifiedName(), entry.getValue())) {
+                                JAssignment beanFieldAssign = bean.ref(field.getName()).assign(JExpr.invoke(entry.getKey()));
+                                creator.body().add(beanFieldAssign);
+                                continue NEXT_FIELD;
+                            }
+                        }
+
+                        JVar varThis = creator.body().decl(where, "t" + t, JExpr._this());
+                        t++;
+                        //TODO this is a bit fishy at all, but at least some kind of code and feature reusage
+                        JInvocation constructorCall = GenerateBindables.createConstructorCall(GenerateBindables.createLiterals(field), resolver, code, varThis, where, varThis, code.ref(field.getType().getFullQualifiedName().toString()), new Ref<>(false));
+                        JAssignment beanFieldAssign = bean.ref(field.getName()).assign(constructorCall);
+                        creator.body().add(beanFieldAssign);
+                    }
                 }
             }
 

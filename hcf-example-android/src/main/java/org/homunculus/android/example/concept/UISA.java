@@ -8,6 +8,7 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import org.homunculus.android.compat.EventAppCompatActivity;
+import org.homunculus.android.component.module.storage.Persistent;
 import org.homunculus.android.core.ActivityCallback;
 import org.homunculus.android.example.R;
 import org.homunculus.android.example.concept.AsyncControllerA.InvokeControllerANextUIS;
@@ -29,6 +30,9 @@ import javax.inject.Inject;
 public class UISA extends LinearLayout {
     private static AtomicInteger INSTANCE_COUNT = new AtomicInteger();
     private static AtomicInteger LIFECYCLE_COUNT = new AtomicInteger();
+
+    @Inject
+    Persistent<Boolean> testPersistent2;
 
     @Inject
     ControllerA controllerA;
@@ -57,6 +61,9 @@ public class UISA extends LinearLayout {
 
     @Inject
     ActivityCallback<?> activityCallback;
+
+    @Inject
+    Context regression;
 
     private int helloCounter;
 

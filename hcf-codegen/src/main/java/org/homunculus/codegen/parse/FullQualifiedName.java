@@ -64,6 +64,6 @@ public class FullQualifiedName implements Comparable<FullQualifiedName> {
 
     @Override
     public int compareTo(@NotNull FullQualifiedName o) {
-        return this.compareTo(o);
+        return this.fullqualifiedName.compareTo(o.fullqualifiedName);
     }
 }
