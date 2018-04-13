@@ -49,9 +49,13 @@ public class GenTask extends DefaultTask {
             for (File f : android.getVariantManager().getDefaultConfig().getSourceSet().getJavaDirectories()) {
                 gen.addRecursive(f);
             }
-            for (File f : android.getVariantManager().getDefaultConfig().getSourceSet().getResourcesDirectories()) {
+//            for (File f : android.getVariantManager().getDefaultConfig().getSourceSet().getResourcesDirectories()) {
+//                gen.addRecursive(f);
+//            }
+            for (File f : android.getVariantManager().getDefaultConfig().getSourceSet().getResDirectories()) {
                 gen.addRecursive(f);
             }
+
             gen.clearDir(hcfDir);
             hcfDir.mkdirs();
 
