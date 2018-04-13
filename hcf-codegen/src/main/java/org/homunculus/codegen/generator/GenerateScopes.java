@@ -159,9 +159,12 @@ public class GenerateScopes implements Generator {
      */
     private static class ScopeGenerator {
         JCodeModel code;
+        //this is used as a forward declaration for everything, even if it has not been generated yet
         Map<String, FullQualifiedName> availableGetters;
+        GenProject project;
 
         JDefinedClass create(GenProject project, FullQualifiedName bean) throws Exception {
+            this.project = project;
             JCodeModel code = project.getCodeModel();
             this.code = code;
             Resolver resolver = project.getResolver();
@@ -356,6 +359,17 @@ public class GenerateScopes implements Generator {
 
 
         @Override
+        void onStartGeneration(JCodeModel code) throws Exception {
+            super.onStartGeneration(code);
+            //make the specific singeltons accessible -> forward declaration
+            for (FullQualifiedName name : project.getDiscoveredKinds().get(DiscoveryKind.SINGLETON)) {
+                String singletonGetter = "get" + Strings.startUpperCase(name.getSimpleName());
+                availableGetters.put(singletonGetter, name);
+            }
+
+        }
+
+        @Override
         JDefinedClass create(GenProject project, FullQualifiedName bean) throws Exception {
             JDefinedClass scope = super.create(project, bean);
             JCodeModel code = project.getCodeModel();
@@ -456,6 +470,8 @@ public class GenerateScopes implements Generator {
                                 JAssignment beanFieldAssign = bean.ref(field.getName()).assign(JExpr.invoke(entry.getKey()));
                                 creator.body().add(beanFieldAssign);
                                 continue NEXT_FIELD;
+                            } else {
+                                System.out.println(field.getType().getFullQualifiedName() + "<=> public " + entry.getValue() + " " + entry.getKey());
                             }
                         }
 
