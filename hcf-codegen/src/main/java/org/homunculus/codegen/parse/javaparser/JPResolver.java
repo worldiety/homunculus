@@ -291,6 +291,8 @@ public class JPResolver implements Resolver {
                 } else {
                     td = null;
                 }
+            }else{
+                td = null;
             }
             isDeclared = false;
         }
@@ -309,6 +311,11 @@ public class JPResolver implements Resolver {
         TypeContext root = typeTree.get(which);
         String startingPoint = which.toString();
         while (root != null) {
+            if (!(root.type instanceof ClassOrInterfaceDeclaration)){
+                //TODO not correct for enum super type
+                root = null;
+                continue;
+            }
             if (root.type.asClassOrInterfaceDeclaration().getExtendedTypes().isEmpty()) {
                 root = null;
                 continue;

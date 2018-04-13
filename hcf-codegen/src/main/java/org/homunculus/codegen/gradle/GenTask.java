@@ -47,6 +47,9 @@ public class GenTask extends DefaultTask {
             gen.setManifestPackage(android.getVariantManager().getDefaultConfig().getProductFlavor().getApplicationId());
 
             for (File f : android.getVariantManager().getDefaultConfig().getSourceSet().getJavaDirectories()) {
+                if (f.getAbsolutePath().startsWith(hcfDir.getAbsolutePath())){
+                    continue;
+                }
                 gen.addRecursive(f);
             }
 //            for (File f : android.getVariantManager().getDefaultConfig().getSourceSet().getResourcesDirectories()) {

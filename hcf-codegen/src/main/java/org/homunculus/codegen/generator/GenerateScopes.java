@@ -2,6 +2,7 @@ package org.homunculus.codegen.generator;
 
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.EClassType;
+import com.helger.jcodemodel.IJExpression;
 import com.helger.jcodemodel.JAssignment;
 import com.helger.jcodemodel.JBlock;
 import com.helger.jcodemodel.JCodeModel;
@@ -376,9 +377,13 @@ public class GenerateScopes implements Generator {
             List<FullQualifiedName> singletons = new ArrayList<>(project.getDiscoveredKinds().get(DiscoveryKind.SINGLETON));
             singletons.sort(Comparator.comparing(FullQualifiedName::getSimpleName));
             for (FullQualifiedName singleton : singletons) {
-                AbstractJClass providedType = code.ref(singleton.toString());
-                JMethod factoryMethod = createSingletonFactory(project.getResolver(), availableGetters, code, scope, providedType);
-                createDoubleCheckGetter(code, scope, providedType, JExpr.invoke(factoryMethod));
+                try {
+                    AbstractJClass providedType = code.ref(singleton.toString());
+                    JMethod factoryMethod = createSingletonFactory(project.getResolver(), availableGetters, code, scope, providedType);
+                    createDoubleCheckGetter(code, scope, providedType, JExpr.invoke(factoryMethod));
+                } catch (Exception e) {
+                    throw new Panic("failed to process " + singleton, e);
+                }
             }
             return scope;
         }
@@ -470,15 +475,13 @@ public class GenerateScopes implements Generator {
                                 JAssignment beanFieldAssign = bean.ref(field.getName()).assign(JExpr.invoke(entry.getKey()));
                                 creator.body().add(beanFieldAssign);
                                 continue NEXT_FIELD;
-                            } else {
-                                System.out.println(field.getType().getFullQualifiedName() + "<=> public " + entry.getValue() + " " + entry.getKey());
                             }
                         }
 
                         JVar varThis = creator.body().decl(where, "t" + t, JExpr._this());
                         t++;
                         //TODO this is a bit fishy at all, but at least some kind of code and feature reusage
-                        JInvocation constructorCall = GenerateBindables.createConstructorCall(GenerateBindables.createLiterals(field), resolver, code, varThis, where, varThis, code.ref(field.getType().getFullQualifiedName().toString()), new Ref<>(false));
+                        IJExpression constructorCall = GenerateBindables.createConstructorCall(GenerateBindables.createLiterals(field), resolver, code, varThis, where, varThis, code.ref(field.getType().getFullQualifiedName().toString()), new Ref<>(false));
                         JAssignment beanFieldAssign = bean.ref(field.getName()).assign(constructorCall);
                         creator.body().add(beanFieldAssign);
                     }

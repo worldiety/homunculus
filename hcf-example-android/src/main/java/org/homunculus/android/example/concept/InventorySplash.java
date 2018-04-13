@@ -13,7 +13,7 @@ import org.homunculusframework.navigation.Navigation;
 public class InventorySplash extends Splash {
 
 
-    public InventorySplash(Activity activity, Handler main, Navigation navigation, LayoutInflater inflater) {
+    public InventorySplash(Activity activity, Handler main, Navigation navigation, LayoutInflater inflater, int test) {
         super(activity, main, navigation, inflater);
     }
 

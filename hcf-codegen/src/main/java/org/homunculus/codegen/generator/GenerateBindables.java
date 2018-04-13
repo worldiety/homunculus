@@ -42,6 +42,7 @@ import org.homunculusframework.factory.scope.LifecycleOwner;
 import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.lang.Panic;
 import org.homunculusframework.lang.Ref;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,6 +60,13 @@ public class GenerateBindables implements Generator {
     private final static FullQualifiedName HCF_ANDROID_RES = new FullQualifiedName("org.homunculus.android.flavor.Resource");
     private final static FullQualifiedName ANDROID_VIEW = new FullQualifiedName(View.class);
     private final static FullQualifiedName STRING = new FullQualifiedName(String.class);
+    private final static FullQualifiedName INT = new FullQualifiedName(int.class);
+    private final static FullQualifiedName FLOAT = new FullQualifiedName(float.class);
+    private final static FullQualifiedName DOUBLE = new FullQualifiedName(double.class);
+    private final static FullQualifiedName BOOL = new FullQualifiedName(boolean.class);
+    private final static FullQualifiedName CHAR = new FullQualifiedName(char.class);
+    private final static FullQualifiedName LONG = new FullQualifiedName(long.class);
+    private final static FullQualifiedName BYTE = new FullQualifiedName(byte.class);
     private final static FullQualifiedName PERSISTENT = new FullQualifiedName(Persistent.class);
     private final static FullQualifiedName ANDROID_DRAWABLE = new FullQualifiedName(Drawable.class);
     private final static FullQualifiedName ANDROID_BITMAP = new FullQualifiedName(Bitmap.class);
@@ -100,7 +108,11 @@ public class GenerateBindables implements Generator {
                     preSolved.injectParams.add(field);
                 }
             }
-            createBindBean(project.getResolver(), code, bean, binder, preSolved);
+            try {
+                createBindBean(project.getResolver(), code, bean, binder, preSolved);
+            } catch (Exception e) {
+                throw new Panic("failed to process " + bean, e);
+            }
 
             binder._extends(code.ref(ModelAndView.class).narrow(preSolved.extendClassNarrows));
         }
@@ -265,7 +277,7 @@ public class GenerateBindables implements Generator {
         }
 
         //well no such dependency, so let's try to create an instance from scratch
-        JInvocation constructorCall = createConstructorCall(literals, resolver, code, beanScope, parentScope, varParentScope, type, hasOwnership);
+        IJExpression constructorCall = createConstructorCall(literals, resolver, code, beanScope, parentScope, varParentScope, type, hasOwnership);
         hasOwnership.set(true);
         return constructorCall;
     }
@@ -327,7 +339,7 @@ public class GenerateBindables implements Generator {
         return new FullQualifiedName(method.type().fullName());
     }
 
-    static JInvocation createConstructorCall(@Nullable Map<FullQualifiedName, Object> literals, Resolver resolver, JCodeModel code, JVar beanScope, JDefinedClass parentScope, JVar varParentScope, AbstractJType type, Ref<Boolean> hasOwnership) throws Exception {
+    static IJExpression createConstructorCall(@Nullable Map<FullQualifiedName, Object> literals, Resolver resolver, JCodeModel code, JVar beanScope, JDefinedClass parentScope, JVar varParentScope, AbstractJType type, Ref<Boolean> hasOwnership) throws Exception {
         //is there a scope binder?
         FullQualifiedName fqnType = new FullQualifiedName(type.fullName());
         FullQualifiedName binder = new FullQualifiedName(fqnType.getPackageName() + ".Bind" + fqnType.getSimpleName());
@@ -336,7 +348,7 @@ public class GenerateBindables implements Generator {
             return resolveDependencyFromScope(literals, resolver, code, beanScope, parentScope, varParentScope, code.ref(binder.toString()), hasOwnership).invoke("create").arg(varParentScope).invoke("get" + Strings.startUpperCase(fqnType.getSimpleName()));
         }
 
-        if (resolver.has(new FullQualifiedName(type.fullName()))) {
+        if (resolver.has(fqnType)) {
 
             Constructor shortestConstructor = null;
             for (Constructor ctr : resolver.getConstructors(new FullQualifiedName(type.fullName()))) {
@@ -357,6 +369,10 @@ public class GenerateBindables implements Generator {
             }
             return newCall;
         } else {
+            IJExpression primitiveCreator = createDefaultPrimitive(fqnType);
+            if (primitiveCreator != null) {
+                return primitiveCreator;
+            }
             //this is the "Bind"* case
             JDefinedClass definedClass = code._getClass(type.fullName());
             if (definedClass == null) {
@@ -372,6 +388,35 @@ public class GenerateBindables implements Generator {
             }
             return newCall;
         }
+    }
+
+    @Nullable
+    private static IJExpression createDefaultPrimitive(FullQualifiedName fqn) {
+        if (fqn.equals(INT)) {
+            return JExpr.lit(0);
+        }
+        if (fqn.equals(FLOAT)) {
+            return JExpr.lit(0f);
+        }
+        if (fqn.equals(LONG)) {
+            return JExpr.lit(0L);
+        }
+        if (fqn.equals(DOUBLE)) {
+            return JExpr.lit(0d);
+        }
+        if (fqn.equals(BOOL)) {
+            return JExpr.lit(false);
+        }
+        if (fqn.equals(CHAR)) {
+            return JExpr.lit((char) 0);
+        }
+        if (fqn.equals(BYTE)) {
+            return JExpr.lit((byte) 0);
+        }
+        if (fqn.equals(STRING)) {
+            return JExpr._null();
+        }
+        return null;
     }
 
     private static class PreSolved {

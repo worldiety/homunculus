@@ -73,6 +73,15 @@ public class SrcFile {
                     return tmp;
                 }
 
+                switch (name) {
+                    case "int":
+                    case "float":
+                    case "boolean":
+                    case "double":
+                    case "char":
+                    case "long":
+                        return name;
+                }
                 //very likely a native type (always preceeded with java.lang?)
                 return "java.lang." + name;
             }
