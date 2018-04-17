@@ -1,8 +1,12 @@
 package org.homunculus.android.example.concept;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.support.v7.app.AlertDialog.Builder;
+import android.support.v7.widget.LinearLayoutCompat;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -17,7 +21,6 @@ import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.navigation.Navigation;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.PostConstruct;
@@ -89,7 +92,17 @@ public class UISA extends LinearLayout {
                 Toast.makeText(getContext(), "Hello from Toolbar", Toast.LENGTH_LONG).show();
             }
         }).setToolbarColor(R.color.toolbarColor).setElevation(25);
-        activity.setContentView(toolbarTemplate.createToolbar(this));
+        LinearLayout left = new LinearLayout(getContext());
+        left.setOrientation(VERTICAL);
+        left.addView(new Button(getContext()), new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        left.addView(new Button(getContext()), new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        LinearLayout right = new LinearLayout(getContext());
+        right.setOrientation(VERTICAL);
+        right.setMinimumWidth(50);
+        right.addView(new Button(getContext()), new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        right.addView(new Button(getContext()), new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        right.addView(new Button(getContext()), new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        activity.setContentView(toolbarTemplate.createToolbar(this, left, right));
 
         Button btn = new Button(getContext());
         btn.setText("go directly to UISB");

@@ -37,11 +37,9 @@ import org.homunculus.android.component.R;
 import org.homunculus.android.component.Widget;
 import org.homunculus.android.core.ActivityEventDispatcher;
 import org.homunculus.android.core.AndroidScopeContext;
-import org.homunculusframework.factory.scope.LifecycleOwner;
 import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.lang.Panic;
 import org.homunculusframework.lang.Reference;
-import org.homunculusframework.navigation.BackActionConsumer;
 import org.homunculusframework.scope.LifecycleEntry;
 import org.homunculusframework.scope.OnDestroyCallback;
 import org.slf4j.LoggerFactory;
@@ -61,25 +59,6 @@ import javax.annotation.Nullable;
  * @since 1.0
  */
 class ToolbarCreator {
-    /**
-     * Navigation drawer attached to the Start (left) border of the screen. Open through hamburger or by swipe gesture.
-     */
-    View mLeftDrawer;
-
-    /**
-     * Content drawer attached to the end (right) border of the screen. Open through swipe gesture.
-     */
-    View mRightDrawer;
-
-    /**
-     * Main ContentView
-     */
-    View mContentView;
-    /**
-     * The navigation drawer
-     */
-    private ContentViewHolder mDrawerLayout;
-
     private int generationId;
 
     //an activity scope shared generation id
@@ -137,15 +116,12 @@ class ToolbarCreator {
             });
         }
 
-        mContentView = contentView;
-        mLeftDrawer = leftDrawer;
-        mRightDrawer = rightDrawer;
         // Initialize menu
         initMenu(scope, activity, activity.getEventDispatcher());
         // Initialize toolbar
-        ToolbarHolder toolbar = initToolbar(scope, activity);
+        ToolbarHolder toolbar = initToolbar(scope, activity, contentView);
         // Initialize navigation drawer
-        return initDrawerLayout(activity, toolbar);
+        return initDrawerLayout(activity, toolbar, leftDrawer, rightDrawer);
     }
 
     private boolean isInvalidMenu() {
@@ -235,7 +211,7 @@ class ToolbarCreator {
     }
 
 
-    private ToolbarHolder initToolbar(Scope scope, AppCompatActivity activity) {
+    private <ContentView extends View> ToolbarHolder<ContentView> initToolbar(Scope scope, AppCompatActivity activity, ContentView contentView) {
         Toolbar toolbar = new Toolbar(activity);
         int barSize = (int) activity.getResources().getDimension(R.dimen.toolbarbuilder_barheight);
         toolbar.setMinimumHeight(barSize);
@@ -279,14 +255,10 @@ class ToolbarCreator {
 
         ab.setDisplayHomeAsUpEnabled(mToolbarConfiguration.mShowNavigationIcons);
 
-        ToolbarHolder holder = new ToolbarHolder(scope, activity);
+        ToolbarHolder<ContentView> holder = new ToolbarHolder<>(scope, activity, contentView, toolbar);
         holder.setId(Widget.generateViewId());
         holder.addView(toolbar, new LinearLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, barSize, 0));
-        holder.addView(mContentView, new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, 1));
-
-        holder.mToolbar = toolbar;
-        holder.mChild = mContentView;
-
+        holder.addView(contentView, new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, 1));
 
         if (mToolbarConfiguration.mToolbarTitleTextAppearance != null) {
             Context ctx = mToolbarConfiguration.mToolbarTitleTextAppearanceContext != null ? mToolbarConfiguration.mToolbarTitleTextAppearanceContext : activity;
@@ -301,42 +273,42 @@ class ToolbarCreator {
     }
 
 
-    private ContentViewHolder<ToolbarHolder<?>, ?, ?> initDrawerLayout(AppCompatActivity activity, ToolbarHolder<View> contentLayout) {
+    private <ContentView extends View, LeftDrawer extends View, RightDrawer extends View> ContentViewHolder<ToolbarHolder<ContentView>, LeftDrawer, RightDrawer> initDrawerLayout(AppCompatActivity activity, ToolbarHolder<ContentView> contentLayout, LeftDrawer leftDrawer, RightDrawer rightDrawer) {
         if (mToolbarConfiguration.mUpAction != null) {
             contentLayout.getToolbar().setNavigationOnClickListener(v -> mToolbarConfiguration.mUpAction.run());
         }
-        mDrawerLayout = new ContentViewHolder(activity, contentLayout);
+        ContentViewHolder<ToolbarHolder<ContentView>, LeftDrawer, RightDrawer> drawerLayout = new ContentViewHolder<>(activity, contentLayout, leftDrawer, rightDrawer);
 
         //insert the left drawer
-        if (mLeftDrawer != null) {
+        if (leftDrawer != null) {
             LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT);
             params.gravity = Gravity.START;
-            mDrawerLayout.addView(mLeftDrawer, params);
+            drawerLayout.addView(leftDrawer, params);
 
             contentLayout.getToolbar().setNavigationOnClickListener(v -> {
-                if (mDrawerLayout.isDrawerOpen(mLeftDrawer)) {
-                    mDrawerLayout.closeDrawer(mLeftDrawer);
+                if (drawerLayout.isDrawerOpen(leftDrawer)) {
+                    drawerLayout.closeDrawer(leftDrawer);
                 } else {
-                    mDrawerLayout.openDrawer(mLeftDrawer);
+                    drawerLayout.openDrawer(leftDrawer);
                 }
             });
         }
 
         //insert the right drawer
-        if (mRightDrawer != null) {
+        if (rightDrawer != null) {
             LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT);
             params.gravity = Gravity.END;
-            mDrawerLayout.setOnTouchListener((v, event) -> {
+            drawerLayout.setOnTouchListener((v, event) -> {
                 InputManager.hideSoftInput(activity);
                 return false;
             });
-            mDrawerLayout.addView(mRightDrawer, params);
+            drawerLayout.addView(rightDrawer, params);
         }
 
         //insert the drawer toggle
-        if (mLeftDrawer != null || mRightDrawer != null) {
-            ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(activity, mDrawerLayout, R.string.toolbarbuilder_open_drawer_content_desc_res, R.string.toolbarbuilder_close_drawer_content_desc_res);
-            if (mLeftDrawer != null) {
+        if (leftDrawer != null || rightDrawer != null) {
+            ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(activity, drawerLayout, R.string.toolbarbuilder_open_drawer_content_desc_res, R.string.toolbarbuilder_close_drawer_content_desc_res);
+            if (leftDrawer != null) {
                 toggle.setDrawerIndicatorEnabled(true);
             } else {
                 toggle.setDrawerIndicatorEnabled(false);
@@ -351,116 +323,7 @@ class ToolbarCreator {
         }
 
 
-        return mDrawerLayout;
-    }
-
-    public static class ToolbarHolder<ContentView> extends LinearLayout {
-
-        private ContentView mChild;
-        private Toolbar mToolbar;
-
-        public ToolbarHolder(LifecycleOwner owner, Context context) {
-            super(context);
-            setOrientation(VERTICAL);
-            /*
-            Cut off all leaking bug from the android InputMethodManager regarding the toolbar, see also https://issuetracker.google.com/issues/37043700
-            Otherwise Android leaks the entire UIS until the next toolbar and UIS does it's stuff.
-            This bug has NOT been fixed since more than 3 year now!!!
-             */
-            if (owner != null) {
-                owner.addDestroyCallback(o -> {
-                    mChild = null;
-                    mToolbar = null;
-                    removeAllViews();
-                });
-            } else {
-                LoggerFactory.getLogger(getClass()).error("no owner scope, the Android InputMethodManager will leak your views");
-            }
-        }
-
-        public ContentView getChild() {
-            return mChild;
-        }
-
-        public Toolbar getToolbar() {
-            return mToolbar;
-        }
-    }
-
-    public class ContentViewHolder<ContentView extends View, LeftDrawer extends View, RightDrawer extends View> extends DrawerLayout implements BackActionConsumer {
-
-        private ContentView mContentView;
-
-        public ContentViewHolder(Context context, ContentView contentView) {
-            super(context);
-            mContentView = contentView;
-            addView(mContentView, new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        }
-
-        public ContentView getContentView() {
-            return mContentView;
-        }
-
-        @Nullable
-        public LeftDrawer getLeftDrawer() {
-            return (LeftDrawer) mLeftDrawer;
-        }
-
-        @Nullable
-        public RightDrawer getRightDrawer() {
-            return (RightDrawer) mRightDrawer;
-        }
-
-        public void closeLeftDrawer() {
-            if (mLeftDrawer != null) {
-                closeDrawer(mLeftDrawer);
-            }
-        }
-
-        public void closeRightDrawer() {
-            if (mRightDrawer != null) {
-                closeDrawer(mRightDrawer);
-            }
-        }
-
-        public void openLeftDrawer() {
-            if (mLeftDrawer != null) {
-                openDrawer(mLeftDrawer);
-            }
-        }
-
-        public void openRightDrawer() {
-            if (mRightDrawer != null) {
-                openDrawer(mRightDrawer);
-            }
-        }
-
-        public boolean isRightDrawerOpen() {
-            if (mRightDrawer == null) {
-                return false;
-            }
-            return mDrawerLayout.isDrawerOpen(mRightDrawer);
-        }
-
-        public boolean isLeftDrawerOpen() {
-            if (mLeftDrawer == null) {
-                return false;
-            }
-            return mDrawerLayout.isDrawerOpen(mLeftDrawer);
-        }
-
-        @Override
-        public boolean backward() {
-            if (isLeftDrawerOpen()) {
-                closeLeftDrawer();
-                return true;
-            }
-            if (isRightDrawerOpen()) {
-                closeRightDrawer();
-                return true;
-            }
-            return false;
-        }
+        return drawerLayout;
     }
 
 }
