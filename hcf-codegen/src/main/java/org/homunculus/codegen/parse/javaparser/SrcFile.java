@@ -53,11 +53,13 @@ public class SrcFile {
      */
     public String getFullQualifiedName(String name) {
         if (name.contains(".")) {
+
             return name;//not correct for partial imports e.g. of inner classes
         } else {
+            String tmp = "." + name; //otherwise endswith may return wrong matchings
             //simply match it against the import
             for (ImportDeclaration imp : unit.getImports()) {
-                if (imp.getNameAsString().endsWith(name)) {
+                if (imp.getNameAsString().endsWith(tmp)) {
                     return imp.getNameAsString();
                 }
             }

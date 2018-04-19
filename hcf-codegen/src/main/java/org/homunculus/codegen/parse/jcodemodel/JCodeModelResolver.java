@@ -36,12 +36,12 @@ public class JCodeModelResolver implements Resolver {
         Iterator<AbstractJClass> it = jc._implements();
         while (it.hasNext()) {
             AbstractJClass a = it.next();
-            getSuperTypes(new FullQualifiedName(a.fullName()), dst);
+            getSuperTypes(new FullQualifiedName(stripGenerics(a.fullName())), dst);
         }
 
         while (jc._extends() != null) {
             AbstractJClass a = jc._extends();
-            getSuperTypes(new FullQualifiedName(a.fullName()), dst);
+            getSuperTypes(new FullQualifiedName(stripGenerics(a.fullName())), dst);
         }
     }
 
@@ -55,13 +55,21 @@ public class JCodeModelResolver implements Resolver {
         Iterator<AbstractJClass> it = jc._implements();
         while (it.hasNext()) {
             AbstractJClass a = it.next();
-            listTypes(new FullQualifiedName(a.fullName()), found, notFound);
+            listTypes(new FullQualifiedName(stripGenerics(a.fullName())), found, notFound);
         }
 
         if (jc._extends() != null) {
             AbstractJClass a = jc._extends();
-            listTypes(new FullQualifiedName(a.fullName()), found, notFound);
+            listTypes(new FullQualifiedName(stripGenerics(a.fullName())), found, notFound);
         }
+    }
+
+    private String stripGenerics(String text) {
+        int idx = text.indexOf('<');
+        if (idx > 0) {
+            return text.substring(0, idx);
+        }
+        return text;
     }
 
     @Override

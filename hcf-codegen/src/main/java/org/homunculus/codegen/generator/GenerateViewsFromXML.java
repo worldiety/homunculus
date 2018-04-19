@@ -60,7 +60,9 @@ public class GenerateViewsFromXML implements Generator {
     private final static Map<String, String> ALIASE = new HashMap<>();
 
     static {
-        ALIASE.put("android.widget.ImageView", "ImageView");
+        ALIASE.put("ImageView", "android.widget.ImageView");
+        ALIASE.put("ViewGroup", "android.view.ViewGroup");
+        ALIASE.put("View", "android.view.View");
 
     }
 
@@ -246,7 +248,12 @@ public class GenerateViewsFromXML implements Generator {
         if (id.contains(".")) {
             return id;
         } else {
-            return "android.widget." + id;
+            String overrideImport = ALIASE.get(id);
+            if (overrideImport != null) {
+                return overrideImport;
+            } else {
+                return "android.widget." + id;
+            }
         }
     }
 

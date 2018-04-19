@@ -15,6 +15,10 @@ public class Strings {
     static {
         QUOTED_WORDS.put(Pattern.quote("view"), "View");
         QUOTED_WORDS.put(Pattern.quote("button"), "Button");
+        QUOTED_WORDS.put(Pattern.quote("list"), "List");
+        QUOTED_WORDS.put(Pattern.quote("item"), "Item");
+        QUOTED_WORDS.put(Pattern.quote("entry"), "Entry");
+        QUOTED_WORDS.put(Pattern.quote("table"), "Table");
     }
 
     private Strings() {

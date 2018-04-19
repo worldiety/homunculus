@@ -34,7 +34,6 @@ public class GenTask extends DefaultTask {
         try {
             AppPlugin android = null;
             for (Plugin plugin : getProject().getPlugins()) {
-                System.out.println(plugin.getClass() + "(" + plugin + ")");
                 if (plugin instanceof AppPlugin) {
                     android = (AppPlugin) plugin;
                     break;

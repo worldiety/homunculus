@@ -110,7 +110,7 @@ public class GenerateBindables implements Generator {
             }
             try {
                 createBindBean(project.getResolver(), code, bean, binder, preSolved);
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 throw new Panic("failed to process " + bean, e);
             }
 
@@ -151,7 +151,7 @@ public class GenerateBindables implements Generator {
         //otherwise add all fields which are bound
         for (Field bindParam : preSolved.bindParams) {
             JVar cParam = creator.param(code.ref(bindParam.getType().getFullQualifiedName().toString()), bindParam.getName());
-            JFieldVar field = binder.field(JMod.PRIVATE | JMod.FINAL, cParam.type(), cParam.name());
+            JFieldVar field = binder.field(JMod.PRIVATE, cParam.type(), cParam.name());
             creator.body().add(JExpr._this().ref(field).assign(cParam));
         }
 
@@ -204,9 +204,10 @@ public class GenerateBindables implements Generator {
             try {
                 IJExpression invoc = resolveDependencyFromScope(createLiterals(injectParam), resolver, code, beanScope, parentScope, varParentScope, code.ref(injectParam.getType().getFullQualifiedName().toString()), hasOwnership);
                 createBindable.body().add(bean.ref(injectParam.getName()).assign(invoc));
-            } catch (Panic e) {
+            } catch (Throwable e) {
                 e.printStackTrace();
-                throw injectParam.newLintException("failed to get injection source. This is caused by using an abstract or interface type without providing an instance of @ScopeElement");
+                String what = bean.type().fullName() + "." + injectParam.getType().getFullQualifiedName() + " " + injectParam.getName();
+                throw injectParam.newLintException("failed to get injection source. This is caused by using an abstract or interface type without providing an instance of @ScopeElement: " + what);
             }
         }
 
@@ -237,6 +238,18 @@ public class GenerateBindables implements Generator {
 
         //return the new Scope
         createBindable.body()._return(beanScope);
+
+
+        //also add getters and setters
+        for (Field bindParam : preSolved.bindParams) {
+            JMethod getter = binder.method(JMod.PUBLIC, code.ref(bindParam.getType().getFullQualifiedName().toString()), "get" + Strings.startUpperCase(bindParam.getName()));
+            getter.body()._return(binder.fields().get(bindParam.getName()));
+
+            JMethod setter = binder.method(JMod.PUBLIC, void.class, "set" + Strings.startUpperCase(bindParam.getName()));
+            JVar var = setter.param(code.ref(bindParam.getType().getFullQualifiedName().toString()), bindParam.getName());
+            setter.body().assign(JExpr._this().ref(bindParam.getName()), var);
+
+        }
     }
 
 
@@ -296,6 +309,11 @@ public class GenerateBindables implements Generator {
         //Android LayoutInflater defaults to factory call: LayoutInflater.from(scope.getContext()
         if (resolver.isInstanceOf(new FullQualifiedName(type.fullName()), new FullQualifiedName(LayoutInflater.class))) {
             return code.ref(LayoutInflater.class).staticInvoke("from").arg(varParentScope.invoke("getContext"));
+        }
+
+        //List -> ArrayList
+        if (resolver.isInstanceOf(new FullQualifiedName(type.fullName()), new FullQualifiedName(List.class))) {
+            return JExpr._new(code.ref(ArrayList.class).narrowEmpty());
         }
 
         //insert constants, if available

@@ -66,4 +66,8 @@ public class ControllerA {
     public ModelAndView nextUIS(String asdf) {
         return new BindUISB(new UISBModel());
     }
+
+    public BindUISB nextUIS2(String asdf) {
+        return new BindUISB(new UISBModel());
+    }
 }

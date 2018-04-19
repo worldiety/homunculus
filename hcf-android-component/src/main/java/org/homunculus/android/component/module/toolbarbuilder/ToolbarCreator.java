@@ -15,6 +15,7 @@
  */
 package org.homunculus.android.component.module.toolbarbuilder;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
@@ -25,7 +26,10 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.ActionMode;
 import android.view.Gravity;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
@@ -35,7 +39,10 @@ import org.homunculus.android.compat.EventAppCompatActivity;
 import org.homunculus.android.component.InputManager;
 import org.homunculus.android.component.R;
 import org.homunculus.android.component.Widget;
+import org.homunculus.android.component.module.toolbarbuilder.ToolbarConfiguration.MenuItemClickListener;
+import org.homunculus.android.core.ActivityCallback;
 import org.homunculus.android.core.ActivityEventDispatcher;
+import org.homunculus.android.core.ActivityEventDispatcher.AbsActivityEventCallback;
 import org.homunculus.android.core.AndroidScopeContext;
 import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.lang.Panic;
@@ -64,6 +71,12 @@ class ToolbarCreator {
     //an activity scope shared generation id
     private final static String NGID = "toolbarBuilderGenerationId";
     private AtomicInteger nextGeneratedId;
+
+    /**
+     * The navigation drawer
+     */
+    private ContentViewHolder mDrawerLayout;
+
 
     private ToolbarConfiguration mToolbarConfiguration;
 
@@ -134,79 +147,80 @@ class ToolbarCreator {
 
     private void initMenu(Scope scope, AppCompatActivity activity, final ActivityEventDispatcher dispatcher) {
 //TODO!!!
-//        dispatcher.register(scope, new AbsActivityEventCallback<Activity>() {
-//
-//
-//            @Override
-//            public void onActionModeStarted(ActionMode mode) {
-//                if (isInvalidMenu()) {
-//                    logInvalidMenu();
-//                    return;
-//                }
-//                super.onActionModeStarted(mode);
-//                // Lock drawer while action mode is active
-//                if (mDrawerLayout != null) {
-//                    mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
-//                }
-//            }
-//
-//            @Override
-//            public void onActionModeFinished(ActionMode mode) {
-//                if (isInvalidMenu()) {
-//                    logInvalidMenu();
-//                    return;
-//                }
-//                super.onActionModeFinished(mode);
-//                // Unlock drawer when action mode is finished
-//                if (mDrawerLayout != null) {
-//                    mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
-//                }
-//            }
-//
-//            @Override
-//            public boolean onActivityCreateOptionsMenu(Activity activity, Menu menu) {
-//                if (isInvalidMenu()) {
-//                    logInvalidMenu();
-//                    return false;
-//                }
-//                return invalidateOptionsMenu(menu);
-//            }
-//
-//            @Override
-//            public boolean onActivityPrepareOptionsMenu(Activity activity, Menu menu) {
-//                if (isInvalidMenu()) {
-//                    logInvalidMenu();
-//                    return false;
-//                }
-//                return invalidateOptionsMenu(menu);
-//            }
-//
-//            private boolean invalidateOptionsMenu(Menu menu) {
-//                menu.clear();
-//                if (mToolbarConfiguration.mMenuId != null) {
-//                    activity.getMenuInflater().inflate(mToolbarConfiguration.mMenuId, menu);
-//                }
-//
-//                if (mToolbarConfiguration.mToolbarContentConfiguratorListener != null) {
-//                    mToolbarConfiguration.mToolbarContentConfiguratorListener.onMenuCreated(menu);
-//                }
-//
-//                return true;
-//            }
-//
-//            @Override
-//            public boolean onActivityOptionsItemSelected(Activity activity, MenuItem item) {
-//                if (isInvalidMenu()) {
-//                    logInvalidMenu();
-//                    return false;
-//                }
-//                MenuItemClickListener itemListener = mToolbarConfiguration.mItems.get(item.getItemId());
-//                if (itemListener != null) {
-//                    itemListener.onMenuItemSelected(item);
-//                }
-//                return super.onActivityOptionsItemSelected(activity, item);
-//            }
-//        });
+        ActivityCallback callback = new ActivityCallback(scope,dispatcher);
+        callback.setDelegate( new AbsActivityEventCallback<Activity>() {
+
+
+            @Override
+            public void onActionModeStarted(ActionMode mode) {
+                if (isInvalidMenu()) {
+                    logInvalidMenu();
+                    return;
+                }
+                super.onActionModeStarted(mode);
+                // Lock drawer while action mode is active
+                if (mDrawerLayout != null) {
+                    mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+                }
+            }
+
+            @Override
+            public void onActionModeFinished(ActionMode mode) {
+                if (isInvalidMenu()) {
+                    logInvalidMenu();
+                    return;
+                }
+                super.onActionModeFinished(mode);
+                // Unlock drawer when action mode is finished
+                if (mDrawerLayout != null) {
+                    mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+                }
+            }
+
+            @Override
+            public boolean onActivityCreateOptionsMenu(Activity activity, Menu menu) {
+                if (isInvalidMenu()) {
+                    logInvalidMenu();
+                    return false;
+                }
+                return invalidateOptionsMenu(menu);
+            }
+
+            @Override
+            public boolean onActivityPrepareOptionsMenu(Activity activity, Menu menu) {
+                if (isInvalidMenu()) {
+                    logInvalidMenu();
+                    return false;
+                }
+                return invalidateOptionsMenu(menu);
+            }
+
+            private boolean invalidateOptionsMenu(Menu menu) {
+                menu.clear();
+                if (mToolbarConfiguration.mMenuId != null) {
+                    activity.getMenuInflater().inflate(mToolbarConfiguration.mMenuId, menu);
+                }
+
+                if (mToolbarConfiguration.mToolbarContentConfiguratorListener != null) {
+                    mToolbarConfiguration.mToolbarContentConfiguratorListener.onMenuCreated(menu);
+                }
+
+                return true;
+            }
+
+            @Override
+            public boolean onActivityOptionsItemSelected(Activity activity, MenuItem item) {
+                if (isInvalidMenu()) {
+                    logInvalidMenu();
+                    return false;
+                }
+                MenuItemClickListener itemListener = mToolbarConfiguration.mItems.get(item.getItemId());
+                if (itemListener != null) {
+                    itemListener.onMenuItemSelected(item);
+                }
+                return super.onActivityOptionsItemSelected(activity, item);
+            }
+        });
         activity.supportInvalidateOptionsMenu();
     }
 
@@ -278,6 +292,7 @@ class ToolbarCreator {
             contentLayout.getToolbar().setNavigationOnClickListener(v -> mToolbarConfiguration.mUpAction.run());
         }
         ContentViewHolder<ToolbarHolder<ContentView>, LeftDrawer, RightDrawer> drawerLayout = new ContentViewHolder<>(activity, contentLayout, leftDrawer, rightDrawer);
+        mDrawerLayout = drawerLayout;
 
         //insert the left drawer
         if (leftDrawer != null) {

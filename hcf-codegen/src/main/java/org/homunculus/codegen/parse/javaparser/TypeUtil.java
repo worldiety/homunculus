@@ -20,8 +20,15 @@ class TypeUtil {
         if (parserType instanceof ClassOrInterfaceType) {
             //TODO this is not correct for generics
             ClassOrInterfaceType cit = (ClassOrInterfaceType) parserType;
-            return new Type(new FullQualifiedName(ctx.src.getFullQualifiedName(cit.getNameAsString())));
+
+            //when the name clashes, java has a full-qualified name instead (TODO not true for partial dot-imports)
+            StringBuilder str = new StringBuilder();
+            cit.getScope().ifPresent(s -> str.append(s.asString()).append("."));
+            str.append(cit.getName().asString());
+
+            return new Type(new FullQualifiedName(ctx.src.getFullQualifiedName(str.toString())));
         }
         return new Type(new FullQualifiedName(ctx.src.getFullQualifiedName(parserType.toString())));
     }
+
 }

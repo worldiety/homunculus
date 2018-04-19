@@ -291,7 +291,7 @@ public class JPResolver implements Resolver {
                 } else {
                     td = null;
                 }
-            }else{
+            } else {
                 td = null;
             }
             isDeclared = false;
@@ -311,7 +311,7 @@ public class JPResolver implements Resolver {
         TypeContext root = typeTree.get(which);
         String startingPoint = which.toString();
         while (root != null) {
-            if (!(root.type instanceof ClassOrInterfaceDeclaration)){
+            if (!(root.type instanceof ClassOrInterfaceDeclaration)) {
                 //TODO not correct for enum super type
                 root = null;
                 continue;
@@ -333,6 +333,9 @@ public class JPResolver implements Resolver {
                 return true;
             }
         }
+        if (what.equals(new FullQualifiedName(startingPoint))) {
+            return true;
+        }
         //if we got here either "which" inherits a classpath class or is undefined
         //what contains now the class to resolve
         try {
@@ -344,7 +347,16 @@ public class JPResolver implements Resolver {
                 reflectionRoot = reflectionRoot.getSuperclass();
             }
         } catch (ClassNotFoundException e) {
-            // System.out.println("IsInstanceOf cannot resolve class " + what + " (" + which + ")");
+//            System.out.println("reflection: not found " + startingPoint);
+            List<FullQualifiedName> superTypes = new ArrayList<>();
+
+            codeResolver.listTypes(new FullQualifiedName(startingPoint), superTypes, superTypes);
+            for (FullQualifiedName fqnSuperType : superTypes) {
+                if (fqnSuperType.equals(what)) {
+                    return true;
+                }
+            }
+//            System.out.println("IsInstanceOf cannot resolve class " + what + " (" + which + ")");
             return false;
         } catch (NoClassDefFoundError e) {
 //            System.out.println("NOCLASSDEF: IsInstanceOf cannot resolve class " + what + " (" + which + ")");

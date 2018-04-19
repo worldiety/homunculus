@@ -21,6 +21,7 @@ import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.navigation.Navigation;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.PostConstruct;
@@ -71,6 +72,13 @@ public class UISA extends LinearLayout {
 
     @Inject
     FilterIndex index;
+
+    @Inject
+    List<String> typeNameClash0;
+
+    @Inject
+    org.homunculus.android.example.activity.List typeNameClash1;
+
 
     private int helloCounter;
 

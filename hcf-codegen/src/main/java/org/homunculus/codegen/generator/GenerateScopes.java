@@ -381,7 +381,7 @@ public class GenerateScopes implements Generator {
                     AbstractJClass providedType = code.ref(singleton.toString());
                     JMethod factoryMethod = createSingletonFactory(project.getResolver(), availableGetters, code, scope, providedType);
                     createDoubleCheckGetter(code, scope, providedType, JExpr.invoke(factoryMethod));
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     throw new Panic("failed to process " + singleton, e);
                 }
             }
