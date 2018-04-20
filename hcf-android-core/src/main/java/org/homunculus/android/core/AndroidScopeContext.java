@@ -24,6 +24,7 @@ import android.content.Context;
 import android.content.ContextWrapper;
 
 import org.homunculus.android.compat.CompatApplication;
+import org.homunculus.android.compat.EventAppCompatActivity;
 import org.homunculusframework.factory.scope.Scope;
 
 import javax.annotation.Nullable;
@@ -58,6 +59,12 @@ public class AndroidScopeContext extends ContextWrapper {
     @Nullable
     public static Scope getScope(@Nullable Context context) {
         while (context instanceof ContextWrapper) {
+            if (context instanceof EventAppCompatActivity) {
+                return ((EventAppCompatActivity) context).getScope();
+            }
+            if (context instanceof CompatApplication) {
+                ((CompatApplication) context).getScope();
+            }
             if (context instanceof AndroidScopeContext) {
                 return ((AndroidScopeContext) context).getScope();
             }

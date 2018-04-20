@@ -110,6 +110,19 @@ public class UISA extends LinearLayout {
         right.addView(new Button(getContext()), new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         right.addView(new Button(getContext()), new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         right.addView(new Button(getContext()), new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        toolbarTemplate.
+                setMenu(R.menu.testmenu).
+                onItemClick(R.id.entry1, menuItem -> {
+                    System.out.println(menuItem);
+                    return true;
+                }).
+                onItemClick(R.id.entry2, menuItem -> {
+                    navigation.forward(new BindUISC());
+                    return true;
+                });
+        ;
+
         activity.setContentView(toolbarTemplate.createToolbar(this, left, right));
 
         Button btn = new Button(getContext());

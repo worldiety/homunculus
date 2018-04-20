@@ -268,6 +268,16 @@ public abstract class ToolbarConfiguration {
     }
 
     /**
+     * See {@link #setMenu(Integer, Map)} but with a fluent api
+     *
+     * @param menuId the menu id
+     * @return the menu configuration
+     */
+    public MenuConfiguration setMenu(Integer menuId) {
+        return new MenuConfiguration(menuId);
+    }
+
+    /**
      * Sets the elevation for the {@link Toolbar}. Does nothing on devices < API-Level 21 (because this feature is not supported there).
      * See also {@link View#setElevation(float)}
      *
@@ -306,4 +316,25 @@ public abstract class ToolbarConfiguration {
         return this;
     }
 
+
+    public class MenuConfiguration {
+        private final Map<Integer, MenuItemClickListener> clicklistener = new TreeMap<>();
+        private final int menuId;
+
+        private MenuConfiguration(int menuId) {
+            this.menuId = menuId;
+            ToolbarConfiguration.this.mMenuId = menuId;
+            ToolbarConfiguration.this.mItems = clicklistener;
+        }
+
+        public MenuConfiguration onItemClick(int item, MenuItemClickListener listener) {
+            clicklistener.put(item, listener);
+            return this;
+        }
+
+        public ToolbarConfiguration apply() {
+            setMenu(menuId, clicklistener);
+            return ToolbarConfiguration.this;
+        }
+    }
 }
