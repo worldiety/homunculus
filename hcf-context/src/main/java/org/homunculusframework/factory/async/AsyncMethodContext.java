@@ -1,6 +1,7 @@
 package org.homunculusframework.factory.async;
 
 import org.homunculusframework.concurrent.Task;
+import org.homunculusframework.factory.container.Binding;
 import org.homunculusframework.factory.container.Handler;
 import org.homunculusframework.factory.container.RequestContext;
 import org.homunculusframework.factory.container.UtilStack;
@@ -9,6 +10,8 @@ import org.homunculusframework.lang.Ref;
 import org.homunculusframework.lang.Result;
 import org.homunculusframework.scope.SettableTask;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -109,6 +112,7 @@ class AsyncMethodContext {
         return task;
     }
 
+    //TODO this clashes logically with {@link DefaultRequestContext}
     private static class ProxyRequestContext implements RequestContext {
         private final SettableTask<?> task;
 
@@ -119,6 +123,11 @@ class AsyncMethodContext {
         @Override
         public boolean isCancelled() {
             return task.isCancelled();
+        }
+
+        @Override
+        public List<Binding<?, ?>> getReferrer() {
+            return new ArrayList<>();
         }
     }
 }

@@ -15,6 +15,8 @@
  */
 package org.homunculusframework.factory.container;
 
+import org.homunculusframework.navigation.Navigation.Direction;
+
 import java.io.Serializable;
 
 /**
@@ -40,4 +42,5 @@ public interface Binding<Out, In> extends Serializable {
      * @return the result
      */
     Out create(In scope) throws Exception;
+
 }

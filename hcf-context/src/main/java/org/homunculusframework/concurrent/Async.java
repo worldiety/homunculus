@@ -16,6 +16,7 @@
 package org.homunculusframework.concurrent;
 
 import org.homunculusframework.factory.container.BackgroundHandler;
+import org.homunculusframework.factory.container.Binding;
 import org.homunculusframework.factory.container.Handler;
 import org.homunculusframework.factory.container.RequestContext;
 import org.homunculusframework.factory.scope.Scope;
@@ -25,6 +26,8 @@ import org.homunculusframework.lang.Result;
 import org.homunculusframework.scope.SettableTask;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
@@ -298,6 +301,7 @@ public class Async {
     }
 
 
+    //TODO this clashes logically with {@link DefaultRequestContext}
     private static class MyRequestContext implements RequestContext {
         private final SettableTask task;
         private volatile Thread thread;
@@ -309,6 +313,11 @@ public class Async {
         @Override
         public boolean isCancelled() {
             return task.isCancelled();
+        }
+
+        @Override
+        public List<Binding<?, ?>> getReferrer() {
+            return new ArrayList<>();
         }
     }
 }

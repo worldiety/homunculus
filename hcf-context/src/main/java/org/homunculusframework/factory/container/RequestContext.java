@@ -15,6 +15,8 @@
  */
 package org.homunculusframework.factory.container;
 
+import java.util.List;
+
 /**
  * A request context can be injected automatically into a controller call, when invoked
  *
@@ -28,4 +30,11 @@ public interface RequestContext {
      * @return true if cancelled.
      */
     boolean isCancelled();
+
+    /**
+     * Returns the stack of all referrers which lead to the this request. The last element is the latest referrer.
+     *
+     * @return the amount of referrers
+     */
+    List<Binding<?, ?>> getReferrer();
 }

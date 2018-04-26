@@ -8,6 +8,7 @@ import org.homunculusframework.concurrent.Cancellable;
 import org.homunculusframework.concurrent.NotInterruptible;
 import org.homunculusframework.factory.container.Binding;
 import org.homunculusframework.factory.container.ModelAndView;
+import org.homunculusframework.factory.container.RequestContext;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
@@ -69,5 +70,10 @@ public class ControllerA {
 
     public BindUISB nextUIS2(String asdf) {
         return new BindUISB(new UISBModel());
+    }
+
+
+    public ModelAndView sayHelloToA3(RequestContext ctx, int x) throws InterruptedException {
+        return null;
     }
 }

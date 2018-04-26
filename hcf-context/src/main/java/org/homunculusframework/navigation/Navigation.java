@@ -16,6 +16,7 @@
 package org.homunculusframework.navigation;
 
 import org.homunculusframework.factory.container.Binding;
+import org.homunculusframework.factory.container.MethodBinding;
 
 import javax.annotation.Nullable;
 
@@ -139,6 +140,7 @@ public interface Navigation extends BackActionConsumer {
     @Deprecated
     boolean wasGoingForward();
 
+
     enum DefaultDirection implements Direction {
         FORWARD,
         BACKWARD,
@@ -149,4 +151,6 @@ public interface Navigation extends BackActionConsumer {
     interface Direction {
 
     }
+
+
 }

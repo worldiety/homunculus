@@ -19,6 +19,7 @@ import org.homunculusframework.concurrent.Async;
 import org.homunculusframework.concurrent.Task;
 import org.homunculusframework.factory.container.Binding;
 import org.homunculusframework.factory.container.Handler;
+import org.homunculusframework.factory.container.HistoryProcessorBinding;
 import org.homunculusframework.factory.container.MethodBinding;
 import org.homunculusframework.factory.container.ObjectBinding;
 import org.homunculusframework.factory.scope.ContextScope;
@@ -128,19 +129,19 @@ public class DefaultNavigation implements Navigation {
 
     @Override
     public void backward(Binding<?, ?> request) {
-//        synchronized (stack) {
-//            wasGoingForward = false;
-//            pop();//just pop the current entry from the stack
-//            while (!stack.isEmpty()) {
-//                Binding<?,?,?> prior = pop();
-//                if (prior != null && prior.equalsTarget(request)) {
-//                    applyInternal(request);
-//                    return;
-//                }
-//            }
-//            stack.add(request);
-//            applyInternal(request);
-//        }
+        synchronized (stack) {
+            wasGoingForward = false;
+            pop();//just pop the current entry from the stack
+            while (!stack.isEmpty()) {
+                Binding<?, ?> prior = pop();
+                if (prior != null && prior.getClass() == request.getClass()) {
+                    applyInternal(request);
+                    return;
+                }
+            }
+            stack.add(request);
+            applyInternal(request);
+        }
     }
 
     @Override
@@ -232,7 +233,15 @@ public class DefaultNavigation implements Navigation {
         applyInternal(request);
     }
 
-    private void applyInternal(Binding<?, ?> binding) {
+    private void applyInternal(Binding<?, ?> b) {
+        final Binding<?, ?> binding;
+        //only apply the history processing once
+        if (b instanceof HistoryProcessorBinding) {
+            ((HistoryProcessorBinding) b).onApply(stack);
+            binding = ((HistoryProcessorBinding) b).getDelegate();
+        }else{
+            binding = b;
+        }
         UserInterfaceState uis = currentUIS;
         Binding<?, ?> currentRequest;
         if (uis != null) {

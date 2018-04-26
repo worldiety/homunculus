@@ -32,9 +32,16 @@ import org.homunculus.codegen.parse.FullQualifiedName;
 import org.homunculus.codegen.parse.Method;
 import org.homunculus.codegen.parse.Parameter;
 import org.homunculus.codegen.parse.Strings;
+import org.homunculusframework.factory.container.DefaultRequestContext;
 import org.homunculusframework.factory.container.MethodBinding;
 import org.homunculusframework.factory.container.ModelAndView;
 import org.homunculusframework.factory.container.ObjectBinding;
+import org.homunculusframework.factory.container.RequestContext;
+import org.homunculusframework.lang.Panic;
+import org.homunculusframework.navigation.Navigation;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Generates inner classes in Async* controllers which are created by {@link GenerateAsyncControllers}.
@@ -66,6 +73,9 @@ import org.homunculusframework.factory.container.ObjectBinding;
  * @since 1.0
  */
 public class GenerateMethodBindings implements Generator {
+
+    private final static FullQualifiedName REQUEST_CONTEXT = new FullQualifiedName(RequestContext.class);
+
     @Override
     public void generate(GenProject project) throws Exception {
         JCodeModel code = project.getCodeModel();
@@ -109,12 +119,19 @@ public class GenerateMethodBindings implements Generator {
                 binding._extends(project.getCodeModel().ref(MethodBinding.class).narrow(activityScope));
 
                 //add the constructor for this binding
+                List<Object> fieldsOrInferencedParameters = new ArrayList<>();
                 JMethod con = binding.constructor(JMod.PUBLIC);
                 for (Parameter p : method.getParameters()) {
+                    if (isInferenceParameter(p.getType())) {
+                        fieldsOrInferencedParameters.add(new InferenceParameter(p.getType()));
+                        continue;
+                    }
+
                     AbstractJClass pType = project.getCodeModel().ref(p.getType().toString());
 
                     //the field
                     JFieldVar thisVar = binding.field(JMod.PRIVATE, pType, p.getName());
+                    fieldsOrInferencedParameters.add(thisVar);
 
                     //the constructor param
                     JVar pVar = con.param(pType, p.getName());
@@ -145,8 +162,19 @@ public class GenerateMethodBindings implements Generator {
                 JVar scopeVar = onExecute.param(activityScope, "scope");
 
                 JInvocation getCtr = scopeVar.invoke("getParent").invoke("get" + bean.getSimpleName()).invoke(method.getName());
-                for (JFieldVar field : binding.fields().values()) {
-                    getCtr.arg(field);
+                for (Object fieldOrInf : fieldsOrInferencedParameters) {
+                    if (fieldOrInf instanceof InferenceParameter) {
+                        FullQualifiedName fqn = ((InferenceParameter) fieldOrInf).type;
+                        if (fqn.equals(REQUEST_CONTEXT)) {
+                            //getCtr.arg(JExpr._new(code.ref(DefaultRequestContext.class)).arg(scopeVar.invoke("resolve").arg(JExpr.dotclass(code.ref(Navigation.class)))));
+                            getCtr.arg(JExpr._new(code.ref(DefaultRequestContext.class)).arg(scopeVar.invoke("getNavigation")));
+                        } else {
+                            throw new Panic("implicit inferencing not supported " + fqn);
+                        }
+                    } else {
+                        getCtr.arg((JFieldVar) fieldOrInf);
+                    }
+
                 }
                 onExecute.body()._return(getCtr);
 
@@ -154,6 +182,18 @@ public class GenerateMethodBindings implements Generator {
                 binding.method(JMod.PUBLIC, String.class, "toString").body()._return(JExpr.lit(bean.getSimpleName() + "." + method.getName()));
             }
 
+        }
+    }
+
+    private boolean isInferenceParameter(FullQualifiedName fqn) {
+        return fqn.equals(REQUEST_CONTEXT);
+    }
+
+    static class InferenceParameter {
+        final FullQualifiedName type;
+
+        public InferenceParameter(FullQualifiedName type) {
+            this.type = type;
         }
     }
 }
