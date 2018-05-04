@@ -135,7 +135,9 @@ public class SettableTask<T> implements Task<T> {
                     scope.removeDestroyCallback(destroyCallback);
                 }
                 this.result = result;
-                Handler handler = scope.resolve(Handler.class);
+                //callbacks are always executed from the main thread, this ensures correct crashing if callback throws.
+                //Also whenDone is intended for UI purposes. Don't use in your backend code or for non-ui-stuff
+                MainHandler handler = scope.resolve(MainHandler.class);
                 if (handler != null) {
                     handler.post(() -> {
                         ExecutionList list = getExecutionList();
