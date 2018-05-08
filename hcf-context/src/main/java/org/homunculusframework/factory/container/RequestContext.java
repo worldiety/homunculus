@@ -33,8 +33,20 @@ public interface RequestContext {
 
     /**
      * Returns the stack of all referrers which lead to the this request. The last element is the latest referrer.
+     * The current implementation allows the direct modification of the stack. However it is still unclear, if this
+     * is a good idea or not, because of the asynchronous nature of controller method invocations. So be aware
+     * that modifications may cause race conditions (at least logical ones) with your UI.
+     * <p>
+     * IMPORTANT: Use a post (e.g. an instance of {@link MainHandler} like AndroidMainHandler) to ensure that
+     * your UI does not suffer on races, example:
+     * <ul>
+     * <li>Background-Thread: myController.getMyUISAndModifyStack()</li>
+     * <li>Main-Thread: myUIState.onClick() -> navigation.getTop() instanceof MyBinding</li>
+     * <li>Background-Thread: RequestContext.getReferrer().clear()</li>
+     * <li>Main-Thread: MyBinding binding = (MyBinding)navigation.getTop()</li>
+     * </ul>
      *
-     * @return the amount of referrers
+     * @return the actual referrers, changes to it will be propagated to the client.
      */
     List<Binding<?, ?>> getReferrer();
 }

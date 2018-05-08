@@ -2,20 +2,21 @@ package org.homunculusframework.factory.container;
 
 import org.homunculusframework.navigation.Navigation;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * This implementation leaks the stack of the given navigation. This is intentional, so that a controller may
+ * modify the stack of the requesting scope.
+ * <p>
  * Created by Torben Schinke on 26.04.18.
  */
-
 public class DefaultRequestContext implements RequestContext {
 
-    private List<Binding<?, ?>> stackSnapshot;
+    private List<Binding<?, ?>> reference;
     private volatile boolean cancelled;
 
     public DefaultRequestContext(Navigation navigation) {
-        stackSnapshot = new ArrayList<>(navigation.getStack());
+        reference = navigation.getStack();
     }
 
     @Override
@@ -29,6 +30,6 @@ public class DefaultRequestContext implements RequestContext {
 
     @Override
     public List<Binding<?, ?>> getReferrer() {
-        return stackSnapshot;
+        return reference;
     }
 }
