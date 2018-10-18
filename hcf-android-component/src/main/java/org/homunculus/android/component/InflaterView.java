@@ -18,9 +18,5 @@ public abstract class InflaterView extends FrameLayout {
         LayoutInflater li = LayoutInflater.from(getContext());
         super.addView(li.inflate(layoutId, null));
     }
-
-    @Override
-    public void addView(View child) {
-        throw new RuntimeException("adding views is not supported");
-    }
+    
 }
