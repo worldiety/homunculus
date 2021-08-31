@@ -16,7 +16,6 @@
 package org.homunculusframework.factory.container;
 
 
-import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.factory.scope.ContextScope;
 
 /**

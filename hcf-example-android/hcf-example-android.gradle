@@ -2,7 +2,6 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 26
-    buildToolsVersion "26.0.2"
     defaultConfig {
         applicationId "org.homunculus.android.example"
         minSdkVersion 16
@@ -37,27 +36,27 @@ android {
 
 
 dependencies {
-    compile(project(":hcf-android-bootstrap"))
+    implementation(project(":hcf-android-bootstrap"))
 
     //h2 is an embedded database
-    compile 'com.h2database:h2:1.4.196'
+    implementation 'com.h2database:h2:1.4.196'
 
     //jpa annotations
-    compile 'org.apache.geronimo.specs:geronimo-jpa_2.0_spec:1.1'
+    implementation 'org.apache.geronimo.specs:geronimo-jpa_2.0_spec:1.1'
 
     //orm lite, supports jpa
-    compile 'com.j256.ormlite:ormlite-android:5.0'
-    compile 'com.j256.ormlite:ormlite-jdbc:5.0'
+    implementation 'com.j256.ormlite:ormlite-android:5.0'
+    implementation 'com.j256.ormlite:ormlite-jdbc:5.0'
 
     //flyway support, for structured database migrations
-    compile 'org.flywaydb:flyway-core:4.2.0'
+    implementation 'org.flywaydb:flyway-core:4.2.0'
 
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    compile 'com.android.support:appcompat-v7:26.1.0'
-    compile 'com.android.support:design:26.1.0'
-    compile 'com.android.support.constraint:constraint-layout:1.0.2'
-    testCompile 'junit:junit:4.12'
+    implementation 'com.android.support:appcompat-v7:26.1.0'
+    implementation 'com.android.support:design:26.1.0'
+    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
+    testImplementation 'junit:junit:4.13.2'
 }

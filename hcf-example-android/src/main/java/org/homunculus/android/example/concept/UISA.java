@@ -1,12 +1,8 @@
 package org.homunculus.android.example.concept;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.support.v7.app.AlertDialog.Builder;
-import android.support.v7.widget.LinearLayoutCompat;
-import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewGroup.LayoutParams;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Toast;

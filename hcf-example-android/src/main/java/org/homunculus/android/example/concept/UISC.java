@@ -1,7 +1,6 @@
 package org.homunculus.android.example.concept;
 
 import android.app.Activity;
-import android.content.Context;
 import android.view.View;
 
 import org.homunculus.android.component.module.toolbarbuilder.templates.DefaultToolbarConfiguration;

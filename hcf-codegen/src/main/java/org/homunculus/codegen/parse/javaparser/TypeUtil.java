@@ -1,6 +1,5 @@
 package org.homunculus.codegen.parse.javaparser;
 
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 
 import org.homunculus.codegen.parse.FullQualifiedName;

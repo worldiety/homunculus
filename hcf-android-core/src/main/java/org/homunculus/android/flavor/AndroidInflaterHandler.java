@@ -18,6 +18,7 @@ package org.homunculus.android.flavor;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.view.InflateException;
+
 import org.homunculusframework.factory.container.Handler;
 import org.slf4j.LoggerFactory;
 

@@ -1,7 +1,6 @@
 package org.homunculusframework.factory.scope;
 
 import org.homunculusframework.lang.Function;
-import org.homunculusframework.scope.OnDestroyCallback;
 
 import javax.annotation.Nullable;
 

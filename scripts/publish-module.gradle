@@ -1,0 +1,86 @@
+apply plugin: 'maven-publish'
+apply plugin: 'signing'
+/*
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+
+ */
+
+// custom tasks for creating source/javadoc jars
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+// add javadoc/source jar tasks as artifacts
+artifacts {
+    archives sourcesJar, javadocJar
+}
+
+group = PUBLISH_GROUP_ID
+version = PUBLISH_VERSION
+
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                groupId PUBLISH_GROUP_ID
+                artifactId PUBLISH_ARTIFACT_ID
+                version PUBLISH_VERSION
+
+                if (project.plugins.hasPlugin('war')) {
+                    from components.web
+                } else {
+                    from components.java
+                }
+
+                artifact sourcesJar
+                artifact javadocJar
+
+                pom {
+                    name = PUBLISH_ARTIFACT_ID
+                    description = 'Building large scale Android Apps with homunculus'
+                    url = 'https://github.com/worldiety/homunculus'
+                    licenses {
+                        license {
+                            name = 'The Apache License, Version 2.0'
+                            url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        }
+                    }
+                    developers {
+                        developer {
+                            name = 'Christopher Heyn'
+                            email = 'Christopher.Heyn@worldiety.de'
+                        }
+                        developer {
+                            name = 'Torben Schinke'
+                            email = 'Torben.Schinke@worldiety.de'
+                        }
+                    }
+                    scm {
+                        connection = 'https://github.com/worldiety/homunculus.git'
+                        developerConnection = 'scm:git:ssh://github.com/worldiety/homunculus.git'
+                        url = 'https://github.com/worldiety/homunculus'
+                    }
+
+                }
+            }
+        }
+    }
+}
+
+signing {
+    useInMemoryPgpKeys(
+            rootProject.ext["signing.keyId"],
+            rootProject.ext["signing.secretKeyRingFile"],
+            rootProject.ext["signing.password"],
+    )
+    sign publishing.publications
+}

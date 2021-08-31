@@ -17,9 +17,6 @@ package org.homunculus.android.component;
 
 import android.content.Context;
 import android.graphics.Typeface;
-import android.support.annotation.Nullable;
-import android.util.AttributeSet;
-import android.view.View;
 
 /**
  * The material icons accessible by a font, which is more or less compatible and scaleable accross multiple platforms.

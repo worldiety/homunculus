@@ -16,7 +16,6 @@
 package org.homunculusframework.scope;
 
 import org.homunculusframework.factory.scope.LifecycleOwner;
-import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.lang.Destroyable;
 import org.homunculusframework.lang.Reference;
 

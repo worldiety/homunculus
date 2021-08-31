@@ -7,3 +7,11 @@ description = "subset of the spring api"
 dependencies {
 
 }
+//publishing
+ext {
+    PUBLISH_GROUP_ID = 'io.homunculus'
+    PUBLISH_ARTIFACT_ID = 'hcf-api-spring'
+    PUBLISH_VERSION = project.version
+}
+
+apply from: "${rootProject.projectDir}/scripts/publish-module.gradle"

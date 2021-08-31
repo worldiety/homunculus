@@ -7,7 +7,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.v4.util.ArrayMap;
 import android.view.LayoutInflater;
 import android.view.View;
 
@@ -36,13 +35,11 @@ import org.homunculus.codegen.parse.Parameter;
 import org.homunculus.codegen.parse.Resolver;
 import org.homunculus.codegen.parse.Strings;
 import org.homunculusframework.factory.container.ModelAndView;
-import org.homunculusframework.factory.container.ObjectBinding;
 import org.homunculusframework.factory.flavor.hcf.Bind;
 import org.homunculusframework.factory.scope.LifecycleOwner;
 import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.lang.Panic;
 import org.homunculusframework.lang.Ref;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;

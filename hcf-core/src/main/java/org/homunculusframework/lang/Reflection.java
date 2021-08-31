@@ -15,12 +15,13 @@
  */
 package org.homunculusframework.lang;
 
-import javax.annotation.Nullable;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+
+import javax.annotation.Nullable;
 
 /**
  * A helper class of reflection things which may be useful if they would have been in the default sdk.

@@ -1,18 +1,11 @@
 package org.homunculus.codegen.gradle;
 
 import com.android.build.gradle.AppPlugin;
-import com.android.build.gradle.api.AndroidBasePlugin;
-import com.android.build.gradle.internal.scope.VariantScope;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.plugins.JavaPluginConvention;
-import org.gradle.api.plugins.PluginAware;
-import org.gradle.api.plugins.PluginContainer;
-import org.gradle.api.tasks.SourceSet;
 
 import java.io.File;
-import java.util.Map.Entry;
 
 public class HCFGenPlugin implements Plugin<Project> {
     @Override

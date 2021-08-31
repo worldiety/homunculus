@@ -20,7 +20,6 @@ import org.homunculus.codegen.parse.Method;
 import org.homunculus.codegen.parse.Resolver;
 import org.homunculus.codegen.parse.jcodemodel.JCodeModelResolver;
 import org.homunculus.codegen.parse.reflection.ReflectionResolver;
-import org.homunculusframework.lang.Panic;
 
 import java.util.ArrayList;
 import java.util.HashMap;

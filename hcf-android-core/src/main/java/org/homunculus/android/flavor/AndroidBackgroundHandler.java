@@ -16,7 +16,6 @@
 package org.homunculus.android.flavor;
 
 import org.homunculusframework.factory.container.BackgroundHandler;
-import org.homunculusframework.factory.container.Handler;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

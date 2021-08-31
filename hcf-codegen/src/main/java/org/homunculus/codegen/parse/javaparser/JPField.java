@@ -1,7 +1,6 @@
 package org.homunculus.codegen.parse.javaparser;
 
 import com.github.javaparser.ast.body.FieldDeclaration;
-import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 
 import org.homunculus.codegen.generator.LintException;

@@ -10,27 +10,27 @@ configurations {
 }
 
 dependencies {
-    compile(project(":hcf-core"))
-    compile(project(":hcf-context"))
-    compile(project(":hcf-api-spring"))
-    compile 'com.github.javaparser:javaparser-core:3.5.7'
-    compile 'com.github.javaparser:java-symbol-solver-core:0.6.3'
-    compile 'com.helger:jcodemodel:3.0.1'
-    compile 'org.slf4j:slf4j-simple:1.7.25'
-    compile 'org.slf4j:slf4j-api:1.7.25'
-    compile 'com.google.android:android:4.1.1.4'
+    implementation(project(":hcf-core"))
+    implementation(project(":hcf-context"))
+    implementation(project(":hcf-api-spring"))
+    implementation 'com.github.javaparser:javaparser-core:3.5.7'
+    implementation 'com.github.javaparser:java-symbol-solver-core:0.6.3'
+    implementation 'com.helger:jcodemodel:3.0.1'
+    implementation 'org.slf4j:slf4j-simple:1.7.28'
+    implementation 'org.slf4j:slf4j-api:1.7.30'
+    implementation 'com.google.android:android:4.1.1.4'
 
     //this is for @inject or @named
-    compile 'javax.inject:javax.inject:1'
+    implementation 'javax.inject:javax.inject:1'
 
     //this is for @PostConstruct or @PreDestroy
-    compile 'javax.annotation:jsr250-api:1.0'
+    implementation 'javax.annotation:jsr250-api:1.0'
 
-    compile gradleApi()
-    compile 'com.android.tools.build:gradle:3.0.1'
+    implementation gradleApi()
+    implementation 'com.android.tools.build:gradle:3.0.1'
 
     //if you have a cyclic compilation dependency problem uncomment the following line and do a "make"
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     extraLibs fileTree(dir: 'libs', include: ['*.jar'])
 }
@@ -40,3 +40,16 @@ jar {
         configurations.extraLibs.collect { it.isDirectory() ? it : zipTree(it) }
     }
 }
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+//publishing
+ext {
+    PUBLISH_GROUP_ID = 'io.homunculus'
+    PUBLISH_ARTIFACT_ID = 'hcf-codegen'
+    PUBLISH_VERSION = project.version
+}
+
+apply from: "${rootProject.projectDir}/scripts/publish-module.gradle"

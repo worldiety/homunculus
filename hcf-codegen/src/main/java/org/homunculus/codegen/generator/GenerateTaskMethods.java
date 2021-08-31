@@ -28,14 +28,14 @@ import com.helger.jcodemodel.JVar;
 
 import org.homunculus.codegen.GenProject;
 import org.homunculus.codegen.Generator;
+import org.homunculus.codegen.generator.PreprocessDiscoverBeans.DiscoveryKind;
 import org.homunculus.codegen.parse.FullQualifiedName;
 import org.homunculus.codegen.parse.Method;
 import org.homunculus.codegen.parse.Parameter;
 import org.homunculus.codegen.parse.Resolver;
-import org.homunculus.codegen.generator.PreprocessDiscoverBeans.DiscoveryKind;
 import org.homunculusframework.concurrent.Cancellable;
-import org.homunculusframework.concurrent.Task;
 import org.homunculusframework.concurrent.NotInterruptible;
+import org.homunculusframework.concurrent.Task;
 import org.homunculusframework.factory.container.Binding;
 import org.homunculusframework.factory.container.MethodBinding;
 import org.homunculusframework.factory.container.ModelAndView;

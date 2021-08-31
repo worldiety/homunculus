@@ -1,25 +1,13 @@
 package org.homunculus.codegen.gradle;
 
 import com.android.build.gradle.AppPlugin;
-import com.android.build.gradle.api.AndroidSourceSet;
-import com.android.build.gradle.internal.tasks.IncrementalTask;
 
-import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Plugin;
-import org.gradle.api.Task;
-import org.gradle.api.plugins.JavaPluginConvention;
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskAction;
 import org.homunculus.codegen.GenProject;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.List;
 
 /**
  * Created by Torben Schinke on 27.02.18.

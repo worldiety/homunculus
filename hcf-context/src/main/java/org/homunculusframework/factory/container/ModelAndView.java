@@ -16,7 +16,6 @@
 package org.homunculusframework.factory.container;
 
 import org.homunculusframework.factory.scope.ContextScope;
-import org.homunculusframework.factory.scope.Scope;
 
 /**
  * This is just a convenience class to make the purpose of an ObjectBinding clearer.

@@ -16,11 +16,10 @@
 package org.homunculusframework.navigation;
 
 import org.homunculusframework.factory.container.Binding;
-import org.homunculusframework.factory.container.MethodBinding;
-
-import javax.annotation.Nullable;
 
 import java.util.List;
+
+import javax.annotation.Nullable;
 
 /**
  * This navigation contract models a stack navigation and provides a stack history in which each forward or backward modifies the stack.

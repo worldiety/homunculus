@@ -1,6 +1,5 @@
 package org.homunculus.android.example.concept;
 
-import org.homunculusframework.factory.container.Binding;
 import org.homunculusframework.factory.container.ModelAndView;
 
 import javax.inject.Inject;

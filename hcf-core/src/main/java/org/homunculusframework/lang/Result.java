@@ -17,13 +17,16 @@ package org.homunculusframework.lang;
 
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
-
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
+
+import javax.annotation.Nullable;
 
 /**
  * A simple tagged result. Kind of a tuple type.

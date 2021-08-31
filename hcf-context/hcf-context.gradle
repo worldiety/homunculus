@@ -2,7 +2,7 @@
 description = "homunculus Context"
 
 dependencies {
-    compile(project(":hcf-core"))
+    implementation(project(":hcf-core"))
 
     //avoid direct dependency for various jsr' standards, which may be provided already by the runtime
     compileOnly 'javax.inject:javax.inject:1'
@@ -18,3 +18,11 @@ dependencies {
     //spring support
     compileOnly(project(":hcf-api-spring"))
 }
+//publishing
+ext {
+    PUBLISH_GROUP_ID = 'io.homunculus'
+    PUBLISH_ARTIFACT_ID = 'hcf-context'
+    PUBLISH_VERSION = project.version
+}
+
+apply from: "${rootProject.projectDir}/scripts/publish-module.gradle"

@@ -26,14 +26,14 @@ import android.os.Looper;
 import org.homunculusframework.lang.Panic;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
-
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.LinkedList;
+
+import javax.annotation.Nullable;
 
 /**
  * A factory implementation

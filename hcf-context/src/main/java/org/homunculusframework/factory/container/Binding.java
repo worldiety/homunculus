@@ -15,8 +15,6 @@
  */
 package org.homunculusframework.factory.container;
 
-import org.homunculusframework.navigation.Navigation.Direction;
-
 import java.io.Serializable;
 
 /**

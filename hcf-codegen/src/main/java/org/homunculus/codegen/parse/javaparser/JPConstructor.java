@@ -1,16 +1,13 @@
 package org.homunculus.codegen.parse.javaparser;
 
 import com.github.javaparser.ast.body.ConstructorDeclaration;
-import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 
 import org.homunculus.codegen.generator.LintException;
 import org.homunculus.codegen.parse.Annotation;
 import org.homunculus.codegen.parse.Constructor;
 import org.homunculus.codegen.parse.FullQualifiedName;
-import org.homunculus.codegen.parse.Method;
 import org.homunculus.codegen.parse.Parameter;
-import org.homunculus.codegen.parse.Type;
 
 import java.util.ArrayList;
 import java.util.List;

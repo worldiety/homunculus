@@ -15,7 +15,11 @@
  */
 package org.homunculusframework.concurrent;
 
-import java.lang.annotation.*;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * Marks a method to be NOT safe to use with {@link Thread#interrupt()}. Background: not all interrupts are safe but

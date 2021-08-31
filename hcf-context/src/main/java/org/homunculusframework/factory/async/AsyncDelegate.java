@@ -9,9 +9,6 @@ import org.homunculusframework.lang.Result;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-
 /**
  * Created by Torben Schinke on 15.02.18.
  */

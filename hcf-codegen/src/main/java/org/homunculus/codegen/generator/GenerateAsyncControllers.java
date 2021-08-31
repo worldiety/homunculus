@@ -15,7 +15,6 @@
  */
 package org.homunculus.codegen.generator;
 
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.helger.jcodemodel.AbstractJClass;
 import com.helger.jcodemodel.JDefinedClass;
@@ -25,9 +24,8 @@ import com.helger.jcodemodel.JVar;
 
 import org.homunculus.codegen.GenProject;
 import org.homunculus.codegen.Generator;
-import org.homunculus.codegen.parse.FullQualifiedName;
-import org.homunculus.codegen.parse.javaparser.SrcFile;
 import org.homunculus.codegen.generator.PreprocessDiscoverBeans.DiscoveryKind;
+import org.homunculus.codegen.parse.FullQualifiedName;
 import org.homunculusframework.factory.async.AsyncDelegate;
 import org.homunculusframework.factory.container.BackgroundHandler;
 import org.homunculusframework.factory.scope.Scope;

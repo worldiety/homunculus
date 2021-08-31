@@ -26,13 +26,12 @@ import org.homunculus.codegen.parse.Method;
 import org.homunculus.codegen.parse.Parameter;
 import org.homunculus.codegen.parse.Resolver;
 import org.homunculus.codegen.parse.Strings;
-import org.homunculus.codegen.parse.Type;
 import org.homunculusframework.factory.flavor.hcf.ScopeElement;
 import org.homunculusframework.factory.scope.AbsScope;
+import org.homunculusframework.factory.scope.ContextScope;
 import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.lang.Function;
 import org.homunculusframework.lang.Panic;
-import org.homunculusframework.factory.scope.ContextScope;
 import org.homunculusframework.lang.Ref;
 
 import java.util.ArrayList;

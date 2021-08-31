@@ -17,8 +17,11 @@ package org.homunculusframework.factory.serializer;
 
 import org.homunculusframework.lang.Panic;
 
-import java.io.*;
-import java.lang.reflect.InvocationTargetException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 
 /**
  * The default implementation of {@link java.io.Externalizable}. Probably one of the fastest possible.

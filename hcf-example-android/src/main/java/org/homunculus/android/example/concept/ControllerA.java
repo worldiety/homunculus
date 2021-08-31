@@ -6,7 +6,6 @@ import android.content.Context;
 import org.homunculus.android.component.module.storage.Persistent;
 import org.homunculusframework.concurrent.Cancellable;
 import org.homunculusframework.concurrent.NotInterruptible;
-import org.homunculusframework.factory.container.Binding;
 import org.homunculusframework.factory.container.ModelAndView;
 import org.homunculusframework.factory.container.RequestContext;
 import org.slf4j.LoggerFactory;

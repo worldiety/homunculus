@@ -1,8 +1,5 @@
 package org.homunculus.codegen.parse;
 
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.javaparser.ast.body.MethodDeclaration;
-
 import org.homunculus.codegen.generator.LintException;
 
 import java.util.List;

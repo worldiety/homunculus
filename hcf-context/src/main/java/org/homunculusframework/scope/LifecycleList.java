@@ -21,12 +21,12 @@ import org.homunculusframework.lang.Destroyable;
 import org.homunculusframework.lang.Function;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
-
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+
+import javax.annotation.Nullable;
 
 /**
  * A simple to use list which stores it's things in a scope and looses all entries automatically when the scope is destroyed.

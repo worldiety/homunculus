@@ -17,19 +17,14 @@ package org.homunculus.android.component.module.uncaughtexception;
 
 import org.homunculus.android.component.module.uncaughtexception.Supportiety.ApplicationDetails;
 import org.homunculus.android.component.module.uncaughtexception.Supportiety.Ticket;
-import org.homunculusframework.concurrent.Async;
 import org.homunculusframework.concurrent.Task;
 import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.lang.Panic;
 import org.homunculusframework.lang.Result;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
-import java.util.Map.Entry;
 
 /**
  * A default implementation for the worldiety supportiety crash logging system.

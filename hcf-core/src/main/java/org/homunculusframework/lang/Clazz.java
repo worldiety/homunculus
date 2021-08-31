@@ -16,7 +16,10 @@
 package org.homunculusframework.lang;
 
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.List;
 
 /**
  * The sole purpose of this class is to workaround performance issues on Java platforms like Android, where the

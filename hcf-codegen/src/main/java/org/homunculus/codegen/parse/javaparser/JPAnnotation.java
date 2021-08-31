@@ -10,7 +10,6 @@ import com.github.javaparser.ast.expr.SingleMemberAnnotationExpr;
 import com.github.javaparser.ast.expr.StringLiteralExpr;
 import com.github.javaparser.ast.expr.UnaryExpr;
 
-import org.gradle.internal.impldep.aQute.bnd.build.Run;
 import org.homunculus.codegen.generator.LintException;
 import org.homunculus.codegen.parse.Annotation;
 import org.homunculus.codegen.parse.FullQualifiedName;

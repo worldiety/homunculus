@@ -8,3 +8,11 @@ description = "homunculus Core"
 dependencies {
 
 }
+//publishing
+ext {
+    PUBLISH_GROUP_ID = 'io.homunculus'
+    PUBLISH_ARTIFACT_ID = 'hcf-core'
+    PUBLISH_VERSION = project.version
+}
+
+apply from: "${rootProject.projectDir}/scripts/publish-module.gradle"

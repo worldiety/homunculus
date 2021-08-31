@@ -25,9 +25,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.os.Process;
-import android.support.annotation.LayoutRes;
-import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
 import android.view.ActionMode;
 import android.view.ActionMode.Callback;
 import android.view.KeyEvent;
@@ -38,11 +35,15 @@ import android.view.MotionEvent;
 import android.view.SearchEvent;
 import android.view.View;
 
+import androidx.annotation.LayoutRes;
+import androidx.appcompat.app.AppCompatActivity;
+
 import org.homunculus.android.core.ActivityEventDispatcher;
 import org.homunculus.android.core.ActivityEventOwner;
-import org.homunculusframework.factory.flavor.hcf.ScopeElement;
+import org.homunculusframework.factory.scope.ContextScope;
 import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.navigation.Navigation;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -112,7 +113,7 @@ public class EventAppCompatActivity extends AppCompatActivity implements Activit
     /**
      * Returns the view which has been set by {@link #setContentView(View)} or {@link #setContentView(int)}
      */
-    @javax.annotation.Nullable
+    @Nullable
     public View getContentView() {
         return mContentView;
     }
@@ -561,6 +562,7 @@ public class EventAppCompatActivity extends AppCompatActivity implements Activit
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         mEventDispatcher.getEventDispatcher().onActivityRequestPermissionsResult(this, requestCode, permissions, grantResults);
     }
 

@@ -16,7 +16,6 @@
 package org.homunculus.android.component;
 
 import android.app.Activity;
-import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.os.Bundle;
 
@@ -28,14 +27,9 @@ import org.homunculus.android.flavor.AndroidMainHandler;
 import org.homunculusframework.concurrent.Task;
 import org.homunculusframework.factory.scope.LifecycleOwner;
 import org.homunculusframework.factory.scope.Scope;
-import org.homunculusframework.lang.Destroyable;
 import org.homunculusframework.lang.Function;
 import org.homunculusframework.lang.Procedure;
 import org.homunculusframework.lang.Result;
-import org.homunculusframework.scope.SettableTask;
-
-import java.util.ArrayList;
-import java.util.List;
 
 
 /**
