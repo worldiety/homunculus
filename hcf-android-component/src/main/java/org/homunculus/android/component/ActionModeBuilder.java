@@ -23,13 +23,14 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 
+import androidx.annotation.Nullable;
+
 import org.homunculus.android.core.AndroidScopeContext;
 import org.homunculusframework.factory.scope.Scope;
 
 import java.util.Map;
 import java.util.TreeMap;
 
-import javax.annotation.Nullable;
 
 /**
  * A builder around the {@link ActionMode} from Android to simplify the usage and to integrate it into the world

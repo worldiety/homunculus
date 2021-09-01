@@ -32,6 +32,8 @@ import android.view.MotionEvent;
 import android.view.SearchEvent;
 import android.view.View;
 
+import androidx.annotation.Nullable;
+
 import org.homunculus.android.compat.EventAppCompatActivity;
 import org.homunculus.android.flavor.AndroidMainHandler;
 import org.homunculusframework.factory.scope.EmptyScope;
@@ -41,7 +43,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.annotation.Nullable;
 
 
 /**

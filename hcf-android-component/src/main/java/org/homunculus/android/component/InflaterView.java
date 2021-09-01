@@ -1,9 +1,10 @@
 package org.homunculus.android.component;
 
 import android.content.Context;
-import android.support.annotation.LayoutRes;
 import android.view.LayoutInflater;
 import android.widget.FrameLayout;
+
+import androidx.annotation.LayoutRes;
 
 /**
  * A basic class which is mainly used by code generator to create type safe views from XML files.

@@ -23,6 +23,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.widget.FrameLayout;
 
+import androidx.annotation.Nullable;
+
 import org.homunculus.android.core.AndroidScopeContext;
 import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.lang.Function;
@@ -30,7 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.Thread.UncaughtExceptionHandler;
 
-import javax.annotation.Nullable;
+
 
 /**
  * This crash handler tries to un-break your android handler by reviving the looper (and potentionally applying a little hack).
@@ -185,7 +187,7 @@ public class UnbreakableCrashHandler {
 
     public static class RecoverActivity extends Activity {
         @Override
-        protected void onCreate(@android.support.annotation.Nullable Bundle savedInstanceState) {
+        protected void onCreate(@androidx.annotation.Nullable Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
             getWindow().getDecorView().setBackgroundResource(android.R.color.transparent);
             finish();

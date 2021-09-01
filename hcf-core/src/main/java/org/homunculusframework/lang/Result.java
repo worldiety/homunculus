@@ -28,6 +28,7 @@ import java.util.TreeMap;
 
 import javax.annotation.Nullable;
 
+
 /**
  * A simple tagged result. Kind of a tuple type.
  *

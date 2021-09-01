@@ -25,9 +25,11 @@ import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 
+import androidx.annotation.Nullable;
+
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.annotation.Nullable;
+
 
 /**
  * Provides some missing compatibility bits for views.

@@ -23,7 +23,6 @@ import com.helger.jcodemodel.JMod;
 import com.helger.jcodemodel.JTypeVar;
 import com.helger.jcodemodel.JVar;
 
-import org.homunculus.android.component.module.storage.Persistent;
 import org.homunculus.codegen.GenProject;
 import org.homunculus.codegen.Generator;
 import org.homunculus.codegen.generator.PreprocessDiscoverBeans.DiscoveryKind;

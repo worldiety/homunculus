@@ -1,11 +1,12 @@
 package org.homunculus.android.component.module.validator.viewErrorHandlers;
 
-import android.support.v7.widget.AppCompatTextView;
 import android.util.TypedValue;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.Spinner;
+
+import androidx.appcompat.widget.AppCompatTextView;
 
 import org.homunculus.android.component.module.validator.ViewErrorHandler;
 

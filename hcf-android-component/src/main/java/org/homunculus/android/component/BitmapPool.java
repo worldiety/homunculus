@@ -18,7 +18,8 @@ package org.homunculus.android.component;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 
-import javax.annotation.Nullable;
+import androidx.annotation.Nullable;
+
 
 /**
  * A simple bitmap pool contract to make things easier for badly implemented Android VMs ("gc_for_alloc")

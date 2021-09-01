@@ -20,6 +20,8 @@ import android.app.AlertDialog.Builder;
 import android.view.LayoutInflater;
 import android.view.View;
 
+import androidx.annotation.Nullable;
+
 import org.homunculus.android.component.MaterialFont.Icon;
 import org.homunculus.android.component.MaterialFontView;
 import org.homunculus.android.component.R;
@@ -35,7 +37,6 @@ import org.homunculusframework.stereotype.UserInterfaceState;
 import java.util.Map;
 import java.util.TreeMap;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
 

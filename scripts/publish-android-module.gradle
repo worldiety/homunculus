@@ -7,16 +7,19 @@ task sourcesJar(type: Jar) {
 }
 
  */
-
+/*  //remove
 task javadoc(type: Javadoc) {
     source = android.sourceSets.main.java.srcDirs
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
+    //classifier = 'javadoc'
+    archiveClassifier.set('javadoc')
     from javadoc.destinationDir
 }
+
+ */
 
 task androidSourcesJar(type: Jar) {
     archiveClassifier.set('sources')
@@ -31,7 +34,7 @@ task androidSourcesJar(type: Jar) {
 
 // add javadoc/source jar tasks as artifacts
 artifacts {
-    archives javadocJar, androidSourcesJar//, sourcesJar
+    archives androidSourcesJar//, sourcesJar, javadocJar,
 }
 
 group = PUBLISH_GROUP_ID
@@ -53,7 +56,7 @@ afterEvaluate {
 
                 //artifact sourcesJar
                 artifact androidSourcesJar
-                artifact javadocJar
+                //artifact javadocJar
 
                 pom {
                     name = PUBLISH_ARTIFACT_ID

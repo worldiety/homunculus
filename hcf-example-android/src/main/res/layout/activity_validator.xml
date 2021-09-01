@@ -15,7 +15,7 @@
         android:layout_height="wrap_content"
         android:hint="Test1"/>
 
-    <android.support.design.widget.TextInputLayout
+    <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/ed_test2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
@@ -25,7 +25,7 @@
             android:layout_height="wrap_content"
             android:hint="Test2"/>
 
-    </android.support.design.widget.TextInputLayout>
+    </com.google.android.material.textfield.TextInputLayout>
 
     <Spinner
         android:id="@+id/sp_test"
@@ -33,7 +33,7 @@
         android:layout_height="wrap_content"
         android:entries="@array/validator_spinner_values"/>
 
-    <android.support.design.widget.TextInputLayout
+    <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/ed_numbertest"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
@@ -43,7 +43,7 @@
             android:layout_height="wrap_content"
             android:hint="Numbertest"/>
 
-    </android.support.design.widget.TextInputLayout>
+    </com.google.android.material.textfield.TextInputLayout>
 
     <Button
         android:id="@+id/bt_validate"

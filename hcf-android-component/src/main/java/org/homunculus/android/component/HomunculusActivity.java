@@ -17,6 +17,8 @@ package org.homunculus.android.component;
 
 import android.os.Bundle;
 
+import androidx.annotation.Nullable;
+
 import org.homunculus.android.compat.EventAppCompatActivity;
 import org.homunculus.android.component.module.uncaughtexception.UncaughtException.BindUncaughtException;
 import org.homunculus.android.core.ActivityEventDispatcher;
@@ -36,7 +38,7 @@ import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.ArrayList;
 
-import javax.annotation.Nullable;
+
 
 /**
  * Just like the {@link EventAppCompatActivity} but provides an even more provided and opinionated configuration allowing

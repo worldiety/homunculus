@@ -21,6 +21,7 @@ import org.homunculusframework.lang.Reference;
 
 import javax.annotation.Nullable;
 
+
 /**
  * In the broadest sense this is related to a {@link ThreadLocal}. See also {@link LifecycleList}.
  * The lifetime is tied to that of the scope. If the scope is destroyed, the value is removed.

@@ -39,6 +39,7 @@ import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
 
+
 /**
  * Picks all xml's from the layout folder and creates them in packages relative to
  * the applications package name.

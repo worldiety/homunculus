@@ -28,6 +28,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.annotation.Nullable;
 
+
 /**
  * A simple to use list which stores it's things in a scope and looses all entries automatically when the scope is destroyed.
  * If the scope has been destroyed, the list is cleared and does not accept new entries (no-op, no exceptions).

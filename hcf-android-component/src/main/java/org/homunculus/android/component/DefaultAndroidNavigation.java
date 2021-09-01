@@ -19,11 +19,13 @@ import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.support.annotation.NonNull;
 import android.view.Gravity;
 import android.widget.FrameLayout;
 import android.widget.FrameLayout.LayoutParams;
 import android.widget.ProgressBar;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.homunculus.android.compat.EventAppCompatActivity;
 import org.homunculus.android.component.module.uncaughtexception.UncaughtException.BindUncaughtException;
@@ -33,8 +35,6 @@ import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.navigation.BackActionConsumer;
 import org.homunculusframework.navigation.DefaultNavigation;
 import org.homunculusframework.navigation.Navigation;
-
-import javax.annotation.Nullable;
 
 /**
  * A default implementation of {@link Navigation} with Android flavor. {@link #backward()}

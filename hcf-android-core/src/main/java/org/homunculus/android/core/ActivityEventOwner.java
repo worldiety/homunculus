@@ -21,7 +21,7 @@ package org.homunculus.android.core;
  * the reusability of your component use this class instead of coding against a concrete activity type like
  * {@link org.homunculus.android.compat.EventAppCompatActivity}.
  * <p>
- * Note: The {@link android.arch.lifecycle.Lifecycle} does not support anything else than the simple lifecycle of
+ * Note: The {@link androidx.lifecycle.Lifecycle} does not support anything else than the simple lifecycle of
  * fragments or activities. Complex cycles like activity results or menus are not possible with it.
  *
  * @author Torben Schinke

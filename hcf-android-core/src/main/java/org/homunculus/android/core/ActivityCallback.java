@@ -2,12 +2,14 @@ package org.homunculus.android.core;
 
 import android.app.Activity;
 
+import androidx.annotation.Nullable;
+
 import org.homunculus.android.core.ActivityEventDispatcher.ActivityEventCallback;
 import org.homunculusframework.factory.scope.LifecycleOwner;
 import org.homunculusframework.scope.LifecycleLocal;
 import org.homunculusframework.scope.OnDestroyCallback;
 
-import javax.annotation.Nullable;
+;
 
 /**
  * Created by Torben Schinke on 20.03.18.

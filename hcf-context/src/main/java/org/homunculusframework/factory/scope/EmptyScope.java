@@ -4,6 +4,7 @@ import org.homunculusframework.lang.Function;
 
 import javax.annotation.Nullable;
 
+
 public class EmptyScope extends AbsScope {
 
     @Nullable

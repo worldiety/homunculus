@@ -1,9 +1,10 @@
 package org.homunculus.android.component.module.validator;
 
-import android.support.design.widget.TextInputLayout;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+
+import com.google.android.material.textfield.TextInputLayout;
 
 import org.homunculus.android.component.module.validator.conversionAdapters.ConversionAdapter;
 import org.homunculus.android.flavor.Resource;

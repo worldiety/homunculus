@@ -1,6 +1,6 @@
 package org.homunculus.android.component.module.validator.conversionAdapters;
 
-import android.support.design.widget.TextInputLayout;
+import com.google.android.material.textfield.TextInputLayout;
 
 import org.homunculus.android.component.module.validator.ViewErrorHandler;
 import org.homunculus.android.component.module.validator.viewErrorHandlers.TextInputLayoutViewErrorHandler;

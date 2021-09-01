@@ -2,13 +2,14 @@ package org.homunculus.android.component.module.toolbarbuilder;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.support.v4.widget.DrawerLayout;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.Nullable;
+import androidx.drawerlayout.widget.DrawerLayout;
+
 import org.homunculusframework.navigation.BackActionConsumer;
 
-import javax.annotation.Nullable;
 
 /**
  * Container class holding the content view (a {@link ToolbarHolder}) and optional views for the left and right drawer.

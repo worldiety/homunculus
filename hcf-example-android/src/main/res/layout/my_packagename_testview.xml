@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v4.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <android.support.constraint.ConstraintLayout
+    <androidx.constraintlayout.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
@@ -68,7 +68,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textView17"/>
 
-        <android.support.design.widget.TextInputLayout
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
@@ -83,7 +83,7 @@
                 android:layout_height="wrap_content"
                 android:ems="10"
                 android:inputType="number"/>
-        </android.support.design.widget.TextInputLayout>
+        </com.google.android.material.textfield.TextInputLayout>
 
         <Switch
             android:id="@+id/uis_trap_record_with_ingredients"
@@ -96,7 +96,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/uis_trap_record_today_spinner"/>
 
-        <android.support.design.widget.TextInputLayout
+        <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/uis_trap_record_note_layout"
             android:layout_width="0dp"
             android:layout_height="100dp"
@@ -117,9 +117,9 @@
                 android:minLines="3"
                 android:singleLine="false"
                 android:textSize="12dp"/>
-        </android.support.design.widget.TextInputLayout>
+        </com.google.android.material.textfield.TextInputLayout>
 
-        <android.support.v7.widget.AppCompatImageButton
+        <androidx.appcompat.widget.AppCompatImageButton
             android:id="@+id/uis_trap_record_note_favs"
             android:layout_width="48dp"
             android:layout_height="0dp"
@@ -132,7 +132,7 @@
             app:layout_constraintTop_toTopOf="@+id/uis_trap_record_note_layout"
             />
 
-        <android.support.design.widget.TextInputLayout
+        <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/uis_trap_record_ub_memo_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -153,7 +153,7 @@
                 android:minLines="3"
                 android:singleLine="false"
                 android:textSize="12dp"/>
-        </android.support.design.widget.TextInputLayout>
+        </com.google.android.material.textfield.TextInputLayout>
 
         <TextView
             android:id="@+id/textView18"
@@ -240,7 +240,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/uis_trap_record_last_record_actions"/>
 
-        <android.support.constraint.Guideline
+        <androidx.constraintlayout.Guideline
             android:id="@+id/guideline4"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -248,5 +248,5 @@
             app:layout_constraintGuide_percent="0.5"/>
 
 
-    </android.support.constraint.ConstraintLayout>
-</android.support.v4.widget.NestedScrollView>
+    </androidx.constraintlayout.ConstraintLayout>
+</androidx.core.widget.NestedScrollView>

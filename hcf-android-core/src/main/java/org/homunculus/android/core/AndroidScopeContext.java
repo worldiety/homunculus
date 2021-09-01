@@ -19,11 +19,11 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.ContextWrapper;
 
+import androidx.annotation.Nullable;
+
 import org.homunculus.android.compat.CompatApplication;
 import org.homunculus.android.compat.EventAppCompatActivity;
 import org.homunculusframework.factory.scope.Scope;
-
-import javax.annotation.Nullable;
 
 /**
  * A variant of {@link ContextWrapper} providing a {@link Scope}. If scope is destroyed, the context should not be used anymore, however

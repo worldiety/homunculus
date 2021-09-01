@@ -6,6 +6,7 @@ import org.homunculus.codegen.parse.FullQualifiedName;
 
 import javax.annotation.Nullable;
 
+
 /**
  * Created by Torben Schinke on 09.03.18.
  */

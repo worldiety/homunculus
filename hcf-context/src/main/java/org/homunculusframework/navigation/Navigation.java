@@ -21,6 +21,7 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
+
 /**
  * This navigation contract models a stack navigation and provides a stack history in which each forward or backward modifies the stack.
  * See also {@link DefaultNavigation} as standard implementation with such behavior.

@@ -23,6 +23,8 @@ import android.os.Build.VERSION_CODES;
 import android.os.Handler;
 import android.os.Looper;
 
+import androidx.annotation.Nullable;
+
 import org.homunculusframework.lang.Panic;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +35,7 @@ import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.LinkedList;
 
-import javax.annotation.Nullable;
+
 
 /**
  * A factory implementation

@@ -23,6 +23,7 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
+
 /**
  * A helper class of reflection things which may be useful if they would have been in the default sdk.
  * Improves performance on various Android versions, which provide inconsistent performance across still alive devices.

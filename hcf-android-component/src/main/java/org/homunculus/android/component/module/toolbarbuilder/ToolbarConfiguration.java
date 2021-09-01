@@ -2,13 +2,15 @@ package org.homunculus.android.component.module.toolbarbuilder;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
-import android.support.annotation.ColorRes;
-import android.support.annotation.DrawableRes;
-import android.support.annotation.StyleRes;
-import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+
+import androidx.annotation.ColorRes;
+import androidx.annotation.DrawableRes;
+import androidx.annotation.Nullable;
+import androidx.annotation.StyleRes;
+import androidx.appcompat.widget.Toolbar;
 
 import org.homunculus.android.compat.EventAppCompatActivity;
 import org.homunculus.android.component.ActionModeBuilder;
@@ -20,7 +22,6 @@ import org.homunculusframework.scope.OnDestroyCallback;
 import java.util.Map;
 import java.util.TreeMap;
 
-import javax.annotation.Nullable;
 
 /**
  * Created by aerlemann on 16.03.18.

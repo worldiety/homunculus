@@ -31,6 +31,7 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
+
 /**
  * An implementation of {@link Task} which is optionally connectable to a scope.
  * When created in the context of a {@link Scope}, the callbacks are removed automatically

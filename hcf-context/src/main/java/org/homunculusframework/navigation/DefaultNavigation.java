@@ -35,6 +35,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.Nullable;
 
+
 /**
  * This default navigation implements a simple stack based navigation approach and resolves
  * everything from a given {@link Scope}. It automatically dispatches

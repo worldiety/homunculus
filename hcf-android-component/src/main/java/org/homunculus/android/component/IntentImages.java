@@ -27,7 +27,8 @@ import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.provider.MediaStore;
-import android.support.v4.content.FileProvider;
+
+import androidx.core.content.FileProvider;
 
 import org.homunculus.android.component.Intents.ResultIntent;
 import org.homunculus.android.core.ActivityEventDispatcher;
@@ -40,6 +41,8 @@ import org.homunculusframework.lang.Destroyable;
 import org.homunculusframework.lang.Procedure;
 import org.homunculusframework.lang.Result;
 import org.homunculusframework.scope.SettableTask;
+
+
 import org.slf4j.LoggerFactory;
 
 import java.io.File;

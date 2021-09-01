@@ -1,13 +1,14 @@
 package org.homunculus.android.component;
 
 import android.app.Activity;
-import android.support.transition.AutoTransition;
-import android.support.transition.Transition;
-import android.support.transition.TransitionInflater;
-import android.support.transition.TransitionManager;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
+
+import androidx.transition.AutoTransition;
+import androidx.transition.Transition;
+import androidx.transition.TransitionInflater;
+import androidx.transition.TransitionManager;
 
 import org.homunculusframework.navigation.Navigation;
 

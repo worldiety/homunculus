@@ -31,6 +31,7 @@ public class GenTask extends DefaultTask {
             File hcfDir = new File(getProject().getBuildDir(), HCF_GEN_DIR);
             GenProject gen = new GenProject();
             gen.setProjectRoot(getProject().getProjectDir());
+            assert android != null;
             gen.setManifestPackage(android.getVariantManager().getDefaultConfig().getProductFlavor().getApplicationId());
 
             for (File f : android.getVariantManager().getDefaultConfig().getSourceSet().getJavaDirectories()) {

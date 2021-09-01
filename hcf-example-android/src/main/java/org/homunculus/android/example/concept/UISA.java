@@ -1,11 +1,12 @@
 package org.homunculus.android.example.concept;
 
 import android.content.Context;
-import android.support.v7.app.AlertDialog.Builder;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AlertDialog.Builder;
 
 import org.homunculus.android.compat.EventAppCompatActivity;
 import org.homunculus.android.component.module.storage.Persistent;

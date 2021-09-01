@@ -18,9 +18,11 @@ package org.homunculus.android.component;
 import android.app.Activity;
 import android.view.inputmethod.InputMethodManager;
 
+import androidx.annotation.Nullable;
+
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
+
 
 /**
  * Helper class to treat the soft keyboard and provides some missing bits.

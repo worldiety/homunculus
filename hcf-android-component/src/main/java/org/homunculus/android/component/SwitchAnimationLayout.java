@@ -1,15 +1,16 @@
 package org.homunculus.android.component;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import org.homunculusframework.lang.Panic;
 
-import javax.annotation.Nullable;
 
 /**
  * Created by Torben Schinke on 07.11.17.

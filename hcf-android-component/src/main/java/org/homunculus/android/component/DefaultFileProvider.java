@@ -1,6 +1,6 @@
 package org.homunculus.android.component;
 
-import android.support.v4.content.FileProvider;
+import androidx.core.content.FileProvider;
 
 /**
  * Created by Torben Schinke on 10.01.18.

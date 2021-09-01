@@ -2,8 +2,9 @@ package org.homunculus.android.component.module.toolbarbuilder;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.support.v7.widget.Toolbar;
 import android.widget.LinearLayout;
+
+import androidx.appcompat.widget.Toolbar;
 
 import org.homunculusframework.factory.scope.LifecycleOwner;
 import org.slf4j.LoggerFactory;

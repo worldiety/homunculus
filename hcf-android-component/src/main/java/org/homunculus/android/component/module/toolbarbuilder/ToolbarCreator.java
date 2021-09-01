@@ -19,13 +19,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v4.widget.DrawerLayout.LayoutParams;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.view.ActionMode;
 import android.view.Gravity;
 import android.view.Menu;
@@ -34,6 +27,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.drawerlayout.widget.DrawerLayout.LayoutParams;
 
 import org.homunculus.android.compat.EventAppCompatActivity;
 import org.homunculus.android.component.InputManager;
@@ -53,7 +55,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.annotation.Nullable;
 
 
 /**

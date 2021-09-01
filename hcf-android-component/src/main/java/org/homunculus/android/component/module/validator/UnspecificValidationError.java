@@ -1,8 +1,10 @@
 package org.homunculus.android.component.module.validator;
 
+import androidx.annotation.Nullable;
+
 import org.homunculusframework.annotations.Unfinished;
 
-import javax.annotation.Nullable;
+
 
 /**
  * Simple error class for errors, which are not specific to a field or object and can be added to a {@link BindingResult}
