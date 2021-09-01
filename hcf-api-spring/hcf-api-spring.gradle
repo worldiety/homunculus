@@ -5,7 +5,6 @@ description = "subset of the spring api"
 
 
 dependencies {
-
 }
 //publishing
 ext {

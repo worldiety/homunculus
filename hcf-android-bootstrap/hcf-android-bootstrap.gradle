@@ -2,11 +2,11 @@ apply plugin: 'com.android.library'
 //apply plugin: 'com.github.dcendents.android-maven'
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion 30
 
     defaultConfig {
         minSdkVersion 19
-        targetSdkVersion 29
+        targetSdkVersion 30
         versionCode 1
         versionName "1.0"
 
@@ -20,11 +20,14 @@ android {
         }
     }
 
+    /*
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
+
+     */
     lintOptions {
         abortOnError false
     }
@@ -124,7 +127,6 @@ dependencies {
     //the logger
     implementation 'org.slf4j:slf4j-simple:1.7.28'
 
-    implementation 'org.slf4j:slf4j-api:1.7.30'
 }
 
 // Publishing

@@ -63,7 +63,7 @@ configure(allprojects) { project ->
 
         dependencies {
             implementation 'com.google.code.findbugs:jsr305:3.0.2'
-            implementation 'org.slf4j:slf4j-api:1.7.30'
+            //remove
             implementation 'org.slf4j:slf4j-simple:1.7.28'
             testImplementation 'junit:junit:4.13.2'
         }
@@ -159,9 +159,16 @@ configure(allprojects) { project ->
 
 }
 
+/*
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+ */
+
+configurations.all {
+    exclude module: 'slf4j'
 }
 
 apply from: "${rootDir}/scripts/publish-root.gradle"

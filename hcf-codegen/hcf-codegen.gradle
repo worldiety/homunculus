@@ -9,6 +9,8 @@ configurations {
     extraLibs
 }
 
+
+
 dependencies {
     implementation(project(":hcf-core"))
     implementation(project(":hcf-context"))
@@ -22,12 +24,12 @@ dependencies {
     implementation 'com.github.javaparser:javaparser-core:3.5.7'
     implementation 'com.github.javaparser:java-symbol-solver-core:0.6.3'
     implementation 'com.helger:jcodemodel:3.0.1'
-    implementation 'org.slf4j:slf4j-simple:1.7.28'
-    implementation 'org.slf4j:slf4j-api:1.7.30'
+
     implementation 'com.google.android:android:4.1.1.4'
 
     //this is for @inject or @named
     implementation 'javax.inject:javax.inject:1'
+
 
     //this is for @PostConstruct or @PreDestroy
     implementation 'javax.annotation:jsr250-api:1.0'
@@ -40,6 +42,8 @@ dependencies {
 
 
     extraLibs fileTree(dir: 'libs', include: ['*.jar'])
+
+
 }
 
 jar {
@@ -47,10 +51,18 @@ jar {
         configurations.extraLibs.collect { it.isDirectory() ? it : zipTree(it) }
     }
 }
+/*
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
 }
+
+ */
+
+configurations.all {
+    exclude module: 'slf4j'
+}
+
 
 //publishing
 ext {
