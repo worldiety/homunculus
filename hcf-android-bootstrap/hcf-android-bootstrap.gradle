@@ -20,14 +20,14 @@ android {
         }
     }
 
-    /*
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
 
-     */
+
     lintOptions {
         abortOnError false
     }
@@ -37,7 +37,6 @@ android {
 //group = "org.homunculusframework"
 
 
-apply plugin: 'maven-publish'
 
 //apply plugin: 'com.jfrog.bintray'
 /*
@@ -125,7 +124,7 @@ dependencies {
     implementation 'javax.annotation:jsr250-api:1.0'
 
     //the logger
-    implementation 'org.slf4j:slf4j-simple:1.7.28'
+    compileOnly 'org.slf4j:slf4j-simple:1.7.28'
 
 }
 
@@ -136,5 +135,5 @@ ext {
     PUBLISH_VERSION = android.defaultConfig.versionName   //Check
 }
 
-apply from: "${rootProject.projectDir}/scripts/publish-android-module.gradle"
+//apply from: "${rootProject.projectDir}/scripts/publish-android-module.gradle"
 

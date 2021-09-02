@@ -45,7 +45,7 @@ import java.lang.annotation.Target;
  * {@code Exception} since the exception could be raised at any time
  * making the content of the model unreliable. For this reason
  * methods do not provide
- * access to a {@link } argument.
+ * access to a argument.
  *
  * @author Juergen Hoeller
  * @author Rossen Stoyanchev

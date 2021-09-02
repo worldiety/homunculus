@@ -18,6 +18,7 @@ package org.homunculus.android.component.module.splash;
 import android.app.Activity;
 import android.os.Handler;
 import android.view.LayoutInflater;
+import android.view.ViewGroup;
 
 import org.homunculus.android.component.R;
 import org.homunculusframework.factory.container.Binding;
@@ -51,7 +52,8 @@ public abstract class Splash {
     }
 
     private void apply() {
-        activity.setContentView(inflater.inflate(R.layout.hcf_splash, null));
+        final ViewGroup nullParent = null;
+        activity.setContentView(inflater.inflate(R.layout.hcf_splash, nullParent));
 
         main.postDelayed(() -> {
             navigation.reset(getTarget());

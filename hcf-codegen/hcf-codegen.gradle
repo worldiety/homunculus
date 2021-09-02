@@ -35,14 +35,12 @@ dependencies {
     implementation 'javax.annotation:jsr250-api:1.0'
 
     implementation gradleApi()
-    implementation 'com.android.tools.build:gradle:3.0.1'
+    implementation 'com.android.tools.build:gradle:4.2.0'
 
     //if you have a cyclic compilation dependency problem uncomment the following line and do a "make"
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-
     extraLibs fileTree(dir: 'libs', include: ['*.jar'])
-
 
 }
 
@@ -51,13 +49,34 @@ jar {
         configurations.extraLibs.collect { it.isDirectory() ? it : zipTree(it) }
     }
 }
+
+
 /*
+jar {
+    manifest {
+        attributes(
+                'Main-Class': 'my.project.main',
+        )
+    }
+}
+
+ */
+/*
+task fatJar(type: Jar) {
+    //manifest.from jar.manifest
+    archiveClassifier.set('all')
+    from { configurations.extraLibs.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
+ */
+
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
 }
 
- */
+
 
 configurations.all {
     exclude module: 'slf4j'
@@ -71,4 +90,4 @@ ext {
     PUBLISH_VERSION = project.version
 }
 
-apply from: "${rootProject.projectDir}/scripts/publish-module.gradle"
+//apply from: "${rootProject.projectDir}/scripts/publish-module.gradle"

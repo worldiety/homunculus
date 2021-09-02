@@ -19,13 +19,13 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-/*
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
- */
+
 
     lintOptions {
         abortOnError false
@@ -117,7 +117,7 @@ dependencies {
     testImplementation 'com.google.code.findbugs:jsr305:3.0.2'
 
     //the logger
-    implementation 'org.slf4j:slf4j-simple:1.7.28'
+    compileOnly 'org.slf4j:slf4j-simple:1.7.28'
 
 
 }
@@ -128,5 +128,5 @@ ext {
     PUBLISH_ARTIFACT_ID = 'hcf-android-core'
     PUBLISH_VERSION = android.defaultConfig.versionName
 }
-apply from: "${rootProject.projectDir}/scripts/publish-android-module.gradle"
+//apply from: "${rootProject.projectDir}/scripts/publish-android-module.gradle"
 

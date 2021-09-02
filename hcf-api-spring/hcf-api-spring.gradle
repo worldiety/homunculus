@@ -5,6 +5,7 @@ description = "subset of the spring api"
 
 
 dependencies {
+    implementation 'com.google.code.findbugs:jsr305:3.0.2'
 }
 //publishing
 ext {
@@ -13,4 +14,4 @@ ext {
     PUBLISH_VERSION = project.version
 }
 
-apply from: "${rootProject.projectDir}/scripts/publish-module.gradle"
+//apply from: "${rootProject.projectDir}/scripts/publish-module.gradle"

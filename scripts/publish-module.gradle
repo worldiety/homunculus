@@ -1,5 +1,6 @@
 apply plugin: 'maven-publish'
 apply plugin: 'signing'
+//apply plugin: 'maven'
 /*
 task sourcesJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
@@ -9,23 +10,31 @@ task sourcesJar(type: Jar) {
  */
 
 // custom tasks for creating source/javadoc jars
-task sourcesJar(type: Jar, dependsOn: classes) {
+task sourcesJar(type: Jar) {
     //classifier = 'sources'
     archiveClassifier.set('sources')
     from sourceSets.main.allSource
 }
-/*
+
+/*task javadoc(type: Javadoc) {
+    source = sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+}
+
+ */
 task javadocJar(type: Jar, dependsOn: javadoc) {
     //classifier = 'javadoc'
     archiveClassifier.set('javadoc')
     from javadoc.destinationDir
 }
 
- */
+
+
+
 
 // add javadoc/source jar tasks as artifacts
 artifacts {
-    archives sourcesJar//, javadocJar
+    archives sourcesJar, javadocJar
 }
 
 group = PUBLISH_GROUP_ID
@@ -46,7 +55,7 @@ afterEvaluate {
                 }
 
                 artifact sourcesJar
-                //artifact javadocJar
+                artifact javadocJar
 
                 pom {
                     name = PUBLISH_ARTIFACT_ID
@@ -79,6 +88,45 @@ afterEvaluate {
         }
     }
 }
+/*
+task writeNewPom  {
+    pom {
+        project {
+            groupId PUBLISH_GROUP_ID
+            artifactId PUBLISH_ARTIFACT_ID
+            version PUBLISH_VERSION
+            inceptionYear '2021'
+            name = PUBLISH_ARTIFACT_ID
+            description = 'Building large scale Android Apps with homunculus'
+            url = 'https://github.com/worldiety/homunculus'
+            licenses {
+                license {
+                    name = 'The Apache License, Version 2.0'
+                    url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                }
+            }
+            developers {
+                developer {
+                    name = 'Christopher Heyn'
+                    email = 'Christopher.Heyn@worldiety.de'
+                }
+                developer {
+                    name = 'Torben Schinke'
+                    email = 'Torben.Schinke@worldiety.de'
+                }
+            }
+            scm {
+                connection = 'https://github.com/worldiety/homunculus.git'
+                developerConnection = 'scm:git:ssh://github.com/worldiety/homunculus.git'
+                url = 'https://github.com/worldiety/homunculus'
+            }
+        }
+    }.writeTo("${rootProject.projectDir}/pom.xml")
+}
+
+
+ */
+
 
 signing {
     useInMemoryPgpKeys(
@@ -88,3 +136,5 @@ signing {
     )
     sign publishing.publications
 }
+
+

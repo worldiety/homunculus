@@ -6,6 +6,8 @@ description = "homunculus Core"
 
 
 dependencies {
+    implementation 'com.google.code.findbugs:jsr305:3.0.2'
+    compileOnly 'org.slf4j:slf4j-simple:1.7.28'
 }
 //publishing
 ext {
@@ -14,4 +16,4 @@ ext {
     PUBLISH_VERSION = project.version
 }
 
-apply from: "${rootProject.projectDir}/scripts/publish-module.gradle"
+//apply from: "${rootProject.projectDir}/scripts/publish-module.gradle"

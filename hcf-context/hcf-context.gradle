@@ -3,7 +3,7 @@ description = "homunculus Context"
 
 dependencies {
     implementation(project(":hcf-core"))
-
+    implementation 'com.google.code.findbugs:jsr305:3.0.2'
     //avoid direct dependency for various jsr' standards, which may be provided already by the runtime
     compileOnly 'javax.inject:javax.inject:1'
     compileOnly 'javax.annotation:jsr250-api:1.0'
@@ -17,6 +17,9 @@ dependencies {
 
     //spring support
     compileOnly(project(":hcf-api-spring"))
+
+    compileOnly 'org.slf4j:slf4j-simple:1.7.28'
+
 }
 //publishing
 ext {
@@ -25,4 +28,4 @@ ext {
     PUBLISH_VERSION = project.version
 }
 
-apply from: "${rootProject.projectDir}/scripts/publish-module.gradle"
+//apply from: "${rootProject.projectDir}/scripts/publish-module.gradle"

@@ -19,13 +19,13 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-/*
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
- */
+
 
     lintOptions {
         abortOnError false
@@ -132,7 +132,7 @@ dependencies {
     compileOnly 'org.glassfish.web:javax.el:2.2.4'
 
     //the logger
-    implementation 'org.slf4j:slf4j-simple:1.7.28'
+    compileOnly 'org.slf4j:slf4j-simple:1.7.28'
 
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
 
@@ -146,5 +146,5 @@ ext {
     PUBLISH_ARTIFACT_ID = 'hcf-android-component'
     PUBLISH_VERSION = android.defaultConfig.versionName
 }
-apply from: "${rootProject.projectDir}/scripts/publish-android-module.gradle"
+//apply from: "${rootProject.projectDir}/scripts/publish-android-module.gradle"
 

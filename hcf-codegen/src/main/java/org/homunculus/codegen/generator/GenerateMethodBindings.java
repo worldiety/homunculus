@@ -47,7 +47,7 @@ import java.util.List;
  * The output looks like the following excerpt:
  * <p>
  * <pre>
- * public static class BindCartControllerGetCart2 extends MethodBinding< Object> {
+ * public static class BindCartControllerGetCart2 extends MethodBinding <Object> {
  *
  *  private int cartId;
  *
@@ -59,10 +59,10 @@ import java.util.List;
  *    dst.put("cartId", cartId);
  *  }
  *
- *  protected ObjectBinding< Object> onExecute() throws Exception {
+ *  protected ObjectBinding <Object> onExecute() throws Exception {
  *    CartController ctr = get(CartController.class);
  *    assertNotNull(CartController.class, ctr);
- *    return (ObjectBinding< Object>) (ObjectBinding<?>) ctr.getCart3(cartId);
+ *    return (ObjectBinding <Object>) (ObjectBinding ) ctr.getCart3(cartId);
  *  }
  *
  * }
