@@ -2,11 +2,11 @@ package org.homunculus.codegen.gradle;
 
 
 
-//import com.android.build.gradle.AppPlugin;
+
+import com.android.build.gradle.internal.plugins.*;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.plugins.JavaPlugin;
 
 import java.io.File;
 
@@ -19,7 +19,6 @@ public class HCFGenPlugin implements Plugin<Project> {
             throw new RuntimeException("failed to create directory " + hcfDir);
         }
 
-/*
         AppPlugin appPlugin = null;
         for (Plugin plugin : project.getPlugins()) {
             System.out.println(plugin.getClass() + "(" + plugin + ")");
@@ -29,17 +28,11 @@ public class HCFGenPlugin implements Plugin<Project> {
         }
 
 
- */
-/*
         if (appPlugin == null) {
             throw new RuntimeException("no android AppPlugin found");
         }
 
-
-
- */
-
-       // appPlugin.getVariantManager().getDefaultConfig().getSourceSet().getJava().srcDir(hcfDir);
+        appPlugin.getVariantInputModel().getDefaultConfigData().getSourceSet().getJava().srcDir(hcfDir);
 
 //        project.afterEvaluate(prj -> {
             createAndroidTasks(project, hcfDir);

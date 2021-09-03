@@ -1,6 +1,6 @@
 package org.homunculus.codegen.gradle;
 
-import com.android.build.gradle.AppPlugin;
+import com.android.build.gradle.internal.plugins.AppPlugin;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Plugin;
@@ -32,9 +32,9 @@ public class GenTask extends DefaultTask {
             GenProject gen = new GenProject();
             gen.setProjectRoot(getProject().getProjectDir());
             assert android != null;
-            gen.setManifestPackage(android.getVariantManager().getDefaultConfig().getProductFlavor().getApplicationId());
+            gen.setManifestPackage(android.getVariantInputModel().getDefaultConfigData().getDefaultConfig().getApplicationId());
 
-            for (File f : android.getVariantManager().getDefaultConfig().getSourceSet().getJavaDirectories()) {
+            for (File f : android.getVariantInputModel().getDefaultConfigData().getSourceSet().getJavaDirectories()) {
                 if (f.getAbsolutePath().startsWith(hcfDir.getAbsolutePath())){
                     continue;
                 }
@@ -43,7 +43,7 @@ public class GenTask extends DefaultTask {
 //            for (File f : android.getVariantManager().getDefaultConfig().getSourceSet().getResourcesDirectories()) {
 //                gen.addRecursive(f);
 //            }
-            for (File f : android.getVariantManager().getDefaultConfig().getSourceSet().getResDirectories()) {
+            for (File f : android.getVariantInputModel().getDefaultConfigData().getSourceSet().getResDirectories()) {
                 gen.addRecursive(f);
             }
 

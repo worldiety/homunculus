@@ -35,7 +35,7 @@ dependencies {
     implementation 'javax.annotation:jsr250-api:1.0'
 
     implementation gradleApi()
-    implementation 'com.android.tools.build:gradle:4.2.0'
+    implementation 'com.android.tools.build:gradle:4.1.2'
 
     //if you have a cyclic compilation dependency problem uncomment the following line and do a "make"
     implementation fileTree(dir: 'libs', include: ['*.jar'])
