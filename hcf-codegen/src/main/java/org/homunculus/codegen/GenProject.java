@@ -1,6 +1,7 @@
 package org.homunculus.codegen;
 
 import com.github.javaparser.JavaParser;
+import com.github.javaparser.ParseResult;
 import com.github.javaparser.ast.CompilationUnit;
 import com.helger.jcodemodel.JCodeModel;
 
@@ -103,14 +104,18 @@ public class GenProject {
         try {
             try (FileInputStream in = new FileInputStream(file)) {
 
-                CompilationUnit cu = JavaParser.parse(in);
-                units.add(new org.homunculus.codegen.parse.javaparser.SrcFile(file, cu));
+                JavaParser parser = new JavaParser();
+
+                ParseResult<CompilationUnit> cu = parser.parse(in);
+                cu.getResult().get();
+                units.add(new org.homunculus.codegen.parse.javaparser.SrcFile(file, cu.getResult().get()));
 
             }
         } catch (Exception e) {
-            LoggerFactory.getLogger(getClass()).error("failed to parse {}", file, e);
+            LoggerFactory.getLogger(GenProject.class).error("failed to parse {}", file, e);
         }
     }
+
 
     public void addDirectory(File dir) throws IOException {
         File[] files = dir.listFiles();

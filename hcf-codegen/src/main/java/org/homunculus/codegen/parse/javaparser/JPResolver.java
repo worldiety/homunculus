@@ -181,7 +181,7 @@ public class JPResolver implements Resolver {
 
     @Override
     public boolean isAbstract(FullQualifiedName name) {
-        return typeTree.get(name).type.getModifiers().contains(Modifier.ABSTRACT);
+        return typeTree.get(name).type.getModifiers().contains(Modifier.abstractModifier());
     }
 
     @Override

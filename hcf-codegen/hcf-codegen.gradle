@@ -21,7 +21,7 @@ dependencies {
 
 
 
-    implementation 'com.github.javaparser:javaparser-core:3.5.7'
+    implementation 'com.github.javaparser:javaparser-core:3.17.0'
     implementation 'com.github.javaparser:java-symbol-solver-core:0.6.3'
     implementation 'com.helger:jcodemodel:3.0.1'
 
@@ -35,7 +35,7 @@ dependencies {
     implementation 'javax.annotation:jsr250-api:1.0'
 
     implementation gradleApi()
-    implementation 'com.android.tools.build:gradle:4.1.2'
+    implementation 'com.android.tools.build:gradle:7.0.2'
 
     //if you have a cyclic compilation dependency problem uncomment the following line and do a "make"
     implementation fileTree(dir: 'libs', include: ['*.jar'])
@@ -43,7 +43,7 @@ dependencies {
     extraLibs fileTree(dir: 'libs', include: ['*.jar'])
 
 }
-
+/*
 jar {
     from {
         configurations.extraLibs.collect { it.isDirectory() ? it : zipTree(it) }
@@ -51,6 +51,8 @@ jar {
 }
 
 
+
+ */
 /*
 jar {
     manifest {
@@ -61,7 +63,7 @@ jar {
 }
 
  */
-/*
+
 task fatJar(type: Jar) {
     //manifest.from jar.manifest
     archiveClassifier.set('all')
@@ -69,18 +71,15 @@ task fatJar(type: Jar) {
     with jar
 }
 
- */
 
+/*
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
 }
 
+ */
 
-
-configurations.all {
-    exclude module: 'slf4j'
-}
 
 
 //publishing
@@ -90,4 +89,4 @@ ext {
     PUBLISH_VERSION = project.version
 }
 
-//apply from: "${rootProject.projectDir}/scripts/publish-module.gradle"
+apply from: "${rootProject.projectDir}/scripts/publish-module.gradle"

@@ -17,6 +17,7 @@ task androidSourcesJar(type: Jar) {
         from sourceSets.main.java.srcDirs
     }
 }
+
 /*
 task javadoc(type: Javadoc) {
     source = android.sourceSets.main.java.srcDirs
@@ -31,13 +32,7 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
     from javadoc.destinationDir
 }
 
-
-
  */
-
-
-
-
 
 
 

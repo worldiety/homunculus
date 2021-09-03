@@ -1,6 +1,7 @@
 package org.homunculus.codegen.parse;
 
-import org.jetbrains.annotations.NotNull;
+import org.gradle.internal.impldep.org.jetbrains.annotations.NotNull;
+
 
 /**
  * Created by Torben Schinke on 09.03.18.
