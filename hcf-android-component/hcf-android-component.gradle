@@ -33,75 +33,8 @@ android {
 }
 
 
-//group = "org.homunculusframework"
-
-
 apply plugin: 'maven-publish'
 
-//apply plugin: 'com.jfrog.bintray'
-/*
-task sourcesJar(type: Jar) {
-    from android.sourceSets.main.java.srcDirs
-    classifier = 'sources'
-}
-
-task javadoc(type: Javadoc) {
-    source = android.sourceSets.main.java.srcDirs
-    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-}
-
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
-    from javadoc.destinationDir
-}
-
-// add javadoc/source jar tasks as artifacts
-artifacts {
-    archives sourcesJar, javadocJar
-}
-
-publishing {
-    publications {
-        MyPublication(MavenPublication) {
-
-            pom.withXml {
-                // Iterate over the compile dependencies (we don't want the test ones), adding a <dependency> node for each
-                configurations.compile.allDependencies.each {
-                    def dependencyNode = dependenciesNode.appendNode('dependency')
-                    dependencyNode.appendNode('groupId', it.group)
-                    dependencyNode.appendNode('artifactId', it.name)
-                    dependencyNode.appendNode('version', it.version)
-                }
-            }
-        }
-    }
-}
-
- */
-
-//nano ~/.gradle/gradle.properties
-/*
-bintray {
-    user = bintray_user
-    key = bintray_key
-    publish = true
-    configurations = ['archives']
-    pkg {
-        websiteUrl = 'http://homunculus.io/'
-        repo = 'homunculus'
-        name = project.name
-        userOrg = 'worldiety'
-        publicDownloadNumbers = true
-        licenses = ['Apache-2.0']
-        vcsUrl = 'https://github.com/worldiety/homunculus.git'
-        version {
-            name = project.version
-        }
-
-    }
-}
-
- */
 
 
 dependencies {

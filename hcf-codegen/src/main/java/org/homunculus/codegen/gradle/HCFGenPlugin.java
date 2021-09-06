@@ -3,20 +3,14 @@ package org.homunculus.codegen.gradle;
 
 
 
-import android.content.pm.ComponentInfo;
 
-import com.android.build.gradle.internal.DefaultConfigData;
-import com.android.build.gradle.internal.VariantManager;
 import com.android.build.gradle.internal.plugins.AppPlugin;
-import com.android.build.gradle.internal.plugins.LibraryPlugin;
 
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.plugins.BasePlugin;
 import org.slf4j.LoggerFactory;
 
-import java.awt.datatransfer.DataFlavor;
 import java.io.File;
 
 public class HCFGenPlugin implements Plugin<Project> {

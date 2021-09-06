@@ -2,10 +2,10 @@
 ext["ossrhUsername"] = ''
 ext["ossrhPassword"] = ''
 ext["sonatypeStagingProfileId"] = ''
-ext["signing.secretKeyRingFile"] = ''
 ext["signing.keyId"] = ''
 ext["signing.password"] = ''
-//ext["signing.key"] = ''
+ext["signing.secretKeyRingFile"] = ''
+// ext["signing.key"] = System.getenv('SIGNING_KEY')
 
 File secretPropsFile = project.rootProject.file('local.properties')
 if (secretPropsFile.exists()) {
@@ -14,6 +14,8 @@ if (secretPropsFile.exists()) {
     new FileInputStream(secretPropsFile).withCloseable { is -> p.load(is) }
     p.each { name, value -> ext[name] = value }
 } else {
+
+
     //s01.oss.sonatype.org
     // Use system environment variables
     ext["ossrhUsername"] = System.getenv('OSSRH_USERNAME')
@@ -24,6 +26,10 @@ if (secretPropsFile.exists()) {
     ext["signing.secretKeyRingFile"] = System.getenv('SIGNING_SECRET_KEY_RING_FILE')
    // ext["signing.key"] = System.getenv('SIGNING_KEY')
 }
+
+
+
+
 
 nexusPublishing {
     repositories {

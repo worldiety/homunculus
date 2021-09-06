@@ -13,13 +13,13 @@ import java.io.IOException;
 public class Test {
 
     public static void main(String... args) throws Exception {
-        /*File projectDir = new File(getCwd().getParentFile(), "hcf-example-android/src/main");
+        File projectDir = new File(getCwd().getParentFile(), "hcf-example-android/src/main");
         LoggerFactory.getLogger(Test.class).info("dir={}", projectDir);
         GenProject project = new GenProject();
         project.setProjectRoot(getCwd().getParentFile());
         project.addRecursive(projectDir);
         project.setManifestPackage("org.homunculus.android.example");
-        project.generate();
+        //project.generate();
 
 
         File outDir = new File(getCwd().getParentFile(), "hcf-example-android/build/generated/source/hcf");
@@ -27,7 +27,7 @@ public class Test {
         outDir.mkdirs();
         project.emitGeneratedClass(outDir);
 
-         */
+
     }
 
     static void delete(File f) throws IOException {
