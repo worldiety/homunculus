@@ -57,7 +57,7 @@ dependencies {
 ext {
     PUBLISH_GROUP_ID = 'io.homunculus'
     PUBLISH_ARTIFACT_ID = 'hcf-android-bootstrap'
-    PUBLISH_VERSION = android.defaultConfig.versionName
+    PUBLISH_VERSION = project.version
 }
 
 apply from: "${rootProject.projectDir}/scripts/publish-android-module.gradle"

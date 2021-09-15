@@ -41,7 +41,7 @@ dependencies {
     extraLibs fileTree(dir: 'libs', include: ['*.jar'])
 
 }
-
+/*
 jar {
     from {
         configurations.extraLibs.collect { it.isDirectory() ? it : zipTree(it) }
@@ -49,6 +49,8 @@ jar {
 }
 
 
+
+ */
 
 
 /*
@@ -61,7 +63,7 @@ jar {
 }
 
  */
-/*
+
 task fatJar(type: Jar) {
     //manifest.from jar.manifest
     archiveClassifier.set('all')
@@ -69,7 +71,7 @@ task fatJar(type: Jar) {
     with jar
 }
 
- */
+
 
 
 

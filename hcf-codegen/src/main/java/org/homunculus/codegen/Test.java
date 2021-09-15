@@ -19,7 +19,7 @@ public class Test {
         project.setProjectRoot(getCwd().getParentFile());
         project.addRecursive(projectDir);
         project.setManifestPackage("org.homunculus.android.example");
-        //project.generate();
+        project.generate();
 
 
         File outDir = new File(getCwd().getParentFile(), "hcf-example-android/build/generated/source/hcf");

@@ -30,7 +30,7 @@ if (secretPropsFile.exists()) {
 
 
 
-
+/*
 nexusPublishing {
     repositories {
         sonatype {
@@ -42,3 +42,5 @@ nexusPublishing {
         }
     }
 }
+
+ */

@@ -1,5 +1,9 @@
 apply plugin: 'maven-publish'
 apply plugin: 'signing'
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+// Because the components are created only during the afterEvaluate phase, you must
+// configure your publications using the afterEvaluate() lifecycle method.
 
 // custom tasks for creating source/javadoc jars
 task sourcesJar(type: Jar) {
@@ -24,7 +28,7 @@ version = PUBLISH_VERSION
 afterEvaluate {
     publishing {
         publications {
-            mavenJava(MavenPublication) {
+            release(MavenPublication) {
                 groupId PUBLISH_GROUP_ID
                 artifactId PUBLISH_ARTIFACT_ID
                 version PUBLISH_VERSION
@@ -39,6 +43,10 @@ afterEvaluate {
                 artifact javadocJar
 
                 pom {
+                    signing {
+                        sign publishing.publications.release
+                        sign configurations.archives
+                    }
                     name = PUBLISH_ARTIFACT_ID
                     description = 'Building large scale Android Apps with homunculus'
                     url = 'https://github.com/worldiety/homunculus'
@@ -67,16 +75,15 @@ afterEvaluate {
                 }
             }
         }
+        repositories {
+            maven {
+                url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+                credentials {
+                    username = properties.getProperty('ossrhUsername')
+                    password = properties.getProperty('ossrhPassword')
+                }
+            }
+        }
     }
 }
-
-signing {
-    useInMemoryPgpKeys(
-            rootProject.ext["signing.keyId"],
-            rootProject.ext["signing.secretKeyRingFile"],
-            rootProject.ext["signing.password"],
-    )
-    sign publishing.publications
-}
-
 

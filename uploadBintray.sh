@@ -11,9 +11,5 @@
 # generate code
 ./gradlew :hcf-codegen:run
 
-# upload to nexus
-#./gradlew uploadArchives --warning-mode all
+# upload to maven central
 ./gradlew publish
-# the weired repetition is to create a workaround for the unreliable artifact upload of the bintray plugin -> usually we have missing random artifacts
-#./gradlew build generatePomFileForMavenJavaPublication publishMavenJavaPublicationToMavenLocal
-#./gradlew generatePomFileForMavenJavaPublication publishMavenJavaPublicationToMavenLocal bintrayUpload
