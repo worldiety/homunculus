@@ -576,7 +576,7 @@ public class ActivityEventDispatcher<T extends Activity> {
 
         boolean onActivityKeyShortcut(T activity, int keyCode, KeyEvent event);
 
-        boolean onActivityNavigateUp(T activity);
+        boolean onNavigateUp();
 
         boolean onActivityNavigateUpFromChild(T activity, Activity child);
 
@@ -641,7 +641,7 @@ public class ActivityEventDispatcher<T extends Activity> {
         }
 
         @Override
-        public boolean onActivityNavigateUp(T activity) {
+        public boolean onNavigateUp() {
             return false;
         }
 

@@ -8,6 +8,7 @@ import android.view.View;
 
 import androidx.annotation.ColorInt;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 
 import org.homunculus.android.component.MaterialFont.Icon;
 
@@ -40,7 +41,7 @@ public class MaterialFontView extends View {
     }
 
     private void init() {
-        mColor = getResources().getColor(R.color.hcf_material_font_view);
+        mColor = ContextCompat.getColor(this.getContext(), R.color.hcf_material_font_view);
         mIcon = Icon.I_HELP_OUTLINE;
         mPaint = new Paint();
         mPaint.setColor(mColor);

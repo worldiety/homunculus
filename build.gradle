@@ -33,7 +33,17 @@ allprojects {
     }
     group = 'io.homunculus'
     version = '0.0.104'
+
+    gradle.projectsEvaluated {
+        tasks.withType(JavaCompile) {
+            options.compilerArgs << "-Xlint:deprecation"
+        }
+    }
+
+
 }
+
+
 subprojects {
 
 
@@ -42,6 +52,8 @@ tasks.withType(GenerateModuleMetadata) {
     enabled = false
 }
 configure(allprojects) { project ->
+
+
 
     if (!project.name.contains("android")) {
 
@@ -58,6 +70,8 @@ configure(allprojects) { project ->
         dependencies {
             implementation 'com.google.code.findbugs:jsr305:3.0.2'
             implementation 'org.slf4j:slf4j-api:1.7.30'
+            implementation 'com.android.support:multidex:1.0.3'
+
         }
 
 
@@ -70,10 +84,20 @@ configure(allprojects) { project ->
 
         dependencies {
             implementation 'com.google.code.findbugs:jsr305:3.0.2'
+            implementation 'com.android.support:multidex:1.0.3'
 
         }
     }
 }
+configurations.all {
+    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+        def requested = details.requested
+        if (requested.group == "androidx") {
+            if (!requested.name.startsWith("multidex")) {
+                details.useVersion "${targetSdk}.+"
+            }
+        }
+    }}
 
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8

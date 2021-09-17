@@ -61,7 +61,7 @@ public class JPAnnotation implements Annotation {
                 return null;
             } else if (expr.getMemberValue() instanceof IntegerLiteralExpr) {
                 IntegerLiteralExpr integerExp = (IntegerLiteralExpr) expr.getMemberValue();
-                return Integer.toString(integerExp.asInt());
+                return Integer.toString((Integer) integerExp.asNumber());
             } else if (expr.getMemberValue() instanceof FieldAccessExpr) {
                 FieldAccessExpr fieldExpr = (FieldAccessExpr) expr.getMemberValue();
                 String scopeName = ((NameExpr) fieldExpr.getScope()).getNameAsString();

@@ -137,7 +137,7 @@ public interface Navigation extends BackActionConsumer {
      *
      * @return true, if the the navigation was going forward during the last state switch
      */
-    @Deprecated
+    //@Deprecated
     boolean wasGoingForward();
 
 

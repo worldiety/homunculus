@@ -28,7 +28,7 @@ version = PUBLISH_VERSION
 afterEvaluate {
     publishing {
         publications {
-            release(MavenPublication) {
+            maven(MavenPublication) {
                 groupId PUBLISH_GROUP_ID
                 artifactId PUBLISH_ARTIFACT_ID
                 version PUBLISH_VERSION
@@ -44,7 +44,7 @@ afterEvaluate {
 
                 pom {
                     signing {
-                        sign publishing.publications.release
+                        sign publishing.publications.maven
                         sign configurations.archives
                     }
                     name = PUBLISH_ARTIFACT_ID

@@ -19,8 +19,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.PersistableBundle;
@@ -37,6 +35,9 @@ import android.view.View;
 
 import androidx.annotation.LayoutRes;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.multidex.MultiDex;
+
+
 
 import org.homunculus.android.core.ActivityEventDispatcher;
 import org.homunculus.android.core.ActivityEventOwner;
@@ -65,7 +66,8 @@ public class EventAppCompatActivity extends AppCompatActivity implements Activit
      * are processed.
      */
     public void finishApplication() {
-        System.runFinalizersOnExit(true);
+        System.runFinalization();
+        //System.runFinalizersOnExit(true);
         try {
             Process.killProcess(Process.myPid());
         } finally {
@@ -84,6 +86,7 @@ public class EventAppCompatActivity extends AppCompatActivity implements Activit
     @Override
     public void onCreate(Bundle savedInstanceState, PersistableBundle persistentState) {
         super.onCreate(savedInstanceState, persistentState);
+        MultiDex.install(this);
         init();
         mEventDispatcher.getEventDispatcher().onActivityCreate(this, savedInstanceState, persistentState);
     }
@@ -294,6 +297,8 @@ public class EventAppCompatActivity extends AppCompatActivity implements Activit
         }
     }
 
+    /*
+    This method was deprecated in API level 28.
     @Override
     public boolean onCreateThumbnail(Bitmap outBitmap, Canvas canvas) {
         if (invalidLifeState()) {
@@ -305,6 +310,8 @@ public class EventAppCompatActivity extends AppCompatActivity implements Activit
             return super.onCreateThumbnail(outBitmap, canvas);
         }
     }
+
+     */
 
     @Override
     public boolean onGenericMotionEvent(MotionEvent event) {
@@ -375,13 +382,19 @@ public class EventAppCompatActivity extends AppCompatActivity implements Activit
 
     @Override
     public boolean onNavigateUp() {
-        if (mEventDispatcher.getEventDispatcher().onActivityNavigateUp(this)) {
+        if (invalidLifeState()) {
+            return false;
+        }
+        if (mEventDispatcher.getEventDispatcher().onNavigateUp()) {
             return true;
         } else {
             return super.onNavigateUp();
         }
     }
 
+
+/*
+    Depracted since API Level 28
     @Override
     public boolean onNavigateUpFromChild(Activity child) {
         if (invalidLifeState()) {
@@ -390,9 +403,11 @@ public class EventAppCompatActivity extends AppCompatActivity implements Activit
         if (mEventDispatcher.getEventDispatcher().onActivityNavigateUpFromChild(this, child)) {
             return true;
         } else {
-            return super.onNavigateUpFromChild(child);
+            return super.onNavigateUp();
         }
     }
+
+ */
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {

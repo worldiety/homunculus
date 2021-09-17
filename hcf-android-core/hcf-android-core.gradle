@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+
 //apply plugin: 'com.github.dcendents.android-maven'
 
 android {
@@ -9,7 +10,7 @@ android {
         targetSdkVersion 31
         versionCode 1
         versionName "1.0"
-
+        multiDexEnabled true
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
 
     }
@@ -49,7 +50,7 @@ dependencies {
     //the logger
     compileOnly 'org.slf4j:slf4j-simple:1.7.28'
 
-
+    implementation 'com.android.support:multidex:1.0.3'
 }
 
 // Publishing

@@ -66,7 +66,12 @@ public class ReflectionResolver implements Resolver {
     @Override
     public List<Method> getMethods(FullQualifiedName name) throws ClassNotFoundException {
         Class c = null;
-        c = Class.forName(name.toString());
+        try {
+            c = Class.forName(name.toString());
+
+        } catch(ClassNotFoundException e) {
+            //TODO
+        }
         List<Method> res = new ArrayList<>();
         for (java.lang.reflect.Method m : Reflection.getMethods(c)) {
             res.add(new ReflectionMethod(m));
