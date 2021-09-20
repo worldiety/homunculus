@@ -35,13 +35,6 @@ task androidJavadocsJar(type: Jar, dependsOn: androidJavadocs) {
  */
 
 
-
-
-
-
-// add javadoc/source jar tasks as artifacts
-
-
 group = PUBLISH_GROUP_ID
 version = PUBLISH_VERSION
 
@@ -93,35 +86,6 @@ project.afterEvaluate {
                         developerConnection = 'scm:git:ssh://github.com/worldiety/homunculus.git'
                         url = 'https://github.com/worldiety/homunculus'
                     }
-                    /*withXml {
-                        def dependenciesNode = asNode().appendNode('dependencies')
-                        //Iterate over the compile dependencies (we don't want the test ones), adding a <dependency> node for each
-                        configurations.implementation.allDependencies.each {
-                            if(it.group != null && (it.name != null ||"unspecified".equals(it.name)) && it.version != null)
-                            {
-                                def dependencyNode = dependenciesNode.appendNode('dependency')
-                                dependencyNode.appendNode('groupId', it.group)
-                                dependencyNode.appendNode('artifactId', it.name)
-                                dependencyNode.appendNode('version', it.version)
-                            }
-                        }
-                    }
-
-                     */
-                    //withXml {
-                        // Iterate over the compile dependencies (we don't want the test ones), adding a <dependency> node for each
-                        //def dependenciesNode = asNode().appendNode('dependencies')
-
-                       // project.configurations.implementation.allDependencies.each {
-                            // asNode().appendNode('properties').appendNode('my-property', 'my-value')
-                            /* def dependencyNode = dependenciesNode.appendNode('dependency')
-                             dependencyNode.appendNode('groupId', it.group)
-                             dependencyNode.appendNode('artifactId', it.name)
-                             dependencyNode.appendNode('version', it.version)
-
-                             */
-                      //  }
-                 //   }
                 }
 
 
