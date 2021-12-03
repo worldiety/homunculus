@@ -50,7 +50,7 @@ import javax.inject.Inject;
  * hierarchy with some hardcoded behavior, e.g.
  * <ul>
  * <li>Application scopes contain the singletons</li>
- * <li>Activity scopes refer to the application (assuming only one) => TODO this means you cannot use the same Activity scope with different applications</li>
+ * <li>Activity scopes refer to the application (assuming only one)  TODO this means you cannot use the same Activity scope with different applications</li>
  * <li>Bindable scopes refer to the activity scope (assuming only one) as their parent. A common superset of methods for all activities is expected. </li>
  * <li>Each base class can provide factory methods for their scope by using @ScopeElement on their public or package private members</li>
  * </ul>

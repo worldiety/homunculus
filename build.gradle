@@ -32,7 +32,7 @@ allprojects {
         options.addStringOption('Xdoclint:none', '-quiet')
     }
     group = 'io.homunculus'
-    version = '0.0.104'
+    version = '0.0.105'
 
     gradle.projectsEvaluated {
         tasks.withType(JavaCompile) {
@@ -98,11 +98,13 @@ configurations.all {
             }
         }
     }}
-
+/*
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
 }
+
+ */
 
 apply from: "${rootDir}/scripts/publish-root.gradle"
 

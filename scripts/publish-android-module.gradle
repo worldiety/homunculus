@@ -5,7 +5,28 @@ properties.load(project.rootProject.file('local.properties').newDataInputStream(
 // Because the components are created only during the afterEvaluate phase, you must
 // configure your publications using the afterEvaluate() lifecycle method.
 
+/*
+task sourcesJar(type: Jar) {
+    duplicatesStrategy = 'include'
+    archiveClassifier.set('sources')
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    archiveClassifier.set('javadoc')
+    from javadoc.destinationDir
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+ */
+
 task androidSourcesJar(type: Jar) {
+    duplicatesStrategy = 'include'
+
     archiveClassifier.set('sources')
     if (project.plugins.findPlugin("com.android.library")) {
         // For Android libraries
@@ -15,25 +36,24 @@ task androidSourcesJar(type: Jar) {
         from sourceSets.main.java.srcDirs
     }
 }
-/*
-task androidJavadocs(type: Javadoc) {
-    source = android.sourceSets.main.java.srcDirs
-    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-    android.libraryVariants.all { variant ->
-        if (variant.name == 'release') {
-            owner.classpath += variant.javaCompile.classpath
-        }
-    }
-    exclude '**///R.html', '**/R.*.html', '**/index.html'
-/*}
 
-task androidJavadocsJar(type: Jar, dependsOn: androidJavadocs) {
-    archiveClassifier.set('javadoc')
-    from androidJavadocs.destinationDir
+
+
+
+
+
+
+artifacts {
+    archives androidSourcesJar//, androidJavadocsJar
+}
+
+/*
+java {
+    withJavadocJar()
+    withSourcesJar()
 }
 
  */
-
 
 group = PUBLISH_GROUP_ID
 version = PUBLISH_VERSION
@@ -53,8 +73,8 @@ project.afterEvaluate {
                     from components.java
                 }
 
-                //artifact androidJavadocsJar
                 artifact androidSourcesJar
+                //artifact androidJavadocsJar
 
 
                 pom {

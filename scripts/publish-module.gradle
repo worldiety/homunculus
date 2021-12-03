@@ -7,6 +7,7 @@ properties.load(project.rootProject.file('local.properties').newDataInputStream(
 
 // custom tasks for creating source/javadoc jars
 task sourcesJar(type: Jar) {
+    duplicatesStrategy = 'include'
     archiveClassifier.set('sources')
     from sourceSets.main.allSource
 }
@@ -15,6 +16,15 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
     archiveClassifier.set('javadoc')
     from javadoc.destinationDir
 }
+/*
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+
+
+ */
 
 
 // add javadoc/source jar tasks as artifacts

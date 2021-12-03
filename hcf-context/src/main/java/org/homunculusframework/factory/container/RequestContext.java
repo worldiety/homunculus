@@ -41,7 +41,7 @@ public interface RequestContext {
      * your UI does not suffer on races, example:
      * <ul>
      * <li>Background-Thread: myController.getMyUISAndModifyStack()</li>
-     * <li>Main-Thread: myUIState.onClick() -> navigation.getTop() instanceof MyBinding</li>
+     * <li>Main-Thread: myUIState.onClick() - navigation.getTop() instanceof MyBinding</li>
      * <li>Background-Thread: RequestContext.getReferrer().clear()</li>
      * <li>Main-Thread: MyBinding binding = (MyBinding)navigation.getTop()</li>
      * </ul>

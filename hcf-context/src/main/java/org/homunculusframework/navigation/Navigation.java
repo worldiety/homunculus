@@ -27,8 +27,8 @@ import javax.annotation.Nullable;
  * See also {@link DefaultNavigation} as standard implementation with such behavior.
  * <p>
  * <pre>
- *     /uis4 -> getTop() or getStack().size() - 1 or reload()
- *     /uis3 -> getPriorTop() or getStack().size() - 2 or backward()
+ *     /uis4 - getTop() or getStack().size() - 1 or reload()
+ *     /uis3 - getPriorTop() or getStack().size() - 2 or backward()
  *     /uis2
  *     /uis1
  * </pre>

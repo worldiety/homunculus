@@ -8,7 +8,8 @@
         android:supportsRtl="true"
         >
 
-        <activity android:name=".UnbreakableCrashHandler$RecoverActivity" />
+        <activity android:name=".UnbreakableCrashHandler$RecoverActivity"
+            android:exported="true"/>
 
         <provider
             android:name=".DefaultFileProvider"
