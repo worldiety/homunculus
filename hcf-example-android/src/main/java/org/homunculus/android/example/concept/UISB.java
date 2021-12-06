@@ -1,5 +1,5 @@
 package org.homunculus.android.example.concept;
-
+/*
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -20,9 +20,12 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 
+ */
+
 /**
  * Created by Torben Schinke on 16.03.18.
  */
+/*
 @Bind
 public class UISB extends View implements UncaughtExceptionHandler {
     private static AtomicInteger INSTANCE_COUNT = new AtomicInteger();
@@ -89,3 +92,6 @@ public class UISB extends View implements UncaughtExceptionHandler {
         LoggerFactory.getLogger(getClass()).info("was informed about a crash: {}", e.getMessage());
     }
 }
+
+
+ */

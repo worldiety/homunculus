@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'signing'
 
 //apply plugin: 'com.github.dcendents.android-maven'
 
@@ -31,6 +32,111 @@ android {
 
 
 apply plugin: 'maven-publish'
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+group = 'io.homunculus'
+
+/*
+task javadoc(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+}
+
+ */
+/*
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    archiveClassifier.set('javadoc')
+    from javadoc.destinationDir
+}
+
+ */
+
+task sourcesJar(type: Jar) {
+    duplicatesStrategy = 'include'
+    archiveClassifier.set('sources')
+    if (project.plugins.findPlugin("com.android.library")) {
+        // For Android libraries
+        from android.sourceSets.main.java.srcDirs
+    } else {
+        // For pure Kotlin libraries, in case you have them
+        from sourceSets.main.java.srcDirs
+    }
+}
+
+// add javadoc/source jar tasks as artifacts
+artifacts {
+    archives sourcesJar//, javadoc
+}
+
+
+afterEvaluate {
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                //groupId group
+                //artifactId project.name
+                //version project.version
+
+                if (project.plugins.findPlugin("com.android.library")) {
+                    from components.release
+                } else {
+                    from components.java
+                }
+                artifact sourcesJar
+                //artifact javadoc
+
+
+
+                pom {
+                    signing {
+                        sign publishing.publications.maven
+                        sign configurations.archives
+                    }
+                    name = project.name
+                    description = 'Building large scale Android Apps with homunculus'
+                    url = 'https://github.com/worldiety/homunculus'
+
+                    licenses {
+                        license {
+                            name = 'The Apache License, Version 2.0'
+                            url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        }
+                    }
+                    developers {
+                        developer {
+                            name = 'Christopher Heyn'
+                            email = 'Christopher.Heyn@worldiety.de'
+                        }
+                        developer {
+                            name = 'Torben Schinke'
+                            email = 'Torben.Schinke@worldiety.de'
+                        }
+                    }
+                    scm {
+                        connection = 'https://github.com/worldiety/homunculus.git'
+                        developerConnection = 'scm:git:ssh://github.com/worldiety/homunculus.git'
+                        url = 'https://github.com/worldiety/homunculus'
+                    }
+
+                }
+
+
+
+
+            }
+        }
+        repositories {
+            maven {
+                url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+                credentials {
+                    username = properties.getProperty('ossrhUsername')
+                    password = properties.getProperty('ossrhPassword')
+                }
+            }
+        }
+    }
+}
+
 
 
 
@@ -75,10 +181,15 @@ dependencies {
 }
 
 // Publishing
+/*
 ext {
     PUBLISH_GROUP_ID = 'io.homunculus'
     PUBLISH_ARTIFACT_ID = 'hcf-android-component'
     PUBLISH_VERSION = project.version
 }
 apply from: "${rootProject.projectDir}/scripts/publish-android-module.gradle"
+
+
+ */
+
 

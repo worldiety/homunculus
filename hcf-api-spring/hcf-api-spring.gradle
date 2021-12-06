@@ -1,13 +1,11 @@
-
-
 description = "subset of the spring api"
-
-
 
 dependencies {
     implementation 'com.google.code.findbugs:jsr305:3.0.2'
 }
+
 //publishing
+/*
 ext {
     PUBLISH_GROUP_ID = 'io.homunculus'
     PUBLISH_ARTIFACT_ID = 'hcf-api-spring'
@@ -15,3 +13,6 @@ ext {
 }
 
 apply from: "${rootProject.projectDir}/scripts/publish-module.gradle"
+
+
+ */

@@ -1,5 +1,3 @@
-
-
 buildscript {
     repositories {
         google()
@@ -32,7 +30,7 @@ allprojects {
         options.addStringOption('Xdoclint:none', '-quiet')
     }
     group = 'io.homunculus'
-    version = '0.0.105'
+    version = '0.0.106'
 
     gradle.projectsEvaluated {
         tasks.withType(JavaCompile) {
@@ -43,51 +41,39 @@ allprojects {
 
 }
 
+// Create variables with empty default values
+ext["ossrhUsername"] = ''
+ext["ossrhPassword"] = ''
+ext["sonatypeStagingProfileId"] = ''
+ext["signing.keyId"] = ''
+ext["signing.password"] = ''
+ext["signing.secretKeyRingFile"] = ''
+// ext["signing.key"] = System.getenv('SIGNING_KEY')
+
+File secretPropsFile = project.rootProject.file('local.properties')
+if (secretPropsFile.exists()) {
+    // Read local.properties file first if it exists
+    Properties p = new Properties()
+    new FileInputStream(secretPropsFile).withCloseable { is -> p.load(is) }
+    p.each { name, value -> ext[name] = value }
+} else {
+    // Use system environment variables
+    ext["ossrhUsername"] = System.getenv('OSSRH_USERNAME')
+    ext["ossrhPassword"] = System.getenv('OSSRH_PASSWORD')
+    ext["sonatypeStagingProfileId"] = System.getenv('SONATYPE_STAGING_PROFILE_ID')
+    ext["signing.keyId"] = System.getenv('SIGNING_KEY_ID')
+    ext["signing.password"] = System.getenv('SIGNING_PASSWORD')
+    ext["signing.secretKeyRingFile"] = System.getenv('SIGNING_SECRET_KEY_RING_FILE')
+}
+
 
 subprojects {
 
 
 }
+
 tasks.withType(GenerateModuleMetadata) {
     enabled = false
-}
-configure(allprojects) { project ->
-
-
-
-    if (!project.name.contains("android")) {
-
-        apply plugin: "java"
-
-
-        compileJava {
-            options.encoding = 'UTF-8'
-        }
-        repositories {
-            mavenCentral()
-        }
-
-        dependencies {
-            implementation 'com.google.code.findbugs:jsr305:3.0.2'
-            implementation 'org.slf4j:slf4j-api:1.7.30'
-            implementation 'com.android.support:multidex:1.0.3'
-
-        }
-
-
-    }
-
-    def artifactProjects = ['hcf-core', 'hcf-context', 'hcf-api-spring', 'hcf-codegen']
-
-
-    if (artifactProjects.contains(project.name)) {
-
-        dependencies {
-            implementation 'com.google.code.findbugs:jsr305:3.0.2'
-            implementation 'com.android.support:multidex:1.0.3'
-
-        }
-    }
 }
 configurations.all {
     resolutionStrategy.eachDependency { DependencyResolveDetails details ->
@@ -97,16 +83,124 @@ configurations.all {
                 details.useVersion "${targetSdk}.+"
             }
         }
-    }}
-/*
-java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
 }
 
- */
+configure(allprojects) { project ->
+    Properties properties = new Properties()
+    properties.load(project.rootProject.file('local.properties').newDataInputStream())
 
-apply from: "${rootDir}/scripts/publish-root.gradle"
+
+    if (!project.name.contains("android")) {
+        apply plugin: "java"
+        compileJava {
+            options.encoding = 'UTF-8'
+        }
+        repositories {
+            mavenCentral()
+        }
+        dependencies {
+            implementation 'com.google.code.findbugs:jsr305:3.0.2'
+            implementation 'org.slf4j:slf4j-api:1.7.30'
+            implementation 'com.android.support:multidex:1.0.3'
+        }
+
+    }
+    def artifactProjects = ['hcf-core', 'hcf-context', 'hcf-api-spring', 'hcf-codegen']
+    if (artifactProjects.contains(project.name)) {
+
+        apply plugin: 'maven-publish'
+        apply plugin: 'signing'
+
+        task sourcesJar(type: Jar) {
+            duplicatesStrategy = 'include'
+            archiveClassifier.set('sources')
+            from sourceSets.main.allSource
+        }
+
+        task javadocJar(type: Jar, dependsOn: javadoc) {
+            archiveClassifier.set('javadoc')
+            from javadoc.destinationDir
+        }
+        artifacts {
+            archives sourcesJar, javadocJar
+        }
+        afterEvaluate {
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        groupId group
+                        artifactId project.name
+                        version project.version
+
+                        if (project.plugins.hasPlugin('war')) {
+                            from components.web
+                        } else {
+                            from components.java
+                        }
+                        artifact sourcesJar
+                        artifact javadocJar
+
+                        pom {
+                            signing {
+                                sign publishing.publications.maven
+                                sign configurations.archives
+                            }
+                            name = project.name
+                            description = 'Building large scale Android Apps with homunculus'
+                            url = 'https://github.com/worldiety/homunculus'
+
+                            licenses {
+                                license {
+                                    name = 'The Apache License, Version 2.0'
+                                    url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                                }
+                            }
+                            developers {
+                                developer {
+                                    name = 'Christopher Heyn'
+                                    email = 'Christopher.Heyn@worldiety.de'
+                                }
+                                developer {
+                                    name = 'Torben Schinke'
+                                    email = 'Torben.Schinke@worldiety.de'
+                                }
+                            }
+                            scm {
+                                connection = 'https://github.com/worldiety/homunculus.git'
+                                developerConnection = 'scm:git:ssh://github.com/worldiety/homunculus.git'
+                                url = 'https://github.com/worldiety/homunculus'
+                            }
+
+                        }
+                    }
+                }
+                repositories {
+                    maven {
+                        url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+                        credentials {
+                            username = properties.getProperty('ossrhUsername')
+                            password = properties.getProperty('ossrhPassword')
+                        }
+                    }
+                }
+            }
+        }
+
+
+    }
+
+
+}
+
+
+
+
+
+//apply from: "${rootDir}/scripts/publish-root.gradle"
+
+
 
 
 

@@ -1,6 +1,6 @@
 package org.homunculus.android.example.concept;
 
-
+/*
 import android.content.Context;
 
 import org.homunculus.android.component.module.storage.Persistent;
@@ -13,9 +13,12 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+
+ */
 /**
  * Created by Torben Schinke on 16.03.18.
  */
+/*
 @Singleton
 public class ControllerA {
 
@@ -76,3 +79,6 @@ public class ControllerA {
         return null;
     }
 }
+
+
+ */

@@ -3,7 +3,7 @@ apply plugin: 'com.android.application'
 android {
     compileSdk 31
     defaultConfig {
-        applicationId "org.homunculus.android.example"
+        applicationId "io.homunculus.android.example"
         minSdkVersion 19
         targetSdkVersion 31
         versionCode 1
@@ -48,6 +48,10 @@ dependencies {
     implementation 'org.flywaydb:flyway-core:4.2.0'
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation project(path: ':hcf-context')
+    implementation project(path: ':hcf-android-component')
+    implementation project(path: ':hcf-android-core')
+    implementation project(path: ':hcf-core')
     androidTestImplementation('androidx.test.espresso:espresso-core:3.1.0', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })

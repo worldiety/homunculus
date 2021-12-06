@@ -1,4 +1,21 @@
-
 dependencies {
     implementation 'com.android.support.constraint:constraint-layout:+'
+    //hcf for android, also includes the core and context artifacts
+    implementation 'org.homunculusframework:hcf-android-core:0.0.x'
+
+    //advanced and optional hcf components for android
+    implementation 'org.homunculusframework:hcf-android-component:0.0.x'
+
+    //hcf spring annotation support, required by android-core by default
+    implementation 'org.homunculusframework:hcf-api-spring:0.0.x'
+
+    //this is for @inject or @named, required by android-core by default
+    implementation 'javax.inject:javax.inject:1'
+
+    //this is for @PostConstruct or @PreDestroy, required by android-core by default
+    implementation 'javax.annotation:jsr250-api:1.0'
+
+    //SLF4j is used by all hcf components, so provide a simple output to console
+    implementation 'org.slf4j:slf4j-simple:1.7.25'
+
 }

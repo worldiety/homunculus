@@ -22,6 +22,7 @@ dependencies {
 
 }
 //publishing
+/*
 ext {
     PUBLISH_GROUP_ID = 'io.homunculus'
     PUBLISH_ARTIFACT_ID = 'hcf-context'
@@ -29,3 +30,5 @@ ext {
 }
 
 apply from: "${rootProject.projectDir}/scripts/publish-module.gradle"
+
+ */

@@ -1,5 +1,5 @@
 package org.homunculus.android.example.concept;
-
+/*
 import android.app.Activity;
 import android.view.View;
 
@@ -11,10 +11,12 @@ import org.homunculusframework.navigation.Navigation;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
+ */
+
 /**
  * Created by Torben Schinke on 20.04.18.
  */
-
+/*
 @Bind
 public class UISC {
 
@@ -39,3 +41,6 @@ public class UISC {
         context.setContentView(toolbar.createToolbar(new View(context)));
     }
 }
+
+
+ */

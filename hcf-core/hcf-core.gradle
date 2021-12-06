@@ -3,13 +3,12 @@
 description = "homunculus Core"
 
 
-
-
 dependencies {
     implementation 'com.google.code.findbugs:jsr305:3.0.2'
     compileOnly 'org.slf4j:slf4j-simple:1.7.28'
 }
 //publishing
+/*
 ext {
     PUBLISH_GROUP_ID = 'io.homunculus'
     PUBLISH_ARTIFACT_ID = 'hcf-core'
@@ -17,3 +16,7 @@ ext {
 }
 
 apply from: "${rootProject.projectDir}/scripts/publish-module.gradle"
+
+ */
+
+

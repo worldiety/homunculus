@@ -1,5 +1,5 @@
 package org.homunculus.android.example.concept;
-
+/*
 import android.content.Context;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -25,9 +25,12 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 
+ */
+
 /**
  * Created by Torben Schinke on 16.03.18.
  */
+/*
 @Bind
 public class UISA extends LinearLayout {
     private static AtomicInteger INSTANCE_COUNT = new AtomicInteger();
@@ -177,3 +180,6 @@ public class UISA extends LinearLayout {
         LoggerFactory.getLogger(getClass()).info("instances: {}", INSTANCE_COUNT.decrementAndGet());
     }
 }
+
+
+ */

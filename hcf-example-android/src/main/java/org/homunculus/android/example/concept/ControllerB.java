@@ -1,14 +1,16 @@
 package org.homunculus.android.example.concept;
-
+/*
 import org.homunculusframework.factory.container.ModelAndView;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+
+ */
 /**
  * Created by Torben Schinke on 16.03.18.
  */
-@Singleton
+/*@Singleton
 public class ControllerB {
 
     @Inject
@@ -24,3 +26,6 @@ public class ControllerB {
         return new BindUISB(new UISBModel());
     }
 }
+
+
+ */

@@ -21,6 +21,7 @@ import android.content.Context;
 import org.homunculusframework.factory.scope.Scope;
 
 
+
 /**
  * Just provides an application with some helper methods. It does NOT
  * provide a {@link org.homunculus.android.core.AndroidScopeContext} by overloading {@link android.content.ContextWrapper#attachBaseContext(Context)} as

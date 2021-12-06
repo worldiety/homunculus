@@ -15,7 +15,6 @@ dependencies {
     implementation(project(":hcf-core"))
     implementation(project(":hcf-context"))
     implementation(project(":hcf-api-spring"))
-    //implementation(project(":hcf-android-component"))
 
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
 
@@ -46,11 +45,6 @@ jar {
     }
 }
 
-
-
-
-
-
 /*
 jar {
     manifest {
@@ -79,6 +73,7 @@ task fatJar(type: Jar) {
 
 
 //publishing
+/*
 ext {
     PUBLISH_GROUP_ID = 'io.homunculus'
     PUBLISH_ARTIFACT_ID = 'hcf-codegen'
@@ -86,3 +81,7 @@ ext {
 }
 
 apply from: "${rootProject.projectDir}/scripts/publish-module.gradle"
+
+
+ */
+
