@@ -30,7 +30,7 @@ allprojects {
         options.addStringOption('Xdoclint:none', '-quiet')
     }
     group = 'io.homunculus'
-    version = '0.0.106'
+    version = '0.0.107'
 
     gradle.projectsEvaluated {
         tasks.withType(JavaCompile) {
@@ -113,6 +113,15 @@ configure(allprojects) { project ->
         apply plugin: 'maven-publish'
         apply plugin: 'signing'
 
+        tasks.withType(Tar) {
+            duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        }
+
+        tasks.withType(Zip) {
+            duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        }
+
+
         task sourcesJar(type: Jar) {
             duplicatesStrategy = 'include'
             archiveClassifier.set('sources')
@@ -193,9 +202,6 @@ configure(allprojects) { project ->
 
 
 }
-
-
-
 
 
 //apply from: "${rootDir}/scripts/publish-root.gradle"

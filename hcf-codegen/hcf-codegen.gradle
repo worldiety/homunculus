@@ -7,6 +7,7 @@ mainClassName = "org.homunculus.codegen.Test"
 configurations {
     // configuration that holds jars to include in the jar
     extraLibs
+
 }
 
 
@@ -44,6 +45,7 @@ jar {
         configurations.extraLibs.collect { it.isDirectory() ? it : zipTree(it) }
     }
 }
+
 
 /*
 jar {

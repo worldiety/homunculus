@@ -93,7 +93,6 @@ afterEvaluate {
                         dependencyNode.appendNode('artifactId',  dep.name)
                         dependencyNode.appendNode('version', dep.version)
                         dependencyNode.appendNode('scope', scope)
-
                     }
 
                     configurations.api.getAllDependencies().each { dep -> addDependency(dep, "compile") }
