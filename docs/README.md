@@ -35,7 +35,8 @@ org.homunculusframework:hcf-api-spring:[ ![Download](https://api.bintray.com/pac
     compile 'javax.inject:javax.inject:1'
 
     //this is for @PostConstruct or @PreDestroy, required by android-core by default
-    compile 'javax.annotation:jsr250-api:1.0'
+    compile 'javax.annotation:javax.annotation-api:1.3.2
+'
     
     //SLF4j is used by all hcf components, so provide a simple output to console
     compile 'org.slf4j:slf4j-simple:1.7.25'

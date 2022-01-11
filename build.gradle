@@ -30,7 +30,7 @@ allprojects {
         options.addStringOption('Xdoclint:none', '-quiet')
     }
     group = 'io.homunculus'
-    version = '0.0.107'
+    version = '0.0.108'
 
     gradle.projectsEvaluated {
         tasks.withType(JavaCompile) {

@@ -1,5 +1,5 @@
 package org.homunculus.android.example.concept;
-/*
+
 import android.app.Activity;
 import android.os.Handler;
 import android.view.LayoutInflater;
@@ -9,8 +9,8 @@ import org.homunculusframework.factory.container.Binding;
 import org.homunculusframework.factory.flavor.hcf.Bind;
 import org.homunculusframework.navigation.Navigation;
 
- */
-/*
+
+
 @Bind
 public class InventorySplash extends Splash {
 
@@ -26,4 +26,3 @@ public class InventorySplash extends Splash {
     }
 }
 
- */

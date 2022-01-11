@@ -6,7 +6,7 @@ dependencies {
     implementation 'com.google.code.findbugs:jsr305:3.0.2'
     //avoid direct dependency for various jsr' standards, which may be provided already by the runtime
     compileOnly 'javax.inject:javax.inject:1'
-    compileOnly 'javax.annotation:jsr250-api:1.0'
+    compileOnly 'javax.annotation:javax.annotation-api:1.3.2'
 
     //jpa support
     compileOnly 'org.apache.geronimo.specs:geronimo-jpa_2.0_spec:1.1'

@@ -1,17 +1,18 @@
 package org.homunculus.android.example.concept;
-/*
+
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.view.View;
 
+import com.j256.ormlite.logger.LoggerFactory;
+
 import org.homunculus.android.component.ViewTransitionAnimator;
 import org.homunculus.android.example.R;
 import org.homunculus.android.example.my.packagename.TestView;
 import org.homunculus.android.flavor.Resource;
 import org.homunculusframework.factory.flavor.hcf.Bind;
-import org.slf4j.LoggerFactory;
 
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -20,12 +21,12 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 
- */
+
 
 /**
  * Created by Torben Schinke on 16.03.18.
  */
-/*
+
 @Bind
 public class UISB extends View implements UncaughtExceptionHandler {
     private static AtomicInteger INSTANCE_COUNT = new AtomicInteger();
@@ -94,4 +95,3 @@ public class UISB extends View implements UncaughtExceptionHandler {
 }
 
 
- */

@@ -1,24 +1,24 @@
 package org.homunculus.android.example.concept;
 
-/*
+
 import android.content.Context;
+
+import com.j256.ormlite.logger.LoggerFactory;
 
 import org.homunculus.android.component.module.storage.Persistent;
 import org.homunculusframework.concurrent.Cancellable;
 import org.homunculusframework.concurrent.NotInterruptible;
 import org.homunculusframework.factory.container.ModelAndView;
 import org.homunculusframework.factory.container.RequestContext;
-import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
 
- */
 /**
  * Created by Torben Schinke on 16.03.18.
  */
-/*
+
 @Singleton
 public class ControllerA {
 
@@ -81,4 +81,3 @@ public class ControllerA {
 }
 
 
- */

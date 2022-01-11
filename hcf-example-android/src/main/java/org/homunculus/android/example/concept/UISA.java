@@ -1,5 +1,5 @@
 package org.homunculus.android.example.concept;
-/*
+
 import android.content.Context;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -8,15 +8,15 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog.Builder;
 
+import com.j256.ormlite.logger.LoggerFactory;
+
 import org.homunculus.android.compat.EventAppCompatActivity;
 import org.homunculus.android.component.module.storage.Persistent;
 import org.homunculus.android.core.ActivityCallback;
 import org.homunculus.android.example.R;
-import org.homunculus.android.example.concept.AsyncControllerA.InvokeControllerANextUIS;
 import org.homunculusframework.factory.flavor.hcf.Bind;
 import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.navigation.Navigation;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -25,12 +25,12 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 
- */
+
 
 /**
  * Created by Torben Schinke on 16.03.18.
  */
-/*
+
 @Bind
 public class UISA extends LinearLayout {
     private static AtomicInteger INSTANCE_COUNT = new AtomicInteger();
@@ -133,12 +133,14 @@ public class UISA extends LinearLayout {
         addView(btn);
 
 
-        Button btn2 = new Button(getContext());
+        /*Button btn2 = new Button(getContext());
         btn2.setText("navigate through controller");
         btn2.setOnClickListener(v -> {
             navigation.forward(new InvokeControllerANextUIS("asdf"));
         });
         addView(btn2);
+
+         */
 
         Button btn3 = new Button(getContext());
         btn3.setText("say async hello");
@@ -182,4 +184,3 @@ public class UISA extends LinearLayout {
 }
 
 
- */

@@ -35,7 +35,7 @@ dependencies {
     implementation(project(":hcf-android-bootstrap"))
 
     //h2 is an embedded database
-    implementation 'com.h2database:h2:1.4.196'
+    implementation 'com.h2database:h2:2.0.206'
 
     //jpa annotations
     implementation 'org.apache.geronimo.specs:geronimo-jpa_2.0_spec:1.1'
@@ -45,20 +45,22 @@ dependencies {
     implementation 'com.j256.ormlite:ormlite-jdbc:5.0'
 
     //flyway support, for structured database migrations
-    implementation 'org.flywaydb:flyway-core:4.2.0'
+    implementation 'org.flywaydb:flyway-core:5.2.4'
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(path: ':hcf-context')
     implementation project(path: ':hcf-android-component')
     implementation project(path: ':hcf-android-core')
     implementation project(path: ':hcf-core')
+    implementation 'javax.inject:javax.inject:1'
+    implementation 'javax.annotation:javax.annotation-api:1.3.2'
     androidTestImplementation('androidx.test.espresso:espresso-core:3.1.0', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    implementation 'androidx.appcompat:appcompat:1.3.1'
+    implementation 'androidx.appcompat:appcompat:1.4.0'
     implementation 'com.google.android.material:material:1.4.0'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.2'
     testImplementation 'junit:junit:4.13.2'
 
 
