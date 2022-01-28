@@ -30,7 +30,7 @@ allprojects {
         options.addStringOption('Xdoclint:none', '-quiet')
     }
     group = 'io.homunculus'
-    version = '0.0.108'
+    version = '0.0.110'
 
     gradle.projectsEvaluated {
         tasks.withType(JavaCompile) {
@@ -103,7 +103,7 @@ configure(allprojects) { project ->
         dependencies {
             implementation 'com.google.code.findbugs:jsr305:3.0.2'
             implementation 'org.slf4j:slf4j-api:1.7.30'
-            implementation 'com.android.support:multidex:1.0.3'
+            implementation 'androidx.multidex:multidex:2.0.1'
         }
 
     }
@@ -168,10 +168,6 @@ configure(allprojects) { project ->
                             }
                             developers {
                                 developer {
-                                    name = 'Christopher Heyn'
-                                    email = 'Christopher.Heyn@worldiety.de'
-                                }
-                                developer {
                                     name = 'Torben Schinke'
                                     email = 'Torben.Schinke@worldiety.de'
                                 }
@@ -181,10 +177,22 @@ configure(allprojects) { project ->
                                 developerConnection = 'scm:git:ssh://github.com/worldiety/homunculus.git'
                                 url = 'https://github.com/worldiety/homunculus'
                             }
+                            pom.withXml {
+                                configurations.implementation.allDependencies.each {
+                                    if(it.group != null && (it.name != null || "unspecified".equals(it.name)) && it.version != null)
+                                    {
+                                        def dependencyNode = dependenciesNode.appendNode('dependency')
+                                        dependencyNode.appendNode('groupId', it.group)
+                                        dependencyNode.appendNode('artifactId', it.name)
+                                        dependencyNode.appendNode('version', it.version)
+                                    }
+                                }
+                            }
 
                         }
                     }
                 }
+
                 repositories {
                     maven {
                         url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")

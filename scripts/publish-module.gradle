@@ -59,10 +59,6 @@ afterEvaluate {
                     }
                     developers {
                         developer {
-                            name = 'Christopher Heyn'
-                            email = 'Christopher.Heyn@worldiety.de'
-                        }
-                        developer {
                             name = 'Torben Schinke'
                             email = 'Torben.Schinke@worldiety.de'
                         }

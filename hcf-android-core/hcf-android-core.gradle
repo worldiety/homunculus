@@ -99,7 +99,25 @@ afterEvaluate {
                 }
 
  */
+                pom.withXml {
+                    def sb = asString()
+                    sb.setLength 0
+                //    sb.append  file( "$buildDir/bom.pom" ).text
+                    println( sb.toString() )
+                    /*
+                    configurations.implementation.allDependencies.each {
+                        def depenciesNode = asNode().getAt('dependencies')[0] ?: asNode().appendNode('dependencies')
+                        if(it.group != null && (it.name != null || "unspecified".equals(it.name)) && it.version != null)
+                        {
+                            //def dependencyNode = dependenciesNode.appendNode('dependency')
+                            depenciesNode.appendNode('groupId', it.group)
+                            depenciesNode.appendNode('artifactId', it.name)
+                            depenciesNode.appendNode('version', it.version)
+                        }
+                    }
 
+                     */
+                }
 
 
                 pom {
@@ -119,10 +137,6 @@ afterEvaluate {
                     }
                     developers {
                         developer {
-                            name = 'Christopher Heyn'
-                            email = 'Christopher.Heyn@worldiety.de'
-                        }
-                        developer {
                             name = 'Torben Schinke'
                             email = 'Torben.Schinke@worldiety.de'
                         }
@@ -136,6 +150,7 @@ afterEvaluate {
                 }
             }
         }
+//        println configurations.runtime.allDependencies
         repositories {
             maven {
                 url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
@@ -160,6 +175,8 @@ dependencies {
     implementation 'junit:junit:4.13.2'
     implementation 'androidx.test:monitor:1.4.0'
     implementation 'androidx.test.ext:junit:1.1.3'
+    implementation 'androidx.multidex:multidex:2.0.1'
+
     androidTestImplementation('androidx.test.espresso:espresso-core:3.1.0', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
@@ -168,8 +185,9 @@ dependencies {
 
 //the logger
     compileOnly 'org.slf4j:slf4j-simple:1.7.28'
+    implementation 'androidx.multidex:multidex:2.0.1'
+    implementation 'androidx.core:core:1.7.0'
 
-    implementation 'com.android.support:multidex:1.0.3'
 }
 
 // Publishing

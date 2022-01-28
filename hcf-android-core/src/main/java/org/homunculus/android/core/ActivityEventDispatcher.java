@@ -22,7 +22,6 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.PersistableBundle;
 import android.view.ActionMode;
 import android.view.ActionMode.Callback;
 import android.view.KeyEvent;
@@ -347,7 +346,7 @@ public class ActivityEventDispatcher<T extends Activity> {
                 cb.onActivityCreate(activity, savedInstanceState);
             }
         }
-
+/*
         @Override
         public void onActivityCreate(T activity, Bundle savedInstanceState, PersistableBundle persistentState) {
             mSavedInstanceStateAtOnCreate = savedInstanceState;
@@ -355,6 +354,8 @@ public class ActivityEventDispatcher<T extends Activity> {
                 cb.onActivityCreate(activity, savedInstanceState, persistentState);
             }
         }
+
+ */
 
         @Override
         public boolean onActivityKeyLongPress(T activity, int keyCode, KeyEvent event) {
@@ -501,7 +502,7 @@ public class ActivityEventDispatcher<T extends Activity> {
 
         void onActivityCreate(T activity, Bundle savedInstanceState);
 
-        void onActivityCreate(T activity, Bundle savedInstanceState, PersistableBundle persistentState);
+        //void onActivityCreate(T activity, Bundle savedInstanceState, PersistableBundle persistentState);
 
         void onActivityPostCreate(T activity, Bundle savedInstanceState);
 
@@ -753,11 +754,13 @@ public class ActivityEventDispatcher<T extends Activity> {
         public void onActivityCreate(T activity, Bundle savedInstanceState) {
 
         }
-
+/*
         @Override
         public void onActivityCreate(T activity, Bundle savedInstanceState, PersistableBundle persistentState) {
 
         }
+
+ */
 
         @Override
         public void onActivityPostCreate(T activity, Bundle savedInstanceState) {

@@ -21,7 +21,6 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.PersistableBundle;
 import android.os.Process;
 import android.view.ActionMode;
 import android.view.ActionMode.Callback;
@@ -35,9 +34,6 @@ import android.view.View;
 
 import androidx.annotation.LayoutRes;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.multidex.MultiDex;
-
-
 
 import org.homunculus.android.core.ActivityEventDispatcher;
 import org.homunculus.android.core.ActivityEventOwner;
@@ -82,14 +78,16 @@ public class EventAppCompatActivity extends AppCompatActivity implements Activit
     public Scope getScope() {
         return null;
     }
-
+/*
     @Override
-    public void onCreate(Bundle savedInstanceState, PersistableBundle persistentState) {
-        super.onCreate(savedInstanceState, persistentState);
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         MultiDex.install(this);
         init();
-        mEventDispatcher.getEventDispatcher().onActivityCreate(this, savedInstanceState, persistentState);
+        mEventDispatcher.getEventDispatcher().onActivityCreate(this, savedInstanceState);
     }
+
+ */
 
 
     @Override
@@ -152,13 +150,15 @@ public class EventAppCompatActivity extends AppCompatActivity implements Activit
         super.onPostCreate(savedInstanceState);
         mEventDispatcher.getEventDispatcher().onActivityPostCreate(this, savedInstanceState);
     }
-
+/*
     @Override
-    public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
-        super.onSaveInstanceState(outState, outPersistentState);
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
 
     }
 
+
+ */
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);

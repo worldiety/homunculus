@@ -85,7 +85,25 @@ afterEvaluate {
                 artifact sourcesJar
                 //artifact javadoc
 
+                pom.withXml {
+                    def sb = asString()
+                    sb.setLength 0
+                  //  sb.append  file( "$buildDir/bom.pom" ).text
+                    println( sb.toString() )
+                    /*
+                    configurations.implementation.allDependencies.each {
+                        def depenciesNode = asNode().getAt('dependencies')[0] ?: asNode().appendNode('dependencies')
+                        if(it.group != null && (it.name != null || "unspecified".equals(it.name)) && it.version != null)
+                        {
+                            //def dependencyNode = dependenciesNode.appendNode('dependency')
+                            depenciesNode.appendNode('groupId', it.group)
+                            depenciesNode.appendNode('artifactId', it.name)
+                            depenciesNode.appendNode('version', it.version)
+                        }
+                    }
 
+                     */
+                }
 
                 pom {
                     signing {
@@ -104,10 +122,6 @@ afterEvaluate {
                     }
                     developers {
                         developer {
-                            name = 'Christopher Heyn'
-                            email = 'Christopher.Heyn@worldiety.de'
-                        }
-                        developer {
                             name = 'Torben Schinke'
                             email = 'Torben.Schinke@worldiety.de'
                         }
@@ -125,6 +139,7 @@ afterEvaluate {
 
             }
         }
+//        println configurations.runtime.allDependencies
         repositories {
             maven {
                 url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
