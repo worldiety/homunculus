@@ -30,7 +30,7 @@ allprojects {
         options.addStringOption('Xdoclint:none', '-quiet')
     }
     group = 'io.homunculus'
-    version = '0.0.110'
+    version = '0.0.118'
 
     gradle.projectsEvaluated {
         tasks.withType(JavaCompile) {
@@ -177,17 +177,7 @@ configure(allprojects) { project ->
                                 developerConnection = 'scm:git:ssh://github.com/worldiety/homunculus.git'
                                 url = 'https://github.com/worldiety/homunculus'
                             }
-                            pom.withXml {
-                                configurations.implementation.allDependencies.each {
-                                    if(it.group != null && (it.name != null || "unspecified".equals(it.name)) && it.version != null)
-                                    {
-                                        def dependencyNode = dependenciesNode.appendNode('dependency')
-                                        dependencyNode.appendNode('groupId', it.group)
-                                        dependencyNode.appendNode('artifactId', it.name)
-                                        dependencyNode.appendNode('version', it.version)
-                                    }
-                                }
-                            }
+
 
                         }
                     }
