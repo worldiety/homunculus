@@ -39,8 +39,8 @@ public interface Annotation {
     /**
      * Tries to return the constant expression
      *
-     * @param key
-     * @return
+     * @param key tbd
+     * @return  tbd
      */
     @Nullable
     FullQualifiedName getConstant(String key);

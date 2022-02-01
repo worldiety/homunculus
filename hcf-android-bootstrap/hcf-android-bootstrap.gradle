@@ -60,6 +60,16 @@ task sourcesJar(type: Jar) {
     }
 }
 
+task androidJavadocs(type: Javadoc, dependsOn: 'assembleRelease') {
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    android.libraryVariants.all { variant ->
+        if (variant.name == 'release') {
+            owner.classpath += variant.javaCompileProvider.get().classpath
+        }
+    }
+    source = android.sourceSets.main.java.srcDirs
+    exclude '**/R.html', '**/R.*.html', '**/index.html'
+}
 
 // add javadoc/source jar tasks as artifacts
 artifacts {

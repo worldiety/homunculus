@@ -24,7 +24,6 @@ android {
     }
 
 
-
     lintOptions {
         abortOnError false
     }
@@ -43,12 +42,27 @@ task javadoc(type: Javadoc) {
 }
 
 
+
+
+
+
 task javadocJar(type: Jar, dependsOn: javadoc) {
     archiveClassifier.set('javadoc')
     from javadoc.destinationDir
 }
 
 
+
+task androidJavadocs(type: Javadoc, dependsOn: 'assembleRelease') {
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    android.libraryVariants.all { variant ->
+        if (variant.name == 'release') {
+            owner.classpath += variant.javaCompileProvider.get().classpath
+        }
+    }
+    source = android.sourceSets.main.java.srcDirs
+    exclude '**/R.html', '**/R.*.html', '**/index.html'
+}
 
 task sourcesJar(type: Jar) {
     duplicatesStrategy = 'include'
@@ -64,7 +78,8 @@ task sourcesJar(type: Jar) {
 
 // add javadoc/source jar tasks as artifacts
 artifacts {
-    archives sourcesJar, javadocJar
+    archives sourcesJar//, javadocJar
+
 }
 
 
@@ -82,7 +97,8 @@ afterEvaluate {
                     from components.java
                 }
                 artifact sourcesJar
-                artifact javadocJar
+//                artifact androidJavadocsJar
+                //artifact javadocJar
 
                 pom.withXml {
                     def depenciesNode = asNode().getAt('dependencies')[0] ?: asNode().appendNode('dependencies')
@@ -125,8 +141,6 @@ afterEvaluate {
                 }
 
 
-
-
             }
         }
 //        println configurations.runtime.allDependencies
@@ -143,8 +157,6 @@ afterEvaluate {
 }
 
 
-
-
 dependencies {
     implementation(project(":hcf-core"))
     implementation(project(":hcf-context"))
@@ -153,7 +165,7 @@ dependencies {
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'org.jetbrains:annotations:20.1.0'
-    implementation 'androidx.test:monitor:1.4.0'
+    implementation 'androidx.test:monitor:1.5.0'
     implementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation('androidx.test.espresso:espresso-core:3.1.0', {
         exclude group: 'com.android.support', module: 'support-annotations'
@@ -180,7 +192,6 @@ dependencies {
     compileOnly 'org.slf4j:slf4j-simple:1.7.28'
 
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-
 
 
     //testImplementation group: 'junit', name: 'junit', version:'4.13.2'

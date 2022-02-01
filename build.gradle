@@ -5,7 +5,7 @@ buildscript {
 
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.0.2'
+        classpath 'com.android.tools.build:gradle:7.0.4'
         classpath 'io.github.gradle-nexus:publish-plugin:1.1.0'
 
     }
@@ -19,18 +19,19 @@ plugins {
 
 allprojects {
     repositories {
-        //jcenter()
         mavenCentral()
         google()
         maven { url "https://s01.oss.sonatype.org/content/repositories/snapshots" }
         maven { url "https://plugins.gradle.org/m2/" }
     }
-
+/*
     tasks.withType(Javadoc) {
         options.addStringOption('Xdoclint:none', '-quiet')
     }
+
+ */
     group = 'io.homunculus'
-    version = '0.0.118'
+    version = '0.0.122'
 
     gradle.projectsEvaluated {
         tasks.withType(JavaCompile) {
@@ -71,10 +72,12 @@ subprojects {
 
 
 }
-
+/*
 tasks.withType(GenerateModuleMetadata) {
     enabled = false
 }
+
+ */
 configurations.all {
     resolutionStrategy.eachDependency { DependencyResolveDetails details ->
         def requested = details.requested
@@ -107,12 +110,20 @@ configure(allprojects) { project ->
         }
 
     }
+
+    compileJava {
+        sourceCompatibility = 1.8
+        targetCompatibility = 1.8
+        options.encoding = 'UTF-8'
+
+
+    }
     def artifactProjects = ['hcf-core', 'hcf-context', 'hcf-api-spring', 'hcf-codegen']
     if (artifactProjects.contains(project.name)) {
 
         apply plugin: 'maven-publish'
         apply plugin: 'signing'
-
+/*
         tasks.withType(Tar) {
             duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         }
@@ -121,6 +132,8 @@ configure(allprojects) { project ->
             duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         }
 
+
+ */
 
         task sourcesJar(type: Jar) {
             duplicatesStrategy = 'include'
