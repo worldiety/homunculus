@@ -11,7 +11,7 @@ import org.homunculus.android.component.module.validator.conversionAdapters.Stri
 import org.homunculus.android.component.module.validator.conversionAdapters.StringToTextInputLayoutAdapter;
 
 /**
- * {@link ModelViewPopulator<T>} with default conversion adapters
+ * ModelViewPopulator T with default conversion adapters
  * <p>
  * Created by aerlemann on 19.02.18.
  */

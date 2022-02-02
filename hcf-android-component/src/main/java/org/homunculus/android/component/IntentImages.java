@@ -100,7 +100,7 @@ public class IntentImages implements Destroyable {
         if (this.events != null) {
             events.register(callback);
         }
-
+        scope.addDestroyCallback(lifecycleOwner -> IntentImages.this.destroy());
     }
 
     /**

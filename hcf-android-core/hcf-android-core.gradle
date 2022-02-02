@@ -30,7 +30,21 @@ android {
 Properties properties = new Properties()
 properties.load(project.rootProject.file('local.properties').newDataInputStream())
 group = 'io.homunculus'
-/*
+//group = "org.homunculusframework"
+
+task sourcesJar(type: Jar) {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    archiveClassifier.set('sources')
+    // if (project.plugins.findPlugin("com.android.library")) {
+    // For Android libraries
+    from android.sourceSets.main.java.srcDirs
+    //  } else {
+    // For pure Kotlin libraries, in case you have them
+    //      from sourceSets.main.java.srcDirs
+    //  }
+}
+
+
 
 task javadoc(type: Javadoc) {
     source = android.sourceSets.main.java.srcDirs
@@ -45,30 +59,7 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
 }
 
 
- */
-task androidJavadocs(type: Javadoc, dependsOn: 'assembleRelease') {
-    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-    android.libraryVariants.all { variant ->
-        if (variant.name == 'release') {
-            owner.classpath += variant.javaCompileProvider.get().classpath
-        }
-    }
-    source = android.sourceSets.main.java.srcDirs
-    exclude '**/R.html', '**/R.*.html', '**/index.html'
-}
 
-
-task sourcesJar(type: Jar) {
-    duplicatesStrategy = 'include'
-    archiveClassifier.set('sources')
-    if (project.plugins.findPlugin("com.android.library")) {
-        // For Android libraries
-        from android.sourceSets.main.java.srcDirs
-    } else {
-        // For pure Kotlin libraries, in case you have them
-        from sourceSets.main.java.srcDirs
-    }
-}
 
 
 // add javadoc/source jar tasks as artifacts

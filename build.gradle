@@ -31,7 +31,7 @@ allprojects {
 
  */
     group = 'io.homunculus'
-    version = '0.0.122'
+    version = '0.0.127'
 
     gradle.projectsEvaluated {
         tasks.withType(JavaCompile) {
@@ -72,6 +72,7 @@ subprojects {
 
 
 }
+
 /*
 tasks.withType(GenerateModuleMetadata) {
     enabled = false
@@ -120,6 +121,7 @@ configure(allprojects) { project ->
     }
     def artifactProjects = ['hcf-core', 'hcf-context', 'hcf-api-spring', 'hcf-codegen']
     if (artifactProjects.contains(project.name)) {
+        //group = "org.homunculusframework"
 
         apply plugin: 'maven-publish'
         apply plugin: 'signing'
@@ -134,9 +136,19 @@ configure(allprojects) { project ->
 
 
  */
+        /*
+        task buildDist(type: Zip) {
+            into 'jars'
+            from { subprojects.configurations.runtime }
+            from { subprojects.jar }
+            duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        }
 
-        task sourcesJar(type: Jar) {
-            duplicatesStrategy = 'include'
+         */
+
+        task sourcesJar(type: Jar, dependsOn: classes) {
+            //duplicatesStrategy = 'include'
+            duplicatesStrategy = DuplicatesStrategy.EXCLUDE;
             archiveClassifier.set('sources')
             from sourceSets.main.allSource
         }

@@ -892,7 +892,7 @@ public class ActivityEventDispatcher<T extends Activity> {
     /**
      * See the following diagram to remember the lifecycle:
      * <p>
-     * <img src="http://developer.android.com/images/activity_lifecycle.png"/>
+     * <img src="http://developer.android.com/images/activity_lifecycle.png" alt="image not found">
      */
     public enum ActivityStatus {
         Launching,

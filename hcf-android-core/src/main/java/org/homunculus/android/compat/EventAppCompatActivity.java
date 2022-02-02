@@ -16,7 +16,6 @@
 package org.homunculus.android.compat;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.net.Uri;
@@ -37,7 +36,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import org.homunculus.android.core.ActivityEventDispatcher;
 import org.homunculus.android.core.ActivityEventOwner;
-import org.homunculusframework.factory.scope.ContextScope;
 import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.navigation.Navigation;
 import org.jetbrains.annotations.Nullable;
@@ -73,7 +71,7 @@ public class EventAppCompatActivity extends AppCompatActivity implements Activit
 
 
     /**
-     * Returns the scope of this activity. Equal to {@link ContextScope#getScope(Context)} on "this"
+     * Returns the scope of this activity.
      */
     public Scope getScope() {
         return null;

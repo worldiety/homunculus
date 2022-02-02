@@ -125,7 +125,7 @@ public class ModelViewPopulator<T> {
      *
      * @param dst    view or viewgroup, if view it's id is matched against the according field in dst
      * @param errors a {@link BindingResult} created by the {@link HomunculusValidator}
-     * @return a {@link BindingResult <T>} with errors, which could not be set to a View in dst (either because unsupported, or because it is an error not created by
+     * @return a {@link BindingResult T} with errors, which could not be set to a View in dst (either because unsupported, or because it is an error not created by
      * {@link HomunculusValidator}.
      */
     public BindingResult<T> insertErrorState(View dst, BindingResult<T> errors) {
