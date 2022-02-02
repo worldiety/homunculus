@@ -6,15 +6,15 @@ Homunculus makes it easy to create production-grade applications and services wi
 ## Latest versions
 #TODO Update Readme
 
-org.homunculusframework:hcf-core:[ ![Download](https://api.bintray.com/packages/worldiety/homunculus/hcf-core/images/download.svg) ](https://bintray.com/worldiety/homunculus/hcf-core/_latestVersion)
+io.homunculus:hcf-core:[ ![Download](https://api.bintray.com/packages/worldiety/homunculus/hcf-core/images/download.svg) ](https://search.maven.org/artifact/io.homunculus/hcf-core)
 
-org.homunculusframework:hcf-context:[ ![Download](https://api.bintray.com/packages/worldiety/homunculus/hcf-context/images/download.svg) ](https://bintray.com/worldiety/homunculus/hcf-context/_latestVersion)
+io.homunculus:hcf-context:[ ![Download](https://api.bintray.com/packages/worldiety/homunculus/hcf-context/images/download.svg) ](https://search.maven.org/artifact/io.homunculus/hcf-context)
 
-org.homunculusframework:hcf-android-component:[ ![Download](https://api.bintray.com/packages/worldiety/homunculus/hcf-android-component/images/download.svg) ](https://bintray.com/worldiety/homunculus/hcf-android-component/_latestVersion)
+io.homunculus:hcf-android-component:[ ![Download](https://api.bintray.com/packages/worldiety/homunculus/hcf-android-component/images/download.svg) ](https://search.maven.org/artifact/io.homunculus/hcf-android-component)
 
-org.homunculusframework:hcf-android-core:[ ![Download](https://api.bintray.com/packages/worldiety/homunculus/hcf-android-core/images/download.svg) ](https://bintray.com/worldiety/homunculus/hcf-android-core/_latestVersion)
+io.homunculus:hcf-android-core:[ ![Download](https://api.bintray.com/packages/worldiety/homunculus/hcf-android-core/images/download.svg) ](https://search.maven.org/artifact/io.homunculus/hcf-android-core)
 
-org.homunculusframework:hcf-api-spring:[ ![Download](https://api.bintray.com/packages/worldiety/homunculus/hcf-api-spring/images/download.svg) ](https://bintray.com/worldiety/homunculus/hcf-api-spring/_latestVersion)
+io.homunculus:hcf-api-spring:[ ![Download](https://api.bintray.com/packages/worldiety/homunculus/hcf-api-spring/images/download.svg) ](https://search.maven.org/artifact/io.homunculus/hcf-api-spring)
 
 ## Usage
 
@@ -23,23 +23,23 @@ org.homunculusframework:hcf-api-spring:[ ![Download](https://api.bintray.com/pac
 
 ```groovy
     //hcf for android, also includes the core and context artifacts
-    compile 'org.homunculusframework:hcf-android-core:0.0.x'
-    
+    implementation group: 'io.homunculus', name: 'hcf-android-core', version: '0.0.+'
+
     //advanced and optional hcf components for android
-    compile 'org.homunculusframework:hcf-android-component:0.0.x'
-    
+    implementation group: 'io.homunculus', name: 'hcf-android-component', version: '0.0.+'
+
     //hcf spring annotation support, required by android-core by default
-    compile 'org.homunculusframework:hcf-api-spring:0.0.x'
+    implementation group: 'io.homunculus', name: 'hcf-api-spring', version: '0.0.+'
     
      //this is for @inject or @named, required by android-core by default
-    compile 'javax.inject:javax.inject:1'
+    implementation 'javax.inject:javax.inject:1'
 
     //this is for @PostConstruct or @PreDestroy, required by android-core by default
-    compile 'javax.annotation:javax.annotation-api:1.3.2
+    implementation 'javax.annotation:javax.annotation-api:1.3.2
 '
     
     //SLF4j is used by all hcf components, so provide a simple output to console
-    compile 'org.slf4j:slf4j-simple:1.7.25'
+    implementation 'org.slf4j:slf4j-simple:1.7.25'
     
 ```
 
