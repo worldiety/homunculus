@@ -5,7 +5,8 @@ import org.homunculusframework.annotations.Unfinished;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolation;
+
 
 /**
  * Result, which wraps {@link ConstraintViolation} into the slimmer {@link FieldSpecificValidationError} and allows adding additional custom errors

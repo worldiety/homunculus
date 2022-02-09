@@ -19,7 +19,7 @@ dependencies {
 
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
 
-    implementation 'com.github.javaparser:javaparser-core:3.17.0'
+    implementation 'com.github.javaparser:javaparser-core:3.18.0'
     implementation 'com.github.javaparser:java-symbol-solver-core:0.6.3'
     implementation 'com.helger:jcodemodel:3.0.1'
     implementation 'com.google.android:android:4.1.1.4'
@@ -67,8 +67,20 @@ task fatJar(type: Jar) {
 
  */
 
+/*
+tasks.withType {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    archiveClassifier.set('sources')
+    // if (project.plugins.findPlugin("com.android.library")) {
+    // For Android libraries
+    from android.sourceSets.main.java.srcDirs
+    //  } else {
+    // For pure Kotlin libraries, in case you have them
+    //      from sourceSets.main.java.srcDirs
+    //  }
+}
 
-
+ */
 
 
 
@@ -87,3 +99,8 @@ apply from: "${rootProject.projectDir}/scripts/publish-module.gradle"
 
  */
 
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}

@@ -24,7 +24,6 @@ import javax.annotation.Nullable;
 
 /**
  * Miscellaneous object utility methods.
- * <p>
  * <p>Mainly for internal use within the framework.
  * <p>
  * <p>Thanks to Alex Ruiz for contributing several enhancements to this class!

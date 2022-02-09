@@ -32,13 +32,13 @@ import android.view.SearchEvent;
 import android.view.View;
 
 import androidx.annotation.LayoutRes;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import org.homunculus.android.core.ActivityEventDispatcher;
 import org.homunculus.android.core.ActivityEventOwner;
 import org.homunculusframework.factory.scope.Scope;
 import org.homunculusframework.navigation.Navigation;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.LoggerFactory;
 
 /**

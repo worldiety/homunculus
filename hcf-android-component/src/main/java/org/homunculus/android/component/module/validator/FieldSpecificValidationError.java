@@ -2,14 +2,13 @@ package org.homunculus.android.component.module.validator;
 
 import androidx.annotation.Nullable;
 
-
-
 import org.homunculusframework.annotations.Unfinished;
 import org.junit.Assert;
 import org.springframework.util.ObjectUtils;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.constraints.NotNull;
+
 
 /**
  * Simple error-class offering easy access to the important parameters (for validation). If more details are needed, the underlying {@link ConstraintViolation} can
@@ -33,7 +32,7 @@ public class FieldSpecificValidationError<T> {
     /**
      * Create a new ValidationError instance.
      *
-     * @param violation the underlying underlyingViolation, coming from {@link javax.validation.Validator#validate(Object, Class[])}
+     * @param violation the underlying underlyingViolation, coming from {@link jakarta.validation.Validator#validate(Object, Class[])}
      */
     public FieldSpecificValidationError(@NotNull ConstraintViolation<T> violation) {
         super();
@@ -106,8 +105,8 @@ public class FieldSpecificValidationError<T> {
     }
 
     /**
-     * Returns the underlying ConstraintViolation, coming from {@link javax.validation.Validator#validate(Object, Class[])} or null, if the error is not coming
-     * from {@link javax.validation.Validator#validate(Object, Class[])}
+     * Returns the underlying ConstraintViolation, coming from {@link jakarta.validation.Validator#validate(Object, Class[])} or null, if the error is not coming
+     * from {@link jakarta.validation.Validator#validate(Object, Class[])}
      *
      * @return
      */

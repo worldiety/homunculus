@@ -4,7 +4,7 @@ android {
     compileSdk 31
     defaultConfig {
         applicationId "io.homunculus.android.example"
-        minSdkVersion 19
+        minSdkVersion 21
         targetSdkVersion 31
         versionCode 1
         multiDexEnabled true
@@ -22,12 +22,22 @@ android {
         abortOnError false
     }
 
+
 }
 android {
     sourceSets {
         main {
             java.srcDirs += file("${project.buildDir.path}/generated/source/hcf/")
         }
+    }
+}
+
+android {
+    packagingOptions {
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/NOTICE'
     }
 }
 

@@ -145,7 +145,6 @@ dependencies {
     implementation(project(":hcf-context"))
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'org.jetbrains:annotations:23.0.0'
     implementation 'junit:junit:4.13.2'
     implementation 'androidx.test:monitor:1.5.0'
     implementation 'androidx.test.ext:junit:1.1.3'

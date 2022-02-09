@@ -17,7 +17,7 @@ package org.homunculus.android.component.module.storage;
 
 import android.content.Context;
 
-import org.jetbrains.annotations.Nullable;
+import androidx.annotation.Nullable;
 
 import org.homunculusframework.factory.serializer.Serializable;
 import org.homunculusframework.factory.serializer.Serializer;
