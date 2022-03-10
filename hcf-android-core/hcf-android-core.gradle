@@ -96,6 +96,10 @@ afterEvaluate {
 
                 pom {
                     signing {
+                        setRequired {
+                            // signing is only required if the artifacts are to be published
+                            gradle.taskGraph.allTasks.any { it.equals( PublishToMavenRepository) }
+                        }
                         sign publishing.publications.maven
                         sign configurations.archives
                     }

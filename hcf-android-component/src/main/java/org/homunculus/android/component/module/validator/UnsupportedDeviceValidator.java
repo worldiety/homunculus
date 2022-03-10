@@ -9,18 +9,10 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.executable.ExecutableValidator;
 import javax.validation.metadata.BeanDescriptor;
-/*
-import java.util.Set;
 
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.Validator;
-import jakarta.validation.executable.ExecutableValidator;
-import jakarta.validation.metadata.BeanDescriptor;
-
- */
 
 /**
- * Some devices are not supported by {@link org.hibernate.validator.HibernateValidator}. This is a mock implementation for unsupported devices.
+ * Some devices are not supported by {@link javax.validation.Validator}. This is a mock implementation for unsupported devices.
  *
  * Created by aerlemann on 07.03.18.
  */

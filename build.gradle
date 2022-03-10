@@ -31,7 +31,7 @@ allprojects {
 
  */
     group = 'io.homunculus'
-    version = '0.0.134'
+    version = '0.0.136'
 
     gradle.projectsEvaluated {
         tasks.withType(JavaCompile) {
@@ -46,9 +46,9 @@ allprojects {
 ext["ossrhUsername"] = ''
 ext["ossrhPassword"] = ''
 ext["sonatypeStagingProfileId"] = ''
-ext["signing.keyId"] = ''
-ext["signing.password"] = ''
-ext["signing.secretKeyRingFile"] = ''
+ext["keyId"] = ''
+ext["password"] = ''
+ext["secretKeyRingFile"] = ''
 // ext["signing.key"] = System.getenv('SIGNING_KEY')
 
 File secretPropsFile = project.rootProject.file('local.properties')
@@ -114,12 +114,14 @@ configure(allprojects) { project ->
 
     }
 
-
+/*
     compileJava {
         sourceCompatibility = 11
         targetCompatibility = 11
         options.encoding = 'UTF-8'
     }
+
+ */
     def artifactProjects = ['hcf-core', 'hcf-context', 'hcf-api-spring', 'hcf-codegen']
     if (artifactProjects.contains(project.name)) {
         //group = "org.homunculusframework"
@@ -179,6 +181,10 @@ configure(allprojects) { project ->
 
                         pom {
                             signing {
+                                setRequired {
+                                    // signing is only required if the artifacts are to be published
+                                    gradle.taskGraph.allTasks.any { it.equals( PublishToMavenRepository) }
+                                }
                                 sign publishing.publications.maven
                                 sign configurations.archives
                             }
@@ -239,3 +245,8 @@ configure(allprojects) { project ->
 
 
 
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}

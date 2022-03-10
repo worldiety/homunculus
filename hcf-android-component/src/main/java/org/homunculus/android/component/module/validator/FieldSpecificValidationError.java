@@ -17,7 +17,7 @@ import jakarta.validation.constraints.NotNull;
 
 /**
  * Simple error-class offering easy access to the important parameters (for validation). If more details are needed, the underlying {@link ConstraintViolation} can
- * be accessed via {@link #getUnderlyingViolation()}, if the error is coming from the {@link org.hibernate.validator.HibernateValidator}.
+ * be accessed via {@link #getUnderlyingViolation()}, if the error is coming from the {@link javax.validation.Validator}.
  * <p>
  * Created by aerlemann on 05.02.18.
  */

@@ -1,11 +1,11 @@
-include 'hcf-android-bootstrap'
-include "hcf-core"
-include "hcf-context"
-include "hcf-example-android"
-include "hcf-android-core"
-include "hcf-android-component"
-include "hcf-api-spring"
-include "hcf-codegen"
+include ':hcf-android-bootstrap'
+include ':hcf-core'
+include ':hcf-context'
+include ':hcf-example-android'
+include ':hcf-android-core'
+include ':hcf-android-component'
+include ':hcf-api-spring'
+include ':hcf-codegen'
 
 rootProject.name = 'homunculus'
 rootProject.children.each {project ->

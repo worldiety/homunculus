@@ -17,14 +17,6 @@ import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 import javax.validation.groups.Default;
 
-/*
-import jakarta.validation.Configuration;
-import jakarta.validation.MessageInterpolator;
-import jakarta.validation.Validation;
-import jakarta.validation.Validator;
-import jakarta.validation.ValidatorFactory;
-
- */
 
 /**
  * This class is basically just {@link Validator} initialized with a given configuration. It also wraps the result of {@link Validator#validate(Object, Class[])}
@@ -35,10 +27,10 @@ import jakarta.validation.ValidatorFactory;
 @Unfinished
 @Singleton
 public class HomunculusValidator {
-    private final Validator hibernateValidator;
+    private final Validator validator;
 
     /**
-     * Creates the default validator. Error messages from e.g. {@link org.hibernate.validator.constraints.NotEmpty} are returned as they are.
+     * Creates the default validator. Error messages from e.g. {@link javax.validation.constraints.NotEmpty} are returned as they are.
      *
      * @return a {@link HomunculusValidator} with the default configuration
      */
@@ -48,7 +40,7 @@ public class HomunculusValidator {
 
     /**
      * Creates a validator, which interpolates messages, so that the values defined in a strings.xml are used.
-     * Error messages from e.g. {@link org.hibernate.validator.constraints.NotEmpty} are interpreted as string names defined in a strings.xml in the
+     * Error messages from e.g. {@link javax.validation.constraints.NotEmpty} are interpreted as string names defined in a strings.xml in the
      * Android resource directory. The address from the string name is resolved via {@link android.content.res.Resources#getIdentifier(String, String, String)}
      * and afterwards the localized string is returned via {@link Context#getString(int)}
      *
@@ -89,11 +81,11 @@ public class HomunculusValidator {
             ValidatorFactory validatorFactory = validationConfig.buildValidatorFactory();
             validator = validatorFactory.getValidator();
         } catch (ExceptionInInitializerError e) {
-            LoggerFactory.getLogger(this.getClass()).error("Could not initialize HibernateValidator on this device! Validation via HibernateValidator will not work!", e);
+            LoggerFactory.getLogger(this.getClass()).error("Could not initialize Validator on this device! Validation via Validator will not work!", e);
             validator = new UnsupportedDeviceValidator();
         }
 
-        hibernateValidator = validator;
+        this.validator = validator;
     }
 
     /**
@@ -109,6 +101,6 @@ public class HomunculusValidator {
      *                                  during the validation process
      */
     public <T> BindingResult<T> validate(T object, Class<?>... groups) {
-        return new BindingResult<>(hibernateValidator.validate(object, groups));
+        return new BindingResult<>(validator.validate(object, groups));
     }
 }
