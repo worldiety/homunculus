@@ -31,7 +31,7 @@ allprojects {
 
  */
     group = 'io.homunculus'
-    version = '0.0.136'
+    version = '0.0.140'
 
     gradle.projectsEvaluated {
         tasks.withType(JavaCompile) {
@@ -52,7 +52,13 @@ ext["secretKeyRingFile"] = ''
 // ext["signing.key"] = System.getenv('SIGNING_KEY')
 
 File secretPropsFile = project.rootProject.file('local.properties')
-if (secretPropsFile.exists()) {
+ext["ossrhUsername"] = System.getenv('OSSRH_USERNAME')
+ext["ossrhPassword"] = System.getenv('OSSRH_PASSWORD')
+ext["sonatypeStagingProfileId"] = System.getenv('SONATYPE_STAGING_PROFILE_ID')
+ext["signing.keyId"] = System.getenv('SIGNING_KEY_ID')
+ext["signing.password"] = System.getenv('SIGNING_PASSWORD')
+ext["signing.secretKeyRingFile"] = System.getenv('SIGNING_SECRET_KEY_RING_FILE')
+/*if (secretPropsFile.exists()) {
     // Read local.properties file first if it exists
     Properties p = new Properties()
     new FileInputStream(secretPropsFile).withCloseable { is -> p.load(is) }
@@ -65,7 +71,7 @@ if (secretPropsFile.exists()) {
     ext["signing.keyId"] = System.getenv('SIGNING_KEY_ID')
     ext["signing.password"] = System.getenv('SIGNING_PASSWORD')
     ext["signing.secretKeyRingFile"] = System.getenv('SIGNING_SECRET_KEY_RING_FILE')
-}
+}*/
 
 
 subprojects {

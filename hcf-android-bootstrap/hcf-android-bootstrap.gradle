@@ -31,8 +31,6 @@ apply plugin: 'maven-publish'
 Properties properties = new Properties()
 properties.load(project.rootProject.file('local.properties').newDataInputStream())
 group = 'io.homunculus'
-//group = "org.homunculusframework"
-
 task sourcesJar(type: Jar) {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     archiveClassifier.set('sources')
