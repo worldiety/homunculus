@@ -358,7 +358,7 @@ public class JPResolver implements Resolver {
             }
 //            System.out.println("IsInstanceOf cannot resolve class " + what + " (" + which + ")");
             return false;
-        } catch (NoClassDefFoundError e) {
+        } catch (NoClassDefFoundError | ExceptionInInitializerError e) {
 //            System.out.println("NOCLASSDEF: IsInstanceOf cannot resolve class " + what + " (" + which + ")");
             return false;
         }
